@@ -116,17 +116,17 @@ export default function PretaxeIntelligente() {
   
   // Barème usufruit selon l'âge (Article 669 CGI)
 const calculerUsufruit = (age: string | number) => {
-    const ageNum = parseInt(age);
-    if (ageNum < 21) return 90;
-    if (ageNum < 31) return 80;
-    if (ageNum < 41) return 70;
-    if (ageNum < 51) return 60;
-    if (ageNum < 61) return 50;
-    if (ageNum < 71) return 40;
-    if (ageNum < 81) return 30;
-    if (ageNum < 91) return 20;
-    return 10;
-  };
+  const ageNum = parseInt(String(age));
+  if (ageNum < 21) return 90;
+  if (ageNum < 31) return 80;
+  if (ageNum < 41) return 70;
+  if (ageNum < 51) return 60;
+  if (ageNum < 61) return 50;
+  if (ageNum < 71) return 40;
+  if (ageNum < 81) return 30;
+  if (ageNum < 91) return 20;
+  return 10;
+};
 
   const departements = {
     '01': { nom: 'Ain', taux: 4.50 },
