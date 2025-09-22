@@ -115,7 +115,7 @@ export default function PretaxeIntelligente() {
   };
   
   // Barème usufruit selon l'âge (Article 669 CGI)
-  const calculerUsufruit = (age) => {
+const calculerUsufruit = (age: string | number) => {
     const ageNum = parseInt(age);
     if (ageNum < 21) return 90;
     if (ageNum < 31) return 80;
