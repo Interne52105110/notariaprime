@@ -1,0 +1,3123 @@
+NotariaPrime - Project Export
+Generated: 2025-09-22T18:27:08.814Z
+================================================================================
+
+PROJECT STRUCTURE:
+================================================================================
+
+./
+├── public/
+    ├── fonts/
+    └── images/
+├── src/
+    ├── app/
+    │   ├── pretaxe/
+    │   │   └── page.tsx
+    │   ├── animations.css
+    │   ├── globals.css
+    │   ├── layout.tsx
+    │   └── page.tsx
+    ├── components/
+    │   ├── home/
+    │   ├── layout/
+    │   ├── ui/
+    │   └── Layout.tsx
+    └── lib/
+    │   └── utils.ts
+├── README.md
+├── eslint.config.mjs
+├── export-project.js
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── tailwind.config.js
+└── tsconfig.json
+
+
+================================================================================
+FILES CONTENT:
+================================================================================
+
+================================================================================
+[1] FILE: eslint.config.mjs
+SIZE: 0.51 KB
+LAST MODIFIED: 2025-09-19T10:30:56.562Z
+================================================================================
+
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+    ],
+  },
+];
+
+export default eslintConfig;
+
+
+================================================================================
+[2] FILE: export-project.js
+SIZE: 5.84 KB
+LAST MODIFIED: 2025-09-22T18:04:36.936Z
+================================================================================
+
+const fs = require('fs');
+const path = require('path');
+
+// Configuration
+const OUTPUT_FILE = 'project-export.txt';
+const PROJECT_NAME = 'NotariaPrime';
+
+// Dossiers et fichiers à ignorer
+const IGNORE_DIRS = [
+  'node_modules',
+  '.next',
+  '.git',
+  'dist',
+  'build',
+  '.cache',
+  '.vercel',
+  'coverage',
+  '.turbo'
+];
+
+const IGNORE_FILES = [
+  '.DS_Store',
+  'Thumbs.db',
+  '*.log',
+  '.env.local',
+  '.env.production',
+  '.env.development',
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+  '*.map'
+];
+
+// Extensions de fichiers à inclure
+const INCLUDE_EXTENSIONS = [
+  '.tsx', '.ts', '.jsx', '.js',
+  '.css', '.scss', '.sass',
+  '.json', '.md', '.mdx',
+  '.html', '.xml',
+  '.yaml', '.yml',
+  '.toml', '.mjs', '.cjs'
+];
+
+// Fichiers spécifiques à toujours inclure
+const ALWAYS_INCLUDE = [
+  'package.json',
+  'tsconfig.json',
+  'next.config.js',
+  'next.config.mjs',
+  'tailwind.config.js',
+  'tailwind.config.ts',
+  'postcss.config.js',
+  'postcss.config.mjs',
+  '.eslintrc.json',
+  '.prettierrc',
+  'README.md'
+];
+
+let output = '';
+let fileCount = 0;
+let totalSize = 0;
+const fileTree = [];
+
+// Fonction pour vérifier si un fichier doit être ignoré
+function shouldIgnore(filePath, isDirectory = false) {
+  const basename = path.basename(filePath);
+  
+  if (isDirectory) {
+    return IGNORE_DIRS.includes(basename);
+  }
+  
+  // Vérifier les patterns d'ignore
+  for (const pattern of IGNORE_FILES) {
+    if (pattern.includes('*')) {
+      const regex = new RegExp(pattern.replace('*', '.*'));
+      if (regex.test(basename)) return true;
+    } else if (basename === pattern) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Fonction pour vérifier si un fichier doit être inclus
+function shouldInclude(filePath) {
+  const basename = path.basename(filePath);
+  const ext = path.extname(filePath);
+  
+  // Toujours inclure certains fichiers
+  if (ALWAYS_INCLUDE.includes(basename)) {
+    return true;
+  }
+  
+  // Vérifier l'extension
+  return INCLUDE_EXTENSIONS.includes(ext);
+}
+
+// Fonction pour créer l'arbre visuel
+function generateTree(dir, prefix = '', isLast = true) {
+  const items = fs.readdirSync(dir);
+  const dirs = [];
+  const files = [];
+  
+  // Séparer dossiers et fichiers
+  items.forEach(item => {
+    const fullPath = path.join(dir, item);
+    if (shouldIgnore(fullPath, fs.statSync(fullPath).isDirectory())) return;
+    
+    if (fs.statSync(fullPath).isDirectory()) {
+      dirs.push(item);
+    } else if (shouldInclude(fullPath)) {
+      files.push(item);
+    }
+  });
+  
+  // Trier alphabétiquement
+  dirs.sort();
+  files.sort();
+  const allItems = [...dirs, ...files];
+  
+  allItems.forEach((item, index) => {
+    const isLastItem = index === allItems.length - 1;
+    const fullPath = path.join(dir, item);
+    const isDir = fs.statSync(fullPath).isDirectory();
+    
+    const connector = isLastItem ? '└── ' : '├── ';
+    const extension = isLast ? '    ' : '│   ';
+    
+    fileTree.push(prefix + connector + item + (isDir ? '/' : ''));
+    
+    if (isDir) {
+      generateTree(fullPath, prefix + extension, isLastItem);
+    }
+  });
+}
+
+// Fonction pour lire et formater le contenu d'un fichier
+function readFileContent(filePath) {
+  try {
+    const stats = fs.statSync(filePath);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const relativePath = path.relative(process.cwd(), filePath);
+    
+    fileCount++;
+    totalSize += stats.size;
+    
+    return `
+${'='.repeat(80)}
+[${fileCount}] FILE: ${relativePath}
+SIZE: ${(stats.size / 1024).toFixed(2)} KB
+LAST MODIFIED: ${stats.mtime.toISOString()}
+${'='.repeat(80)}
+
+${content}
+`;
+  } catch (error) {
+    return `\n[ERROR] Could not read file: ${filePath}\n${error.message}\n`;
+  }
+}
+
+// Fonction récursive pour parcourir les dossiers
+function scanDirectory(dir) {
+  const items = fs.readdirSync(dir);
+  
+  items.forEach(item => {
+    const fullPath = path.join(dir, item);
+    const stats = fs.statSync(fullPath);
+    
+    if (stats.isDirectory()) {
+      if (!shouldIgnore(fullPath, true)) {
+        scanDirectory(fullPath);
+      }
+    } else {
+      if (!shouldIgnore(fullPath) && shouldInclude(fullPath)) {
+        output += readFileContent(fullPath);
+      }
+    }
+  });
+}
+
+// Fonction principale
+function exportProject() {
+  console.log('🚀 Starting project export...\n');
+  
+  // En-tête
+  output = `${PROJECT_NAME} - Project Export
+Generated: ${new Date().toISOString()}
+${'='.repeat(80)}
+
+PROJECT STRUCTURE:
+${'='.repeat(80)}
+
+`;
+
+  // Générer l'arbre du projet
+  console.log('📂 Generating project tree...');
+  fileTree.push('./');
+  generateTree(process.cwd());
+  output += fileTree.join('\n');
+  output += '\n\n';
+  
+  // Scanner et lire les fichiers
+  console.log('📄 Reading files content...');
+  output += `
+${'='.repeat(80)}
+FILES CONTENT:
+${'='.repeat(80)}
+`;
+  
+  scanDirectory(process.cwd());
+  
+  // Résumé
+  const summary = `
+
+${'='.repeat(80)}
+EXPORT SUMMARY:
+${'='.repeat(80)}
+Total files exported: ${fileCount}
+Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB
+Export date: ${new Date().toISOString()}
+${'='.repeat(80)}
+`;
+  
+  output += summary;
+  
+  // Écrire le fichier de sortie
+  fs.writeFileSync(OUTPUT_FILE, output, 'utf8');
+  
+  console.log('\n✅ Export completed successfully!');
+  console.log(`📁 Output file: ${OUTPUT_FILE}`);
+  console.log(`📊 Statistics:`);
+  console.log(`   - Files exported: ${fileCount}`);
+  console.log(`   - Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`   - Output file size: ${(fs.statSync(OUTPUT_FILE).size / 1024 / 1024).toFixed(2)} MB`);
+}
+
+// Exécuter le script
+try {
+  exportProject();
+} catch (error) {
+  console.error('❌ Error during export:', error.message);
+  process.exit(1);
+}
+
+================================================================================
+[3] FILE: next-env.d.ts
+SIZE: 0.26 KB
+LAST MODIFIED: 2025-09-19T10:30:56.608Z
+================================================================================
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+/// <reference path="./.next/types/routes.d.ts" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+================================================================================
+[4] FILE: next.config.ts
+SIZE: 0.13 KB
+LAST MODIFIED: 2025-09-19T10:30:56.612Z
+================================================================================
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+
+================================================================================
+[5] FILE: package.json
+SIZE: 0.88 KB
+LAST MODIFIED: 2025-09-22T18:22:47.766Z
+================================================================================
+
+{
+  "name": "notariaprime",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@next/font": "^14.2.15",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-separator": "^1.1.7",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.15",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.3",
+    "next-themes": "^0.4.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5"
+  }
+}
+
+
+================================================================================
+[6] FILE: postcss.config.mjs
+SIZE: 0.10 KB
+LAST MODIFIED: 2025-09-22T18:26:02.216Z
+================================================================================
+
+// postcss.config.js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+================================================================================
+[7] FILE: README.md
+SIZE: 1.42 KB
+LAST MODIFIED: 2025-09-19T10:30:56.548Z
+================================================================================
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+================================================================================
+[8] FILE: src\app\animations.css
+SIZE: 0.55 KB
+LAST MODIFIED: 2025-09-19T17:53:09.128Z
+================================================================================
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -50px) scale(1.1); }
+  50% { transform: translate(-20px, 30px) scale(0.9); }
+  75% { transform: translate(-40px, -20px) scale(1.05); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-blob {
+  animation: blob 20s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+================================================================================
+[9] FILE: src\app\globals.css
+SIZE: 4.19 KB
+LAST MODIFIED: 2025-09-22T18:25:19.591Z
+================================================================================
+
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* System font stack pour une meilleure performance */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Couleurs principales */
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 249, 250, 251;
+  
+  /* Palette moderne */
+  --primary-50: #eef2ff;
+  --primary-100: #e0e7ff;
+  --primary-200: #c7d2fe;
+  --primary-300: #a5b4fc;
+  --primary-400: #818cf8;
+  --primary-500: #6366f1;
+  --primary-600: #4f46e5;
+  --primary-700: #4338ca;
+  --primary-800: #3730a3;
+  --primary-900: #312e81;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Animations personnalisées */
+@keyframes blob {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1); 
+  }
+  25% { 
+    transform: translate(30px, -50px) scale(1.1); 
+  }
+  50% { 
+    transform: translate(-20px, 30px) scale(0.9); 
+  }
+  75% { 
+    transform: translate(-40px, -20px) scale(1.05); 
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: .5; 
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Classes d'animation utilitaires */
+.animate-blob {
+  animation: blob 20s infinite;
+}
+
+.animate-bounce {
+  animation: bounce 3s infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* Delays d'animation */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Utility classes supplémentaires */
+.backdrop-blur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus styles pour l'accessibilité */
+*:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* Transitions par défaut */
+* {
+  transition-property: none;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+================================================================================
+[10] FILE: src\app\layout.tsx
+SIZE: 0.67 KB
+LAST MODIFIED: 2025-09-20T20:05:52.108Z
+================================================================================
+
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+
+
+================================================================================
+[11] FILE: src\app\page.tsx
+SIZE: 32.83 KB
+LAST MODIFIED: 2025-09-22T18:21:38.302Z
+================================================================================
+
+"use client";
+
+import React, { useState, useEffect, memo, useCallback } from 'react';
+import { 
+  Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
+  CheckCircle, Users, Award, BarChart3, Lock, Globe,
+  ChevronRight, Menu, X, Play, ArrowUpRight, Briefcase,
+  FileCheck, Clock, Star, Building2, TrendingDown, 
+  Rocket, Brain, Cpu
+} from 'lucide-react';
+
+// Composants mémorisés pour optimiser les performances
+const StatsCard = memo(({ stat }) => (
+  <div className="text-center">
+    <div className="flex items-center justify-center gap-2 mb-2">
+      <p className="text-4xl font-bold text-gray-900">{stat.value}</p>
+      {stat.trend && (
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+          stat.trend === 'TOUJOURS' || stat.trend === 'OFFICIEL' 
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-green-100 text-green-800'
+        }`}>
+          {stat.trend}
+        </span>
+      )}
+    </div>
+    <p className="text-gray-600">{stat.label}</p>
+  </div>
+));
+
+const FeatureCard = memo(({ feature }) => (
+  <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:border-indigo-300">
+    <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
+      <feature.icon className="w-6 h-6 text-indigo-600" />
+    </div>
+    
+    <h3 className="text-lg font-bold mb-2 text-gray-900">{feature.title}</h3>
+    <p className="text-gray-600 text-sm mb-4">{feature.description}</p>
+    
+    <div className="pt-4 border-t border-gray-100">
+      <div className="flex items-baseline gap-2">
+        <span className="text-2xl font-bold text-indigo-600">{feature.metric}</span>
+        <span className="text-sm text-gray-500">{feature.metricLabel}</span>
+      </div>
+    </div>
+  </div>
+));
+
+const SolutionCard = memo(({ solution, index, onHover }) => {
+  const isAvailable = solution.status === 'Disponible';
+  
+  return (
+    <div 
+      className={`relative bg-white rounded-xl border p-8 transition-all duration-300 ${
+        isAvailable 
+          ? 'border-gray-200 hover:shadow-xl hover:border-indigo-300 cursor-pointer hover:-translate-y-1' 
+          : 'border-gray-100 opacity-75 bg-gray-50'
+      }`}
+      onMouseEnter={() => isAvailable && onHover(index)}
+      onMouseLeave={() => onHover(null)}
+    >
+      {solution.status === 'En développement' && (
+        <div className="absolute -top-3 -right-3 px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
+          Bientôt
+        </div>
+      )}
+      
+      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 ${
+        isAvailable 
+          ? 'bg-gradient-to-br from-indigo-500 to-purple-600' 
+          : 'bg-gray-300'
+      }`}>
+        <solution.icon className={`w-7 h-7 ${isAvailable ? 'text-white' : 'text-gray-500'}`} />
+      </div>
+      
+      <h3 className="text-xl font-bold mb-2 text-gray-900">{solution.title}</h3>
+      <p className="text-gray-600 text-sm mb-4">{solution.description}</p>
+      
+      <div className="space-y-2 mb-6">
+        {solution.features.map((feature, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <CheckCircle className={`w-4 h-4 ${isAvailable ? 'text-green-500' : 'text-gray-400'}`} />
+            <span className="text-sm text-gray-600">{feature}</span>
+          </div>
+        ))}
+      </div>
+      
+      {isAvailable ? (
+        <a href={solution.link} className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all">
+          Utiliser l'outil
+          <ArrowRight className="w-4 h-4" />
+        </a>
+      ) : (
+        <span className="text-gray-500 text-sm">En développement</span>
+      )}
+    </div>
+  );
+});
+
+export default function NotariaPrimeHomepage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+
+  // Gestion responsive optimisée
+  useEffect(() => {
+    const updateDeviceType = () => {
+      setIsDesktop(window.innerWidth > 1024);
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+
+    updateDeviceType();
+    window.addEventListener('resize', updateDeviceType);
+    window.addEventListener('scroll', handleScroll);
+
+    // Animation automatique des features
+    const interval = setInterval(() => {
+      setActiveFeature(prev => (prev + 1) % 4);
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('resize', updateDeviceType);
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const stats = [
+    { value: '15+', label: 'Utilisateurs actifs', trend: '+23%' },
+    { value: '500+', label: 'Calculs par mois', trend: '+18%' },
+    { value: '100%', label: 'Gratuit et open source', trend: 'TOUJOURS' },
+    { value: '2025', label: 'Tarifs à jour', trend: 'OFFICIEL' }
+  ];
+
+  const features = [
+    {
+      icon: Zap,
+      title: 'Ultra rapide',
+      description: 'Résultats instantanés grâce à notre moteur optimisé',
+      metric: '< 100ms',
+      metricLabel: 'Temps de calcul'
+    },
+    {
+      icon: Brain,
+      title: 'IA Assistée',
+      description: 'Suggestions intelligentes et détection d\'erreurs',
+      metric: '99.9%',
+      metricLabel: 'Précision'
+    },
+    {
+      icon: Shield,
+      title: 'Open Source',
+      description: 'Code transparent, auditable par tous',
+      metric: 'MIT',
+      metricLabel: 'Licence'
+    },
+    {
+      icon: Cpu,
+      title: 'Hors ligne',
+      description: 'Fonctionne sans connexion internet',
+      metric: '100%',
+      metricLabel: 'Disponibilité'
+    }
+  ];
+
+  const solutions = [
+    {
+      title: 'Prétaxe Notariale',
+      icon: Calculator,
+      description: 'Calcul instantané des frais notariés',
+      status: 'Disponible',
+      features: ['Conforme tarif 2024', 'Émoluments détaillés', 'Export PDF professionnel'],
+      link: '/pretaxe'
+    },
+    {
+      title: 'Plus-Value Immobilière',
+      icon: TrendingUp,
+      description: 'Optimisation fiscale automatique',
+      status: 'Disponible',
+      features: ['Abattements calculés', 'Toutes exonérations', 'Cerfa auto-généré'],
+      link: '/plusvalue'
+    },
+    {
+      title: 'Scanner OCR Pro',
+      icon: FileCheck,
+      description: 'Extraction intelligente de données',
+      status: 'En développement',
+      features: ['Reconnaissance IA', 'Import instantané', '99% de précision'],
+      link: '#'
+    },
+    {
+      title: 'Expertise IA',
+      icon: Building2,
+      description: 'Estimation par comparables',
+      status: 'En développement',
+      features: ['Base DVF nationale', 'Machine Learning', 'Rapport détaillé'],
+      link: '#'
+    }
+  ];
+
+  const newFeatures = [
+    { icon: Rocket, label: 'API Publique', status: 'new' },
+    { icon: Globe, label: 'Mode Hors-ligne', status: 'new' },
+    { icon: Users, label: 'Espace Pro', status: 'soon' },
+    { icon: Brain, label: 'Assistant IA', status: 'soon' }
+  ];
+
+  const handleCardHover = useCallback((index) => {
+    setHoveredCard(index);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Navigation optimisée */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo avec animation */}
+            <div className="flex items-center gap-12">
+              <div className="flex items-center gap-3 group">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Calculator className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
+                  <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
+                </div>
+              </div>
+
+              {/* Menu desktop */}
+              {isDesktop && (
+                <nav className="flex items-center gap-8">
+                  <a href="#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">Solutions</a>
+                  <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium transition">Fonctionnalités</a>
+                  <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition">Tarifs</a>
+                  <a href="#enterprise" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium transition">
+                    Enterprise
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">NEW</span>
+                  </a>
+                </nav>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4">
+              {!isMobile && (
+                <>
+                  <a href="/login" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Connexion
+                  </a>
+                  <a href="/demo" className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
+                    Demander une démo
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </>
+              )}
+              {!isDesktop && (
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  aria-label="Menu"
+                >
+                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu avec animation */}
+      {mobileMenuOpen && !isDesktop && (
+        <div className="fixed inset-0 z-40 bg-white pt-20">
+          <nav className="flex flex-col p-6 space-y-4">
+            <a href="#solutions" className="text-lg font-medium text-gray-900 py-2">Solutions</a>
+            <a href="#features" className="text-lg font-medium text-gray-900 py-2">Fonctionnalités</a>
+            <a href="#pricing" className="text-lg font-medium text-gray-900 py-2">Tarifs</a>
+            <a href="#enterprise" className="text-lg font-medium text-gray-900 py-2">Enterprise</a>
+            <hr className="my-4" />
+            <a href="/login" className="text-lg font-medium text-gray-900 py-2">Connexion</a>
+            <a href="/demo" className="flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium">
+              Demander une démo
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </nav>
+        </div>
+      )}
+
+      {/* Hero Section amélioré */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        {/* Gradient animé */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
+        
+        {/* Blobs animés - utilisation de CSS pour les animations */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl" 
+             style={{ animation: 'blob 20s infinite' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl" 
+             style={{ animation: 'blob 20s infinite', animationDelay: '10s' }} />
+        
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div>
+              {/* Badge amélioré */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 border border-indigo-200 rounded-full mb-8">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+                </span>
+                <span className="text-sm font-semibold text-indigo-700">
+                  Tarif réglementé 2024 intégré
+                </span>
+              </div>
+
+              {/* Titre optimisé */}
+              <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
+                <span className="text-gray-900">Automatisez vos</span>
+                <br />
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  calculs notariaux
+                </span>
+                <br />
+                <span className="text-gray-900">en 15 secondes</span>
+              </h1>
+
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                La plateforme open source qui révolutionne le calcul des frais notariés. 
+                100% gratuit, précis et conforme.
+              </p>
+
+              {/* Nouveaux badges de features */}
+              <div className="flex flex-wrap gap-3 mb-8">
+                {newFeatures.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg">
+                    <feature.icon className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">{feature.label}</span>
+                    {feature.status === 'new' && (
+                      <span className="text-xs bg-green-500 text-white px-1.5 py-0.5 rounded">NEW</span>
+                    )}
+                    {feature.status === 'soon' && (
+                      <span className="text-xs bg-yellow-500 text-white px-1.5 py-0.5 rounded">SOON</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* CTAs améliorés */}
+              <div className={`flex gap-4 mb-12 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+                <a href="/pretaxe" className="flex items-center justify-center gap-2 px-7 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                  Commencer gratuitement
+                  <ArrowRight className="w-5 h-5" />
+                </a>
+                <button className="flex items-center justify-center gap-2 px-7 py-4 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 rounded-xl font-semibold transition-all">
+                  <Play className="w-5 h-5" />
+                  Voir la démo (2 min)
+                </button>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium text-gray-600">Open Source</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium text-gray-600">100% Gratuit</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium text-gray-600">Communautaire</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dashboard Preview amélioré */}
+            {isDesktop && (
+              <div className="relative">
+                <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
+                  {/* Window controls */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full" />
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                      <div className="w-3 h-3 bg-green-500 rounded-full" />
+                    </div>
+                    <span className="text-xs text-gray-400">notariaprime.fr/dashboard</span>
+                  </div>
+                  
+                  {/* Dashboard content */}
+                  <div className="bg-gray-800 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-gray-400 text-sm">Calcul en cours</span>
+                      <span className="text-green-400 text-xs font-semibold flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        LIVE
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white font-medium">Vente immobilière</span>
+                        <span className="text-3xl font-bold text-white">450,000 €</span>
+                      </div>
+                      
+                      {/* Progress bar */}
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: '75%' }} />
+                      </div>
+                      
+                      {/* Stats grid */}
+                      <div className="grid grid-cols-3 gap-4 mt-6">
+                        <div className="bg-gray-700/50 rounded-lg p-3">
+                          <p className="text-xs text-gray-400">Émoluments</p>
+                          <p className="text-white font-bold">3,894 €</p>
+                        </div>
+                        <div className="bg-gray-700/50 rounded-lg p-3">
+                          <p className="text-xs text-gray-400">Taxes</p>
+                          <p className="text-white font-bold">24,750 €</p>
+                        </div>
+                        <div className="bg-gray-700/50 rounded-lg p-3">
+                          <p className="text-xs text-gray-400">Total TTC</p>
+                          <p className="text-green-400 font-bold">31,244 €</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mini chart */}
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-gray-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-400">Calculs/mois</span>
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      </div>
+                      <p className="text-2xl font-bold text-white">1,247</p>
+                      <p className="text-xs text-green-400">+23% ce mois</p>
+                    </div>
+                    <div className="bg-gray-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-400">Temps gagné</span>
+                        <Clock className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      <p className="text-2xl font-bold text-white">42h</p>
+                      <p className="text-xs text-indigo-400">Cette semaine</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating notifications */}
+                <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4" style={{ animation: 'bounce 3s ease-in-out infinite' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Calcul terminé</p>
+                      <p className="font-semibold text-gray-900">À l'instant</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4">
+                  <div className="flex items-center gap-1 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
+                  <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Bar amélioré */}
+      <section className="py-16 bg-gray-50 border-y border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className={`grid gap-8 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
+            {stats.map((stat, index) => (
+              <StatsCard key={index} stat={stat} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions Grid optimisé */}
+      <section id="solutions" className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full mb-4">
+              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <span className="text-sm font-semibold text-indigo-700">Nos outils</span>
+            </div>
+            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              4 outils puissants pour votre quotidien
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Des solutions concrètes pour gagner du temps sur vos tâches récurrentes
+            </p>
+          </div>
+
+          <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {solutions.map((solution, index) => (
+              <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section optimisé */}
+      <section id="features" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              Une technologie de pointe
+            </h2>
+            <p className="text-xl text-gray-600">
+              Infrastructure enterprise-grade pour les professionnels exigeants
+            </p>
+          </div>
+
+          <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {features.map((feature, index) => (
+              <FeatureCard key={index} feature={feature} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Community Section amélioré */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              Rejoignez la communauté
+            </h2>
+            <p className="text-xl text-gray-600">
+              Un projet open source développé par et pour les professionnels du notariat
+            </p>
+          </div>
+
+          <div className={`grid gap-8 mb-16 ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'}`}>
+            {[
+              { icon: Users, value: '15+', label: 'Utilisateurs actifs', color: 'from-indigo-50 to-indigo-100' },
+              { icon: Calculator, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
+              { icon: Star, value: '100%', label: 'Gratuit & Open Source', color: 'from-yellow-50 to-yellow-100' }
+            ].map((item, i) => (
+              <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl p-8 text-center hover:scale-105 transition-transform`}>
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                  <item.icon className="w-8 h-8 text-gray-700" />
+                </div>
+                <h3 className="text-3xl font-bold mb-2 text-gray-900">{item.value}</h3>
+                <p className="text-gray-600">{item.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Call to Action Community */}
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-center">
+            <h3 className="text-3xl font-bold text-white mb-4">
+              Contribuez au projet !
+            </h3>
+            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+              NotariaPrime est un projet communautaire. Proposez des fonctionnalités, 
+              signalez des bugs, ou contribuez au code sur GitHub.
+            </p>
+            <div className={`flex gap-4 justify-center ${isMobile ? 'flex-col' : 'flex-row'}`}>
+              <a href="https://github.com" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold transition-all">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Voir sur GitHub
+              </a>
+              <button className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
+                Proposer une idée
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section final optimisé */}
+      <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+            Simplifiez vos calculs notariaux dès maintenant
+          </h2>
+          <p className="text-xl text-gray-300 mb-10">
+            Rejoignez notre communauté grandissante d'utilisateurs.
+            <br />100% gratuit, sans inscription, open source.
+          </p>
+          
+          <div className={`flex gap-4 justify-center mb-10 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+            <a href="/pretaxe" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+              Calculer maintenant
+              <ArrowRight className="w-5 h-5" />
+            </a>
+            <a href="https://github.com" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl font-semibold transition-all">
+              Explorer le code source
+            </a>
+          </div>
+          
+          <div className="flex items-center justify-center gap-8 text-sm text-gray-400">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              Sans inscription
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              100% Gratuit
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              Code source libre
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer optimisé */}
+      <footer className="py-16 bg-white border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className={`grid gap-8 mb-12 ${isDesktop ? 'grid-cols-5' : 'grid-cols-2'}`}>
+            <div className={isDesktop ? 'col-span-2' : 'col-span-2'}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
+              </div>
+              <p className="text-gray-600 mb-6">
+                La plateforme open source pour digitaliser et automatiser vos calculs notariaux.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li><a href="#" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">Tarifs</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">Roadmap</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li><a href="#" className="hover:text-gray-900 transition">Documentation</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">API</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">Blog</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 text-gray-900">Entreprise</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li><a href="#" className="hover:text-gray-900 transition">À propos</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">Contact</a></li>
+                <li><a href="#" className="hover:text-gray-900 transition">Partenaires</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-gray-200">
+            <div className={`flex items-center gap-6 ${isMobile ? 'flex-col text-center' : 'justify-between'}`}>
+              <p className="text-gray-600 text-sm">
+                © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
+              </p>
+              <div className="flex items-center gap-6 text-sm">
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Mentions légales</a>
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Confidentialité</a>
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition">CGU</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(30px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 30px) scale(0.9); }
+          75% { transform: translate(-40px, -20px) scale(1.05); }
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+================================================================================
+[12] FILE: src\app\pretaxe\page.tsx
+SIZE: 51.20 KB
+LAST MODIFIED: 2025-09-22T16:58:57.124Z
+================================================================================
+
+"use client";
+
+import Layout from '@/components/Layout';
+import React, { useState, useEffect } from 'react';
+import { 
+  Calculator, FileText, Euro, Building, Users, Home,
+  FileSignature, Landmark, Briefcase, File, ChevronDown,
+  Info, Check, X, AlertCircle, HelpCircle, MapPin,
+  Download, Save, History, Plus, Minus, UserPlus
+} from 'lucide-react';
+
+interface Donateur {
+  id: number;
+  nom: string;
+  montant: string;
+  lien: string;
+}
+
+interface Donataire {
+  id: number;
+  nom: string;
+  part: string;
+}
+
+interface HistoriqueCalcul {
+  id: number;
+  date: string;
+  acte: string;
+  montant: string;
+  total: number;
+  details: {
+    emoluments: number;
+    debours: number;
+    formalites: number;
+    documents: number;
+    taxes: number;
+  };
+}
+
+export default function PretaxeIntelligente() {
+  // États principaux
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedActe, setSelectedActe] = useState('');
+  const [montantActe, setMontantActe] = useState('');
+  const [selectedDepartement, setSelectedDepartement] = useState('75');
+  const [activeTab, setActiveTab] = useState('emoluments');
+  
+  // États pour les calculs
+  const [emoluments, setEmoluments] = useState(0);
+  const [debours, setDebours] = useState({
+    csi: 15,
+    etatsHypothecaires: 0,
+    cadastre: 0,
+    urbanisme: 0
+  });
+  const [formalites, setFormalites] = useState({
+    forfaitBase: 130,
+    teleactes: 50,
+    lettresRecommandees: 7.08,
+    prealables: 100,
+    posterieures: 100
+  });
+  const [documents, setDocuments] = useState({
+    pagesActe: 10,
+    copiesExecutoires: 0,
+    copiesAuthentiques: 1,
+    copiesHypothecaires: 0
+  });
+  const [taxes, setTaxes] = useState({
+    typeBien: 'ancien',
+    departementale: 0,
+    communale: 0,
+    fraisAssiette: 0
+  });
+
+  // États pour les donations multiples
+  const [donateurs, setDonateurs] = useState<Donateur[]>([
+    { id: 1, nom: 'Donateur 1', montant: '', lien: 'parent' }
+  ]);
+  const [donataires, setDonataires] = useState<Donataire[]>([
+    { id: 1, nom: 'Donataire 1', part: '100' }
+  ]);
+  const [usufruit, setUsufruit] = useState({
+    actif: false,
+    ageUsufruitier: '',
+    valeur: 0
+  });
+  
+  // États pour l'historique
+  const [historiqueCalculs, setHistoriqueCalculs] = useState<HistoriqueCalcul[]>([]);
+  const [afficherHistorique, setAfficherHistorique] = useState(false);
+  
+  // Fonction pour ajouter/supprimer des donateurs
+  const ajouterDonateur = () => {
+    const newId = Math.max(...donateurs.map(d => d.id)) + 1;
+    setDonateurs([...donateurs, { id: newId, nom: `Donateur ${newId}`, montant: '', lien: 'parent' }]);
+  };
+  
+  const supprimerDonateur = (id: number) => {
+    if (donateurs.length > 1) {
+      setDonateurs(donateurs.filter(d => d.id !== id));
+    }
+  };
+  
+  // Fonction pour ajouter/supprimer des donataires
+  const ajouterDonataire = () => {
+    const newId = Math.max(...donataires.map(d => d.id)) + 1;
+    setDonataires([...donataires, { id: newId, nom: `Donataire ${newId}`, part: '0' }]);
+  };
+  
+  const supprimerDonataire = (id: number) => {
+    if (donataires.length > 1) {
+      setDonataires(donataires.filter(d => d.id !== id));
+    }
+  };
+  
+  // Barème usufruit selon l'âge (Article 669 CGI)
+  const calculerUsufruit = (age) => {
+    const ageNum = parseInt(age);
+    if (ageNum < 21) return 90;
+    if (ageNum < 31) return 80;
+    if (ageNum < 41) return 70;
+    if (ageNum < 51) return 60;
+    if (ageNum < 61) return 50;
+    if (ageNum < 71) return 40;
+    if (ageNum < 81) return 30;
+    if (ageNum < 91) return 20;
+    return 10;
+  };
+
+  const departements = {
+    '01': { nom: 'Ain', taux: 4.50 },
+    '02': { nom: 'Aisne', taux: 4.50 },
+    '03': { nom: 'Allier', taux: 4.50 },
+    '04': { nom: 'Alpes-de-Haute-Provence', taux: 4.50 },
+    '05': { nom: 'Hautes-Alpes', taux: 4.50 },
+    '06': { nom: 'Alpes-Maritimes', taux: 4.50 },
+    '07': { nom: 'Ardèche', taux: 4.50 },
+    '08': { nom: 'Ardennes', taux: 4.50 },
+    '09': { nom: 'Ariège', taux: 4.50 },
+    '10': { nom: 'Aube', taux: 4.50 },
+    '11': { nom: 'Aude', taux: 4.50 },
+    '12': { nom: 'Aveyron', taux: 4.50 },
+    '13': { nom: 'Bouches-du-Rhône', taux: 4.50 },
+    '14': { nom: 'Calvados', taux: 4.50 },
+    '15': { nom: 'Cantal', taux: 4.50 },
+    '16': { nom: 'Charente', taux: 4.50 },
+    '17': { nom: 'Charente-Maritime', taux: 4.50 },
+    '18': { nom: 'Cher', taux: 4.50 },
+    '19': { nom: 'Corrèze', taux: 4.50 },
+    '21': { nom: 'Côte-d\'Or', taux: 4.50 },
+    '22': { nom: 'Côtes-d\'Armor', taux: 4.50 },
+    '23': { nom: 'Creuse', taux: 4.50 },
+    '24': { nom: 'Dordogne', taux: 4.50 },
+    '25': { nom: 'Doubs', taux: 4.50 },
+    '26': { nom: 'Drôme', taux: 4.50 },
+    '27': { nom: 'Eure', taux: 4.50 },
+    '28': { nom: 'Eure-et-Loir', taux: 4.50 },
+    '29': { nom: 'Finistère', taux: 4.50 },
+    '2A': { nom: 'Corse-du-Sud', taux: 4.50 },
+    '2B': { nom: 'Haute-Corse', taux: 4.50 },
+    '30': { nom: 'Gard', taux: 4.50 },
+    '31': { nom: 'Haute-Garonne', taux: 4.50 },
+    '32': { nom: 'Gers', taux: 4.50 },
+    '33': { nom: 'Gironde', taux: 4.50 },
+    '34': { nom: 'Hérault', taux: 4.50 },
+    '35': { nom: 'Ille-et-Vilaine', taux: 4.50 },
+    '36': { nom: 'Indre', taux: 4.50 },
+    '37': { nom: 'Indre-et-Loire', taux: 4.50 },
+    '38': { nom: 'Isère', taux: 3.80 },
+    '39': { nom: 'Jura', taux: 4.50 },
+    '40': { nom: 'Landes', taux: 4.50 },
+    '41': { nom: 'Loir-et-Cher', taux: 4.50 },
+    '42': { nom: 'Loire', taux: 4.50 },
+    '43': { nom: 'Haute-Loire', taux: 4.50 },
+    '44': { nom: 'Loire-Atlantique', taux: 4.50 },
+    '45': { nom: 'Loiret', taux: 4.50 },
+    '46': { nom: 'Lot', taux: 4.50 },
+    '47': { nom: 'Lot-et-Garonne', taux: 4.50 },
+    '48': { nom: 'Lozère', taux: 4.50 },
+    '49': { nom: 'Maine-et-Loire', taux: 4.50 },
+    '50': { nom: 'Manche', taux: 4.50 },
+    '51': { nom: 'Marne', taux: 4.50 },
+    '52': { nom: 'Haute-Marne', taux: 4.50 },
+    '53': { nom: 'Mayenne', taux: 4.50 },
+    '54': { nom: 'Meurthe-et-Moselle', taux: 4.50 },
+    '55': { nom: 'Meuse', taux: 4.50 },
+    '56': { nom: 'Morbihan', taux: 3.80 },
+    '57': { nom: 'Moselle', taux: 4.50 },
+    '58': { nom: 'Nièvre', taux: 4.50 },
+    '59': { nom: 'Nord', taux: 4.50 },
+    '60': { nom: 'Oise', taux: 4.50 },
+    '61': { nom: 'Orne', taux: 4.50 },
+    '62': { nom: 'Pas-de-Calais', taux: 4.50 },
+    '63': { nom: 'Puy-de-Dôme', taux: 4.50 },
+    '64': { nom: 'Pyrénées-Atlantiques', taux: 4.50 },
+    '65': { nom: 'Hautes-Pyrénées', taux: 4.50 },
+    '66': { nom: 'Pyrénées-Orientales', taux: 4.50 },
+    '67': { nom: 'Bas-Rhin', taux: 4.50 },
+    '68': { nom: 'Haut-Rhin', taux: 4.50 },
+    '69': { nom: 'Rhône', taux: 4.50 },
+    '70': { nom: 'Haute-Saône', taux: 4.50 },
+    '71': { nom: 'Saône-et-Loire', taux: 4.50 },
+    '72': { nom: 'Sarthe', taux: 4.50 },
+    '73': { nom: 'Savoie', taux: 4.50 },
+    '74': { nom: 'Haute-Savoie', taux: 4.50 },
+    '75': { nom: 'Paris', taux: 4.50 },
+    '76': { nom: 'Seine-Maritime', taux: 4.50 },
+    '77': { nom: 'Seine-et-Marne', taux: 4.50 },
+    '78': { nom: 'Yvelines', taux: 4.50 },
+    '79': { nom: 'Deux-Sèvres', taux: 4.50 },
+    '80': { nom: 'Somme', taux: 4.50 },
+    '81': { nom: 'Tarn', taux: 4.50 },
+    '82': { nom: 'Tarn-et-Garonne', taux: 4.50 },
+    '83': { nom: 'Var', taux: 4.50 },
+    '84': { nom: 'Vaucluse', taux: 4.50 },
+    '85': { nom: 'Vendée', taux: 4.50 },
+    '86': { nom: 'Vienne', taux: 4.50 },
+    '87': { nom: 'Haute-Vienne', taux: 4.50 },
+    '88': { nom: 'Vosges', taux: 4.50 },
+    '89': { nom: 'Yonne', taux: 4.50 },
+    '90': { nom: 'Territoire de Belfort', taux: 4.50 },
+    '91': { nom: 'Essonne', taux: 4.50 },
+    '92': { nom: 'Hauts-de-Seine', taux: 4.50 },
+    '93': { nom: 'Seine-Saint-Denis', taux: 4.50 },
+    '94': { nom: 'Val-de-Marne', taux: 4.50 },
+    '95': { nom: 'Val-d\'Oise', taux: 4.50 },
+    '971': { nom: 'Guadeloupe', taux: 4.50 },
+    '972': { nom: 'Martinique', taux: 4.50 },
+    '973': { nom: 'Guyane', taux: 4.50 },
+    '974': { nom: 'La Réunion', taux: 4.50 },
+    '976': { nom: 'Mayotte', taux: 3.80 }
+  };
+
+  // Catégories et actes selon l'Annexe 4-7 du Code de commerce
+  const categoriesActes = {
+    'biens_immobiliers': {
+      label: 'Actes relatifs aux biens immobiliers',
+      icon: Home,
+      actes: {
+        'vente_immeuble': { 
+          label: 'Vente d\'immeuble',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 3.870 },
+            { min: 6500, max: 17000, taux: 1.596 },
+            { min: 17000, max: 60000, taux: 1.064 },
+            { min: 60000, max: Infinity, taux: 0.799 }
+          ]
+        },
+        'vente_terrain': { 
+          label: 'Vente de terrain à bâtir',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 3.870 },
+            { min: 6500, max: 17000, taux: 1.596 },
+            { min: 17000, max: 60000, taux: 1.064 },
+            { min: 60000, max: Infinity, taux: 0.799 }
+          ]
+        },
+        'vefa': { 
+          label: 'Vente en état futur d\'achèvement (VEFA)',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 3.870 },
+            { min: 6500, max: 17000, taux: 1.596 },
+            { min: 17000, max: 60000, taux: 1.064 },
+            { min: 60000, max: Infinity, taux: 0.799 }
+          ]
+        },
+        'echange': { 
+          label: 'Échange d\'immeubles',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 3.870 },
+            { min: 6500, max: 17000, taux: 1.596 },
+            { min: 17000, max: 60000, taux: 1.064 },
+            { min: 60000, max: Infinity, taux: 0.799 }
+          ]
+        },
+        'licitation': { 
+          label: 'Licitation',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 4.837 },
+            { min: 6500, max: 17000, taux: 1.995 },
+            { min: 17000, max: 60000, taux: 1.330 },
+            { min: 60000, max: Infinity, taux: 0.998 }
+          ]
+        },
+        'partage': { 
+          label: 'Partage',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 4.837 },
+            { min: 6500, max: 17000, taux: 1.995 },
+            { min: 17000, max: 60000, taux: 1.330 },
+            { min: 60000, max: Infinity, taux: 0.998 }
+          ]
+        },
+        'bail_construction': { 
+          label: 'Bail à construction',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.935 },
+            { min: 6500, max: 17000, taux: 0.798 },
+            { min: 17000, max: 60000, taux: 0.532 },
+            { min: 60000, max: Infinity, taux: 0.399 }
+          ]
+        },
+        'servitude': { 
+          label: 'Constitution de servitude',
+          type: 'fixe',
+          montant: 134.61
+        }
+      }
+    },
+    'famille': {
+      label: 'Actes relatifs à la famille',
+      icon: Users,
+      actes: {
+        'contrat_mariage': { 
+          label: 'Contrat de mariage',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 2.580 },
+            { min: 6500, max: 17000, taux: 1.064 },
+            { min: 17000, max: 60000, taux: 0.709 },
+            { min: 60000, max: Infinity, taux: 0.532 }
+          ]
+        },
+        'changement_regime': { 
+          label: 'Changement de régime matrimonial',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.935 },
+            { min: 6500, max: 17000, taux: 0.798 },
+            { min: 17000, max: 60000, taux: 0.532 },
+            { min: 60000, max: Infinity, taux: 0.399 }
+          ]
+        },
+        'pacs': { 
+          label: 'PACS',
+          type: 'fixe',
+          montant: 101.41
+        },
+        'divorce_consentement': { 
+          label: 'Dépôt convention divorce par consentement mutuel',
+          type: 'fixe',
+          montant: 50.70
+        },
+        'liquidation_regime': { 
+          label: 'Liquidation de régime matrimonial',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 2.580 },
+            { min: 6500, max: 17000, taux: 1.064 },
+            { min: 17000, max: 60000, taux: 0.709 },
+            { min: 60000, max: Infinity, taux: 0.532 }
+          ]
+        }
+      }
+    },
+    'successions': {
+      label: 'Actes relatifs aux successions et libéralités',
+      icon: FileSignature,
+      actes: {
+        'donation': { 
+          label: 'Donation',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 4.837 },
+            { min: 6500, max: 17000, taux: 1.995 },
+            { min: 17000, max: 60000, taux: 1.330 },
+            { min: 60000, max: Infinity, taux: 0.998 }
+          ]
+        },
+        'donation_partage': { 
+          label: 'Donation-partage',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 4.837 },
+            { min: 6500, max: 17000, taux: 1.995 },
+            { min: 17000, max: 60000, taux: 1.330 },
+            { min: 60000, max: Infinity, taux: 0.998 }
+          ]
+        },
+        'testament': { 
+          label: 'Testament authentique',
+          type: 'fixe',
+          montant: 115.39
+        },
+        'notoriete': { 
+          label: 'Acte de notoriété',
+          type: 'fixe',
+          montant: 69.23
+        },
+        'attestation_propriete': { 
+          label: 'Attestation de propriété immobilière',
+          type: 'fixe',
+          montant: 134.61
+        },
+        'inventaire': { 
+          label: 'Inventaire successoral',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.290 },
+            { min: 6500, max: 17000, taux: 0.532 },
+            { min: 17000, max: 60000, taux: 0.355 },
+            { min: 60000, max: Infinity, taux: 0.266 }
+          ]
+        },
+        'renonciation': { 
+          label: 'Renonciation à succession',
+          type: 'fixe',
+          montant: 26.92
+        }
+      }
+    },
+    'prets': {
+      label: 'Actes relatifs aux prêts et sûretés',
+      icon: Landmark,
+      actes: {
+        'pret_hypothecaire': { 
+          label: 'Prêt avec hypothèque conventionnelle',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.935 },
+            { min: 6500, max: 17000, taux: 0.798 },
+            { min: 17000, max: 60000, taux: 0.532 },
+            { min: 60000, max: Infinity, taux: 0.399 }
+          ]
+        },
+        'pret_viager': { 
+          label: 'Prêt viager hypothécaire',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 2.322 },
+            { min: 6500, max: 17000, taux: 0.958 },
+            { min: 17000, max: 60000, taux: 0.638 },
+            { min: 60000, max: Infinity, taux: 0.479 }
+          ]
+        },
+        'mainlevee': { 
+          label: 'Mainlevée d\'hypothèque',
+          type: 'fixe',
+          montant: 96.92
+        },
+        'caution_hypothecaire': { 
+          label: 'Caution hypothécaire',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 0.968 },
+            { min: 6500, max: 17000, taux: 0.399 },
+            { min: 17000, max: 60000, taux: 0.266 },
+            { min: 60000, max: Infinity, taux: 0.200 }
+          ]
+        },
+        'ppd': { 
+          label: 'Privilège de prêteur de deniers',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.935 },
+            { min: 6500, max: 17000, taux: 0.798 },
+            { min: 17000, max: 60000, taux: 0.532 },
+            { min: 60000, max: Infinity, taux: 0.399 }
+          ]
+        }
+      }
+    },
+    'societes': {
+      label: 'Actes relatifs aux sociétés',
+      icon: Briefcase,
+      actes: {
+        'constitution_societe': { 
+          label: 'Constitution de société',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.935 },
+            { min: 6500, max: 17000, taux: 0.798 },
+            { min: 17000, max: 60000, taux: 0.532 },
+            { min: 60000, max: Infinity, taux: 0.399 }
+          ]
+        },
+        'augmentation_capital': { 
+          label: 'Augmentation de capital',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 0.968 },
+            { min: 6500, max: 17000, taux: 0.399 },
+            { min: 17000, max: 60000, taux: 0.266 },
+            { min: 60000, max: Infinity, taux: 0.200 }
+          ]
+        },
+        'cession_parts': { 
+          label: 'Cession de parts sociales',
+          type: 'proportionnel',
+          tranches: [
+            { min: 0, max: 6500, taux: 1.290 },
+            { min: 6500, max: 17000, taux: 0.532 },
+            { min: 17000, max: 60000, taux: 0.355 },
+            { min: 60000, max: Infinity, taux: 0.266 }
+          ]
+        },
+        'dissolution': { 
+          label: 'Dissolution de société',
+          type: 'fixe',
+          montant: 230.77
+        },
+        'transformation': { 
+          label: 'Transformation de société',
+          type: 'fixe',
+          montant: 192.31
+        }
+      }
+    },
+    'divers': {
+      label: 'Actes divers et procurations',
+      icon: File,
+      actes: {
+        'procuration': { 
+          label: 'Procuration',
+          type: 'fixe',
+          montant: 26.92
+        },
+        'quittance': { 
+          label: 'Quittance',
+          type: 'fixe',
+          montant: 26.92
+        },
+        'apostille': { 
+          label: 'Apostille',
+          type: 'fixe',
+          montant: 50.00
+        },
+        'consentement_adoption': { 
+          label: 'Consentement à adoption',
+          type: 'fixe',
+          montant: 76.92
+        }
+      }
+    }
+  };
+
+  // Calcul des émoluments avec application des remises Table 5
+  const calculerEmoluments = (montant, tranches) => {
+    let emolumentsBruts = 0;
+    
+    tranches.forEach(tranche => {
+      if (montant > tranche.min) {
+        const montantDansTranche = Math.min(montant - tranche.min, tranche.max - tranche.min);
+        emolumentsBruts += montantDansTranche * (tranche.taux / 100);
+      }
+    });
+
+    // Application des remises (Table 5 - Article A444-174)
+    let emolumentsNets = emolumentsBruts;
+    
+    if (montant > 150000) {
+      let emolumentsAuDela150k = 0;
+      
+      tranches.forEach(tranche => {
+        if (150000 < tranche.max) {
+          const debut = Math.max(150000, tranche.min);
+          const fin = montant > tranche.max ? tranche.max : montant;
+          if (fin > debut) {
+            emolumentsAuDela150k += (fin - debut) * (tranche.taux / 100);
+          }
+        }
+      });
+      
+      const remise10 = emolumentsAuDela150k * 0.10;
+      
+      let remise20 = 0;
+      if (montant > 10000000) {
+        let emolumentsAuDela10M = 0;
+        
+        tranches.forEach(tranche => {
+          if (10000000 < tranche.max) {
+            const debut = Math.max(10000000, tranche.min);
+            const fin = montant > tranche.max ? tranche.max : montant;
+            if (fin > debut) {
+              emolumentsAuDela10M += (fin - debut) * (tranche.taux / 100);
+            }
+          }
+        });
+        
+        remise20 = emolumentsAuDela10M * 0.10;
+      }
+      
+      emolumentsNets = emolumentsBruts - remise10 - remise20;
+    }
+    
+    return emolumentsNets;
+  };
+
+  // Calcul des taxes selon le département
+  const calculerTaxes = () => {
+    if (!montantActe || taxes.typeBien === 'neuf') return;
+    
+    const montant = parseFloat(montantActe.replace(/\s/g, ''));
+    if (isNaN(montant)) return;
+    
+    const tauxDepartemental = departements[selectedDepartement]?.taux || 4.50;
+    const tauxCommunal = 1.20;
+    
+    const taxeDepartementale = montant * (tauxDepartemental / 100);
+    const taxeCommunale = montant * (tauxCommunal / 100);
+    const totalDroits = taxeDepartementale + taxeCommunale;
+    const fraisAssiette = totalDroits * 0.0237;
+    
+    setTaxes(prev => ({
+      ...prev,
+      departementale: taxeDepartementale,
+      communale: taxeCommunale,
+      fraisAssiette: fraisAssiette
+    }));
+  };
+
+  // Calcul de la CSI
+  const calculerCSI = () => {
+    if (!montantActe) return;
+    
+    const montant = parseFloat(montantActe.replace(/\s/g, ''));
+    if (isNaN(montant)) return;
+    
+    const csi = Math.max(montant * 0.001, 15);
+    
+    setDebours(prev => ({
+      ...prev,
+      csi: csi
+    }));
+  };
+  
+  // Fonction de sauvegarde
+  const sauvegarderCalcul = () => {
+    const nouveauCalcul = {
+      id: Date.now(),
+      date: new Date().toLocaleString('fr-FR'),
+      acte: categoriesActes[selectedCategory]?.actes[selectedActe]?.label || 'N/A',
+      montant: montantActe,
+      total: totalGeneral,
+      details: {
+        emoluments: totalEmolumentsTTC,
+        debours: totalDebours,
+        formalites: totalFormalitesTTC,
+        documents: totalDocumentsTTC,
+        taxes: totalTaxes
+      }
+    };
+    
+    setHistoriqueCalculs([nouveauCalcul, ...historiqueCalculs]);
+    alert('Calcul sauvegardé dans l\'historique !');
+  };
+  
+  // Fonction d'export PDF simplifiée
+  const exporterPDF = () => {
+    const contenu = `
+CALCUL DE FRAIS NOTARIÉS
+========================
+Date : ${new Date().toLocaleString('fr-FR')}
+Département : ${departements[selectedDepartement]?.nom}
+Type d'acte : ${categoriesActes[selectedCategory]?.actes[selectedActe]?.label || 'N/A'}
+Montant : ${montantActe} €
+
+DÉTAIL DES FRAIS
+================
+Émoluments TTC : ${totalEmolumentsTTC.toFixed(2)} €
+Débours : ${totalDebours.toFixed(2)} €
+Formalités TTC : ${totalFormalitesTTC.toFixed(2)} €
+Documents TTC : ${totalDocumentsTTC.toFixed(2)} €
+Taxes et droits : ${totalTaxes.toFixed(2)} €
+
+TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
+    `;
+    
+    const blob = new Blob([contenu], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `calcul_notarie_${Date.now()}.txt`;
+    a.click();
+  };
+
+  // Effet pour recalculer quand les paramètres changent
+  useEffect(() => {
+    if (selectedActe && montantActe) {
+      const montant = parseFloat(montantActe.replace(/\s/g, ''));
+      if (!isNaN(montant)) {
+        const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
+        if (acte) {
+          if (acte.type === 'proportionnel') {
+            setEmoluments(calculerEmoluments(montant, acte.tranches));
+          } else {
+            setEmoluments(acte.montant);
+          }
+          calculerCSI();
+          calculerTaxes();
+        }
+      }
+    }
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien]);
+
+  // Calcul des totaux
+  const totalEmoluments = emoluments;
+  const totalEmolumentsTTC = totalEmoluments * 1.20;
+  
+  const totalDebours = Object.values(debours).reduce((sum, val) => sum + val, 0);
+  
+  const totalFormalites = formalites.forfaitBase + formalites.teleactes + 
+    (formalites.lettresRecommandees * 1) + formalites.prealables + formalites.posterieures;
+  const totalFormalitesTTC = totalFormalites * 1.20;
+  
+  const fraisRole = documents.pagesActe * 2;
+  const copiesExec = documents.copiesExecutoires * 4;
+  const copiesAuth = documents.copiesAuthentiques * 40;
+  const copiesHypo = documents.copiesHypothecaires * 4;
+  const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo;
+  const totalDocumentsTTC = totalDocuments * 1.20;
+  
+  const totalTaxes = taxes.departementale + taxes.communale + taxes.fraisAssiette;
+  
+  const totalGeneral = totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes;
+
+  return (
+    <Layout>
+      <div className="bg-white text-black">
+        <div className="min-h-screen bg-gray-50 p-4">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                    <Calculator className="w-8 h-8 mr-3 text-indigo-600" />
+                    Calculateur de frais notariés
+                  </h1>
+                  <p className="text-gray-600 mt-2">
+                    Conforme au tarif réglementé 2024 - Décret n°2020-179 et arrêtés modificatifs
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total général</p>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                  </p>
+                </div>
+              </div>
+
+              {/* Sélecteurs principaux */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Département */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Département
+                  </label>
+                  <select
+                    value={selectedDepartement}
+                    onChange={(e) => setSelectedDepartement(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {Object.entries(departements).map(([code, dept]) => (
+                      <option key={code} value={code}>
+                        {code} - {dept.nom} ({dept.taux}%)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Catégorie d'acte */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catégorie d'acte
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      setSelectedActe('');
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Sélectionnez une catégorie...</option>
+                    {Object.entries(categoriesActes).map(([key, cat]) => (
+                      <option key={key} value={key}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Type d'acte */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type d'acte
+                  </label>
+                  <select
+                    value={selectedActe}
+                    onChange={(e) => setSelectedActe(e.target.value)}
+                    disabled={!selectedCategory}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+                  >
+                    <option value="">Sélectionnez un acte...</option>
+                    {selectedCategory && Object.entries(categoriesActes[selectedCategory].actes).map(([key, acte]) => (
+                      <option key={key} value={key}>{acte.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Montant de l'acte */}
+              {selectedActe && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Montant de l'opération
+                  </label>
+                  <div className="relative">
+                    <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={montantActe}
+                      onChange={(e) => setMontantActe(e.target.value)}
+                      placeholder="450 000"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Section spéciale pour les donations */}
+              {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
+                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h3 className="font-semibold text-purple-900 mb-4 flex items-center">
+                    <UserPlus className="w-5 h-5 mr-2" />
+                    Configuration de la donation
+                  </h3>
+                  
+                  {/* Donateurs multiples */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">Donateurs</label>
+                      <button
+                        onClick={ajouterDonateur}
+                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Ajouter un donateur
+                      </button>
+                    </div>
+                    {donateurs.map((donateur) => (
+                      <div key={donateur.id} className="flex items-center gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={donateur.nom}
+                          onChange={(e) => {
+                            setDonateurs(donateurs.map(d => 
+                              d.id === donateur.id ? {...d, nom: e.target.value} : d
+                            ));
+                          }}
+                          placeholder="Nom du donateur"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={donateur.montant}
+                          onChange={(e) => {
+                            setDonateurs(donateurs.map(d => 
+                              d.id === donateur.id ? {...d, montant: e.target.value} : d
+                            ));
+                          }}
+                          placeholder="Montant"
+                          className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                        <select
+                          value={donateur.lien}
+                          onChange={(e) => {
+                            setDonateurs(donateurs.map(d => 
+                              d.id === donateur.id ? {...d, lien: e.target.value} : d
+                            ));
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        >
+                          <option value="parent">Parent</option>
+                          <option value="grand-parent">Grand-parent</option>
+                          <option value="epoux">Époux</option>
+                          <option value="autre">Autre</option>
+                        </select>
+                        {donateurs.length > 1 && (
+                          <button
+                            onClick={() => supprimerDonateur(donateur.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <p className="text-xs text-gray-600 mt-2">
+                      ℹ️ Abattements 2024 : Parent→Enfant: 100 000€ | Époux: 80 724€ | Grand-parent: 31 865€
+                    </p>
+                  </div>
+                  
+                  {/* Donataires pour donation-partage */}
+                  {selectedActe === 'donation_partage' && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium text-gray-700">Donataires</label>
+                        <button
+                          onClick={ajouterDonataire}
+                          className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Ajouter un donataire
+                        </button>
+                      </div>
+                      {donataires.map((donataire) => (
+                        <div key={donataire.id} className="flex items-center gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={donataire.nom}
+                            onChange={(e) => {
+                              setDonataires(donataires.map(d => 
+                                d.id === donataire.id ? {...d, nom: e.target.value} : d
+                              ));
+                            }}
+                            placeholder="Nom du donataire"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <div className="flex items-center">
+                            <input
+                              type="text"
+                              value={donataire.part}
+                              onChange={(e) => {
+                                setDonataires(donataires.map(d => 
+                                  d.id === donataire.id ? {...d, part: e.target.value} : d
+                                ));
+                              }}
+                              placeholder="Part"
+                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            />
+                            <span className="ml-1 text-sm">%</span>
+                          </div>
+                          {donataires.length > 1 && (
+                            <button
+                              onClick={() => supprimerDonataire(donataire.id)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Usufruit */}
+                  <div className="mt-4">
+                    <label className="flex items-center mb-2">
+                      <input
+                        type="checkbox"
+                        checked={usufruit.actif}
+                        onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium">Donation avec réserve d'usufruit</span>
+                    </label>
+                    {usufruit.actif && (
+                      <div className="ml-6 mt-2">
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Âge de l'usufruitier
+                        </label>
+                        <input
+                          type="number"
+                          value={usufruit.ageUsufruitier}
+                          onChange={(e) => {
+                            const age = e.target.value;
+                            setUsufruit({
+                              ...usufruit,
+                              ageUsufruitier: age,
+                              valeur: calculerUsufruit(age)
+                            });
+                          }}
+                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          min="20"
+                          max="100"
+                        />
+                        {usufruit.ageUsufruitier && (
+                          <p className="text-xs text-gray-600 mt-1">
+                            Valeur de l'usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Boutons d'action */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={sauvegarderCalcul}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Sauvegarder
+                </button>
+                <button
+                  onClick={exporterPDF}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter PDF
+                </button>
+                <button
+                  onClick={() => setAfficherHistorique(!afficherHistorique)}
+                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Historique ({historiqueCalculs.length})
+                </button>
+              </div>
+            </div>
+            
+            {/* Section Historique */}
+            {afficherHistorique && historiqueCalculs.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Historique des calculs</h2>
+                  <button
+                    onClick={() => setAfficherHistorique(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {historiqueCalculs.map((calcul) => (
+                    <div key={calcul.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-gray-900">{calcul.acte}</p>
+                          <p className="text-sm text-gray-600">{calcul.date}</p>
+                          <p className="text-sm text-gray-600">Montant : {calcul.montant} €</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-indigo-600">{calcul.total.toFixed(2)} €</p>
+                          <button
+                            onClick={() => {
+                              alert('Fonction de rechargement à implémenter');
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-700 mt-1"
+                          >
+                            Recharger
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div className="bg-white rounded-2xl shadow-sm">
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                  {[
+                    { id: 'emoluments', label: 'Émoluments', icon: Calculator },
+                    { id: 'debours', label: 'Débours', icon: Euro },
+                    { id: 'formalites', label: 'Formalités', icon: FileText },
+                    { id: 'documents', label: 'Documents', icon: File },
+                    { id: 'taxes', label: 'Taxes', icon: Building }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center transition ${
+                        activeTab === tab.id
+                          ? 'border-indigo-500 text-indigo-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <tab.icon className="w-4 h-4 mr-2" />
+                      {tab.label}
+                      {tab.id === 'emoluments' && emoluments > 0 && (
+                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
+                          {totalEmolumentsTTC.toFixed(2)}€
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6">
+                {activeTab === 'emoluments' && (
+                  <div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start">
+                        <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-2" />
+                        <p className="text-sm text-blue-900">
+                          Les émoluments sont calculés selon les tranches réglementaires.
+                          Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total HT</span>
+                        <span className="font-semibold">{totalEmoluments.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-gray-600">TVA (20%)</span>
+                        <span>{(totalEmoluments * 0.20).toFixed(2)} €</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                        <span className="font-semibold">Total TTC</span>
+                        <span className="font-bold text-lg text-indigo-600">
+                          {totalEmolumentsTTC.toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'debours' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
+                      <div className="ml-6 bg-gray-50 p-3 rounded">
+                        <p className="text-sm text-gray-600">Montant calculé: {debours.csi.toFixed(2)} €</p>
+                        <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total débours</span>
+                        <span className="font-bold text-lg text-indigo-600">{totalDebours.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'formalites' && (
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span>Forfait de base</span>
+                        <span className="font-medium">{formalites.forfaitBase.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Téléactes</span>
+                        <span className="font-medium">{formalites.teleactes.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total TTC</span>
+                        <span className="font-bold text-lg text-indigo-600">{totalFormalitesTTC.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'documents' && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de pages de l'acte
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.pagesActe}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, pagesActe: parseInt(e.target.value) || 0 }))}
+                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
+                        min="1"
+                      />
+                      <p className="text-sm text-gray-600 mt-1">
+                        Frais de rôle : {(documents.pagesActe * 2).toFixed(2)} € (2 € par page)
+                      </p>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total TTC</span>
+                        <span className="font-bold text-lg text-indigo-600">{totalDocumentsTTC.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'taxes' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="ancien"
+                            checked={taxes.typeBien === 'ancien'}
+                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                            className="mr-2"
+                          />
+                          <span>Ancien</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="neuf"
+                            checked={taxes.typeBien === 'neuf'}
+                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                            className="mr-2"
+                          />
+                          <span>Neuf (VEFA)</span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total des taxes</span>
+                        <span className="font-bold text-lg text-indigo-600">{totalTaxes.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Récapitulatif */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Récapitulatif</h2>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Émoluments TTC</span>
+                  <span className="font-medium">{totalEmolumentsTTC.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Débours</span>
+                  <span className="font-medium">{totalDebours.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Formalités TTC</span>
+                  <span className="font-medium">{totalFormalitesTTC.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Documents TTC</span>
+                  <span className="font-medium">{totalDocumentsTTC.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Taxes et droits</span>
+                  <span className="font-medium">{totalTaxes.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <span className="text-xl font-bold">TOTAL GÉNÉRAL</span>
+                  <span className="text-2xl font-bold text-indigo-600">
+                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>  {/* Fermeture de max-w-7xl mx-auto */}
+        </div>  {/* Fermeture de min-h-screen bg-gray-50 p-4 */}
+      </div>  {/* Fermeture de bg-white text-black */}
+    </Layout>
+  );
+}
+
+================================================================================
+[13] FILE: src\components\Layout.tsx
+SIZE: 10.61 KB
+LAST MODIFIED: 2025-09-20T20:05:58.651Z
+================================================================================
+
+"use client";
+
+import Link from 'next/link';
+import { Calculator, ArrowLeft, MessageSquare, Github, Home } from 'lucide-react';
+import { useState } from 'react';
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg-secondary)]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 glass">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Left side */}
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="w-9 h-9 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent-700)] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-[var(--color-text-primary)]">
+                  NotariaPrime
+                </span>
+              </Link>
+              
+              {/* Breadcrumb separator */}
+              <div className="h-6 w-px bg-[var(--color-border-default)]" />
+              
+              <nav className="flex items-center gap-2 text-sm">
+                <Link href="/" className="flex items-center gap-1 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
+                  <Home className="w-4 h-4" />
+                  Accueil
+                </Link>
+                <span className="text-[var(--color-text-tertiary)]">/</span>
+                <span className="text-[var(--color-text-primary)] font-medium">
+                  Calculateur
+                </span>
+              </nav>
+            </div>
+
+            {/* Right side */}
+            <div className="flex items-center gap-4">
+              <a 
+                href="https://github.com" 
+                className="btn btn-ghost hidden sm:flex"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Github className="w-4 h-4" />
+                GitHub
+              </a>
+              <button 
+                onClick={() => setFeedbackOpen(true)}
+                className="btn btn-secondary"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Feedback</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="relative">
+        {children}
+      </main>
+
+      {/* Footer simplifié */}
+      <footer className="mt-auto py-12 px-6 border-t border-[var(--color-border-default)] bg-[var(--color-bg-primary)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* About */}
+            <div>
+              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
+                À propos
+              </h3>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+                NotariaPrime est un projet open source et gratuit développé par la communauté pour simplifier les calculs notariaux.
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="community-badge">
+                  <span>💙</span>
+                  <span>Communautaire</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
+                Liens utiles
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="/documentation" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
+                    Documentation API
+                  </a>
+                </li>
+                <li>
+                  <a href="/tarifs" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
+                    Tarifs réglementés 2024
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
+                    Contribuer sur GitHub
+                  </a>
+                </li>
+                <li>
+                  <a href="/changelog" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
+                    Changelog
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
+                Support
+              </h3>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+                Besoin d'aide ? La communauté est là pour vous.
+              </p>
+              <div className="space-y-2">
+                <a 
+                  href="https://discord.com" 
+                  className="btn btn-secondary w-full justify-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Rejoindre Discord
+                </a>
+                <button 
+                  onClick={() => setFeedbackOpen(true)}
+                  className="btn btn-ghost w-full justify-center"
+                >
+                  Signaler un bug
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="mt-12 pt-8 border-t border-[var(--color-border-default)] flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-[var(--color-text-tertiary)]">
+              © 2025 NotariaPrime - Projet open source sous licence MIT
+            </div>
+            <div className="flex items-center gap-6 text-sm">
+              <a href="/legal" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
+                Mentions légales
+              </a>
+              <a href="/privacy" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
+                Confidentialité
+              </a>
+              <a href="/terms" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
+                CGU
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Feedback Modal */}
+      {feedbackOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-[var(--color-bg-primary)] rounded-xl p-6 max-w-md w-full animate-fade-in shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
+                Votre retour est précieux
+              </h3>
+              <button 
+                onClick={() => setFeedbackOpen(false)}
+                className="p-2 hover:bg-[var(--color-bg-tertiary)] rounded-lg transition"
+              >
+                <span className="sr-only">Fermer</span>
+                ✕
+              </button>
+            </div>
+            
+            <p className="text-[var(--color-text-secondary)] mb-6">
+              Aidez-nous à améliorer NotariaPrime. Chaque suggestion compte !
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                  Type de retour
+                </label>
+                <select className="w-full p-3 border border-[var(--color-border-default)] rounded-lg bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]">
+                  <option>💡 Suggestion de fonctionnalité</option>
+                  <option>🐛 Signaler un bug</option>
+                  <option>📝 Amélioration</option>
+                  <option>❓ Question</option>
+                  <option>👍 Retour positif</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                  Votre message
+                </label>
+                <textarea 
+                  className="w-full p-3 border border-[var(--color-border-default)] rounded-lg resize-none bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]"
+                  rows={4}
+                  placeholder="Décrivez votre retour..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                  Email (optionnel)
+                </label>
+                <input 
+                  type="email"
+                  className="w-full p-3 border border-[var(--color-border-default)] rounded-lg bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]"
+                  placeholder="vous@exemple.com"
+                />
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                  Pour vous tenir informé de la suite donnée à votre retour
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button className="btn btn-primary flex-1">
+                Envoyer le feedback
+              </button>
+              <button 
+                onClick={() => setFeedbackOpen(false)}
+                className="btn btn-secondary flex-1"
+              >
+                Annuler
+              </button>
+            </div>
+            
+            <p className="text-xs text-[var(--color-text-tertiary)] text-center mt-4">
+              Vous pouvez aussi contribuer directement sur{' '}
+              <a href="https://github.com" className="text-[var(--color-accent-600)] hover:underline">
+                GitHub
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+================================================================================
+[14] FILE: src\lib\utils.ts
+SIZE: 0.17 KB
+LAST MODIFIED: 2025-09-19T10:39:25.672Z
+================================================================================
+
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+================================================================================
+[15] FILE: tailwind.config.js
+SIZE: 0.94 KB
+LAST MODIFIED: 2025-09-22T18:23:40.588Z
+================================================================================
+
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+      },
+      animation: {
+        'blob': 'blob 20s infinite',
+        'bounce': 'bounce 3s infinite',
+        'pulse': 'pulse 2s infinite',
+        'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+      },
+      keyframes: {
+        blob: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '25%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '50%': { transform: 'translate(-20px, 30px) scale(0.9)' },
+          '75%': { transform: 'translate(-40px, -20px) scale(1.05)' },
+        },
+      }
+    },
+  },
+  plugins: [],
+}
+
+================================================================================
+[16] FILE: tsconfig.json
+SIZE: 0.59 KB
+LAST MODIFIED: 2025-09-19T10:31:05.636Z
+================================================================================
+
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+
+================================================================================
+EXPORT SUMMARY:
+================================================================================
+Total files exported: 16
+Total size: 0.11 MB
+Export date: 2025-09-22T18:27:08.820Z
+================================================================================
