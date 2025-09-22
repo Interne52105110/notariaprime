@@ -3,14 +3,44 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { 
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
-  CheckCircle, Users, Award, BarChart3, Lock, Globe,
-  ChevronRight, Menu, X, Play, ArrowUpRight, Briefcase,
-  FileCheck, Clock, Star, Building2, TrendingDown, 
+  CheckCircle, Users, Award, Lock, Globe,
+  Menu, X, Play, 
+  FileCheck, Clock, Star, Building2, 
   Rocket, Brain, Cpu
 } from 'lucide-react';
 
+// Types pour les composants
+interface Stat {
+  value: string;
+  label: string;
+  trend?: string;
+}
+
+interface Feature {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  metric: string;
+  metricLabel: string;
+}
+
+interface Solution {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+  status: string;
+  features: string[];
+  link: string;
+}
+
+interface NewFeature {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  status: string;
+}
+
 // Composants mémorisés pour optimiser les performances
-const StatsCard = memo(({ stat }) => (
+const StatsCard = memo(({ stat }: { stat: Stat }) => (
   <div className="text-center">
     <div className="flex items-center justify-center gap-2 mb-2">
       <p className="text-4xl font-bold text-gray-900">{stat.value}</p>
@@ -28,7 +58,7 @@ const StatsCard = memo(({ stat }) => (
   </div>
 ));
 
-const FeatureCard = memo(({ feature }) => (
+const FeatureCard = memo(({ feature }: { feature: Feature }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:border-indigo-300">
     <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
       <feature.icon className="w-6 h-6 text-indigo-600" />
@@ -46,7 +76,11 @@ const FeatureCard = memo(({ feature }) => (
   </div>
 ));
 
-const SolutionCard = memo(({ solution, index, onHover }) => {
+const SolutionCard = memo(({ solution, index, onHover }: { 
+  solution: Solution; 
+  index: number; 
+  onHover: (index: number | null) => void; 
+}) => {
   const isAvailable = solution.status === 'Disponible';
   
   return (
@@ -87,7 +121,7 @@ const SolutionCard = memo(({ solution, index, onHover }) => {
       
       {isAvailable ? (
         <a href={solution.link} className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all">
-          Utiliser l'outil
+          Utiliser l&apos;outil
           <ArrowRight className="w-4 h-4" />
         </a>
       ) : (
@@ -100,10 +134,8 @@ const SolutionCard = memo(({ solution, index, onHover }) => {
 export default function NotariaPrimeHomepage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
 
   // Gestion responsive optimisée
   useEffect(() => {
@@ -118,26 +150,20 @@ export default function NotariaPrimeHomepage() {
     window.addEventListener('resize', updateDeviceType);
     window.addEventListener('scroll', handleScroll);
 
-    // Animation automatique des features
-    const interval = setInterval(() => {
-      setActiveFeature(prev => (prev + 1) % 4);
-    }, 3000);
-
     return () => {
       window.removeEventListener('resize', updateDeviceType);
       window.removeEventListener('scroll', handleScroll);
-      clearInterval(interval);
     };
   }, []);
 
-  const stats = [
+  const stats: Stat[] = [
     { value: '15+', label: 'Utilisateurs actifs', trend: '+23%' },
     { value: '500+', label: 'Calculs par mois', trend: '+18%' },
     { value: '100%', label: 'Gratuit et open source', trend: 'TOUJOURS' },
     { value: '2025', label: 'Tarifs à jour', trend: 'OFFICIEL' }
   ];
 
-  const features = [
+  const features: Feature[] = [
     {
       icon: Zap,
       title: 'Ultra rapide',
@@ -148,7 +174,7 @@ export default function NotariaPrimeHomepage() {
     {
       icon: Brain,
       title: 'IA Assistée',
-      description: 'Suggestions intelligentes et détection d\'erreurs',
+      description: 'Suggestions intelligentes et détection d&apos;erreurs',
       metric: '99.9%',
       metricLabel: 'Précision'
     },
@@ -168,7 +194,7 @@ export default function NotariaPrimeHomepage() {
     }
   ];
 
-  const solutions = [
+  const solutions: Solution[] = [
     {
       title: 'Prétaxe Notariale',
       icon: Calculator,
@@ -203,15 +229,15 @@ export default function NotariaPrimeHomepage() {
     }
   ];
 
-  const newFeatures = [
+  const newFeatures: NewFeature[] = [
     { icon: Rocket, label: 'API Publique', status: 'new' },
     { icon: Globe, label: 'Mode Hors-ligne', status: 'new' },
     { icon: Users, label: 'Espace Pro', status: 'soon' },
     { icon: Brain, label: 'Assistant IA', status: 'soon' }
   ];
 
-  const handleCardHover = useCallback((index) => {
-    setHoveredCard(index);
+  const handleCardHover = useCallback((index: number | null) => {
+    // Handle card hover logic
   }, []);
 
   return (
@@ -301,11 +327,9 @@ export default function NotariaPrimeHomepage() {
         {/* Gradient animé */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
         
-        {/* Blobs animés - utilisation de CSS pour les animations */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl" 
-             style={{ animation: 'blob 20s infinite' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl" 
-             style={{ animation: 'blob 20s infinite', animationDelay: '10s' }} />
+        {/* Blobs animés */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl animate-blob animation-delay-2000" />
         
         <div className="relative max-w-7xl mx-auto px-6">
           <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -457,14 +481,14 @@ export default function NotariaPrimeHomepage() {
                 </div>
 
                 {/* Floating notifications */}
-                <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4" style={{ animation: 'bounce 3s ease-in-out infinite' }}>
+                <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 animate-bounce">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Calcul terminé</p>
-                      <p className="font-semibold text-gray-900">À l'instant</p>
+                      <p className="font-semibold text-gray-900">À l&apos;instant</p>
                     </div>
                   </div>
                 </div>
@@ -475,7 +499,7 @@ export default function NotariaPrimeHomepage() {
                       <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
+                  <p className="text-xs text-gray-600">&quot;Interface exceptionnelle&quot;</p>
                   <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
                 </div>
               </div>
@@ -598,7 +622,7 @@ export default function NotariaPrimeHomepage() {
             Simplifiez vos calculs notariaux dès maintenant
           </h2>
           <p className="text-xl text-gray-300 mb-10">
-            Rejoignez notre communauté grandissante d'utilisateurs.
+            Rejoignez notre communauté grandissante d&apos;utilisateurs.
             <br />100% gratuit, sans inscription, open source.
           </p>
           
@@ -687,20 +711,6 @@ export default function NotariaPrimeHomepage() {
           </div>
         </div>
       </footer>
-
-      <style jsx>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(30px, -50px) scale(1.1); }
-          50% { transform: translate(-20px, 30px) scale(0.9); }
-          75% { transform: translate(-40px, -20px) scale(1.05); }
-        }
-
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-      `}</style>
     </div>
   );
 }
