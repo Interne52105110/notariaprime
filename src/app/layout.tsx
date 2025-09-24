@@ -12,11 +12,11 @@ export const metadata: Metadata = {
   description: "Plateforme open source pour calculer vos frais notariés",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="fr">
       <body className={`${inter.variable} antialiased`}>

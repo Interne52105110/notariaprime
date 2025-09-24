@@ -58,6 +58,8 @@ const StatsCard = memo(({ stat }: { stat: Stat }) => (
   </div>
 ));
 
+StatsCard.displayName = 'StatsCard';
+
 const FeatureCard = memo(({ feature }: { feature: Feature }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:border-indigo-300">
     <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
@@ -75,6 +77,8 @@ const FeatureCard = memo(({ feature }: { feature: Feature }) => (
     </div>
   </div>
 ));
+
+FeatureCard.displayName = 'FeatureCard';
 
 const SolutionCard = memo(({ solution, index, onHover }: { 
   solution: Solution; 
@@ -130,6 +134,8 @@ const SolutionCard = memo(({ solution, index, onHover }: {
     </div>
   );
 });
+
+SolutionCard.displayName = 'SolutionCard';
 
 export default function NotariaPrimeHomepage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -238,6 +244,7 @@ export default function NotariaPrimeHomepage() {
 
   const handleCardHover = useCallback((index: number | null) => {
     // Handle card hover logic
+    console.log('Card hovered:', index);
   }, []);
 
   return (

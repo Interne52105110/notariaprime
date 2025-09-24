@@ -9,6 +9,26 @@ import {
   Download, Save, History, Plus, Minus, UserPlus
 } from 'lucide-react';
 
+// Types TypeScript
+interface TrancheTarif {
+  min: number;
+  max: number;
+  taux: number;
+}
+
+interface ActeConfig {
+  label: string;
+  type: 'proportionnel' | 'fixe';
+  tranches?: TrancheTarif[];
+  montant?: number;
+}
+
+interface CategorieActes {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  actes: Record<string, ActeConfig>;
+}
+
 interface Donateur {
   id: number;
   nom: string;
@@ -35,6 +55,11 @@ interface HistoriqueCalcul {
     documents: number;
     taxes: number;
   };
+}
+
+interface Departement {
+  nom: string;
+  taux: number;
 }
 
 export default function PretaxeIntelligente() {
@@ -115,20 +140,20 @@ export default function PretaxeIntelligente() {
   };
   
   // Barème usufruit selon l'âge (Article 669 CGI)
-const calculerUsufruit = (age: string | number) => {
-  const ageNum = parseInt(String(age));
-  if (ageNum < 21) return 90;
-  if (ageNum < 31) return 80;
-  if (ageNum < 41) return 70;
-  if (ageNum < 51) return 60;
-  if (ageNum < 61) return 50;
-  if (ageNum < 71) return 40;
-  if (ageNum < 81) return 30;
-  if (ageNum < 91) return 20;
-  return 10;
-};
+  const calculerUsufruit = (age: string | number): number => {
+    const ageNum = parseInt(String(age));
+    if (ageNum < 21) return 90;
+    if (ageNum < 31) return 80;
+    if (ageNum < 41) return 70;
+    if (ageNum < 51) return 60;
+    if (ageNum < 61) return 50;
+    if (ageNum < 71) return 40;
+    if (ageNum < 81) return 30;
+    if (ageNum < 91) return 20;
+    return 10;
+  };
 
-  const departements = {
+  const departements: Record<string, Departement> = {
     '01': { nom: 'Ain', taux: 4.50 },
     '02': { nom: 'Aisne', taux: 4.50 },
     '03': { nom: 'Allier', taux: 4.50 },
@@ -233,7 +258,7 @@ const calculerUsufruit = (age: string | number) => {
   };
 
   // Catégories et actes selon l'Annexe 4-7 du Code de commerce
-  const categoriesActes = {
+  const categoriesActes: Record<string, CategorieActes> = {
     'biens_immobiliers': {
       label: 'Actes relatifs aux biens immobiliers',
       icon: Home,
@@ -543,7 +568,7 @@ const calculerUsufruit = (age: string | number) => {
   };
 
   // Calcul des émoluments avec application des remises Table 5
-  const calculerEmoluments = (montant, tranches) => {
+  const calculerEmoluments = (montant: number, tranches: TrancheTarif[]): number => {
     let emolumentsBruts = 0;
     
     tranches.forEach(tranche => {
@@ -634,7 +659,7 @@ const calculerUsufruit = (age: string | number) => {
   
   // Fonction de sauvegarde
   const sauvegarderCalcul = () => {
-    const nouveauCalcul = {
+    const nouveauCalcul: HistoriqueCalcul = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
       acte: categoriesActes[selectedCategory]?.actes[selectedActe]?.label || 'N/A',
@@ -689,9 +714,9 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
       if (!isNaN(montant)) {
         const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
         if (acte) {
-          if (acte.type === 'proportionnel') {
+          if (acte.type === 'proportionnel' && acte.tranches) {
             setEmoluments(calculerEmoluments(montant, acte.tranches));
-          } else {
+          } else if (acte.type === 'fixe' && acte.montant) {
             setEmoluments(acte.montant);
           }
           calculerCSI();
@@ -699,7 +724,7 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory]);
 
   // Calcul des totaux
   const totalEmoluments = emoluments;
