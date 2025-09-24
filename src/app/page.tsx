@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
+import MainLayout from '@/components/MainLayout';
 import { 
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
   CheckCircle, Users, Award, Lock, Globe,
-  Menu, X, Play, 
-  FileCheck, Clock, Star, Building2, 
+  Play, FileCheck, Clock, Star, Building2, 
   Rocket, Brain, Cpu
 } from 'lucide-react';
 
@@ -125,7 +125,7 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       
       {isAvailable ? (
         <a href={solution.link} className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all">
-          Utiliser l&apos;outil
+          Utiliser l'outil
           <ArrowRight className="w-4 h-4" />
         </a>
       ) : (
@@ -137,9 +137,7 @@ const SolutionCard = memo(({ solution, index, onHover }: {
 
 SolutionCard.displayName = 'SolutionCard';
 
-export default function NotariaPrimeHomepage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+function HomepageContent() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -150,15 +148,11 @@ export default function NotariaPrimeHomepage() {
       setIsMobile(window.innerWidth < 768);
     };
 
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-
     updateDeviceType();
     window.addEventListener('resize', updateDeviceType);
-    window.addEventListener('scroll', handleScroll);
 
     return () => {
       window.removeEventListener('resize', updateDeviceType);
-      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -180,7 +174,7 @@ export default function NotariaPrimeHomepage() {
     {
       icon: Brain,
       title: 'IA Assistée',
-      description: 'Suggestions intelligentes et détection d&apos;erreurs',
+      description: 'Suggestions intelligentes et détection d\'erreurs',
       metric: '99.9%',
       metricLabel: 'Précision'
     },
@@ -243,94 +237,13 @@ export default function NotariaPrimeHomepage() {
   ];
 
   const handleCardHover = useCallback((index: number | null) => {
-    // Handle card hover logic
     console.log('Card hovered:', index);
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation optimisée */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo avec animation */}
-            <div className="flex items-center gap-12">
-              <div className="flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Calculator className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                </div>
-                <div>
-                  <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
-                  <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
-                </div>
-              </div>
-
-              {/* Menu desktop */}
-              {isDesktop && (
-                <nav className="flex items-center gap-8">
-                  <a href="#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">Solutions</a>
-                  <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium transition">Fonctionnalités</a>
-                  <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition">Tarifs</a>
-                  <a href="#enterprise" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium transition">
-                    Enterprise
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">NEW</span>
-                  </a>
-                </nav>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-4">
-              {!isMobile && (
-                <>
-                  <a href="/login" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Connexion
-                  </a>
-                  <a href="/demo" className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
-                    Demander une démo
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </>
-              )}
-              {!isDesktop && (
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
-                  aria-label="Menu"
-                >
-                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu avec animation */}
-      {mobileMenuOpen && !isDesktop && (
-        <div className="fixed inset-0 z-40 bg-white pt-20">
-          <nav className="flex flex-col p-6 space-y-4">
-            <a href="#solutions" className="text-lg font-medium text-gray-900 py-2">Solutions</a>
-            <a href="#features" className="text-lg font-medium text-gray-900 py-2">Fonctionnalités</a>
-            <a href="#pricing" className="text-lg font-medium text-gray-900 py-2">Tarifs</a>
-            <a href="#enterprise" className="text-lg font-medium text-gray-900 py-2">Enterprise</a>
-            <hr className="my-4" />
-            <a href="/login" className="text-lg font-medium text-gray-900 py-2">Connexion</a>
-            <a href="/demo" className="flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium">
-              Demander une démo
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </nav>
-        </div>
-      )}
-
       {/* Hero Section amélioré */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative py-20 overflow-hidden">
         {/* Gradient animé */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
         
@@ -495,7 +408,7 @@ export default function NotariaPrimeHomepage() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Calcul terminé</p>
-                      <p className="font-semibold text-gray-900">À l&apos;instant</p>
+                      <p className="font-semibold text-gray-900">À l'instant</p>
                     </div>
                   </div>
                 </div>
@@ -506,7 +419,7 @@ export default function NotariaPrimeHomepage() {
                       <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-600">&quot;Interface exceptionnelle&quot;</p>
+                  <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
                   <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
                 </div>
               </div>
@@ -629,7 +542,7 @@ export default function NotariaPrimeHomepage() {
             Simplifiez vos calculs notariaux dès maintenant
           </h2>
           <p className="text-xl text-gray-300 mb-10">
-            Rejoignez notre communauté grandissante d&apos;utilisateurs.
+            Rejoignez notre communauté grandissante d'utilisateurs.
             <br />100% gratuit, sans inscription, open source.
           </p>
           
@@ -659,65 +572,14 @@ export default function NotariaPrimeHomepage() {
           </div>
         </div>
       </section>
-
-      {/* Footer optimisé */}
-      <footer className="py-16 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid gap-8 mb-12 ${isDesktop ? 'grid-cols-5' : 'grid-cols-2'}`}>
-            <div className={isDesktop ? 'col-span-2' : 'col-span-2'}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
-              </div>
-              <p className="text-gray-600 mb-6">
-                La plateforme open source pour digitaliser et automatiser vos calculs notariaux.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Tarifs</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Roadmap</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">Documentation</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">API</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Blog</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Entreprise</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">À propos</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Contact</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Partenaires</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="pt-8 border-t border-gray-200">
-            <div className={`flex items-center gap-6 ${isMobile ? 'flex-col text-center' : 'justify-between'}`}>
-              <p className="text-gray-600 text-sm">
-                © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
-              </p>
-              <div className="flex items-center gap-6 text-sm">
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Mentions légales</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Confidentialité</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">CGU</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
+  );
+}
+
+export default function NotariaPrimeHomepage() {
+  return (
+    <MainLayout>
+      <HomepageContent />
+    </MainLayout>
   );
 }

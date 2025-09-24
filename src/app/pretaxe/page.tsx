@@ -1,6 +1,6 @@
 "use client";
 
-import Layout from '@/components/Layout';
+import MainLayout from '@/components/MainLayout';
 import React, { useState, useEffect } from 'react';
 import { 
   Calculator, FileText, Euro, Building, Users, Home,
@@ -62,7 +62,7 @@ interface Departement {
   taux: number;
 }
 
-export default function PretaxeIntelligente() {
+function PretaxeContent() {
   // États principaux
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedActe, setSelectedActe] = useState('');
@@ -748,450 +748,489 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
   const totalGeneral = totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes;
 
   return (
-    <Layout>
-      <div className="bg-white text-black">
-        <div className="min-h-screen bg-gray-50 p-4">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-              <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Calculator className="w-6 h-6 text-white" />
+                </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    <Calculator className="w-8 h-8 mr-3 text-indigo-600" />
+                  <h1 className="text-3xl font-bold text-gray-900">
                     Calculateur de frais notariés
                   </h1>
-                  <p className="text-gray-600 mt-2">
-                    Conforme au tarif réglementé 2024 - Décret n°2020-179 et arrêtés modificatifs
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Total général</p>
-                  <p className="text-3xl font-bold text-indigo-600">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                  <p className="text-indigo-600 font-medium">
+                    Conforme au tarif réglementé 2024
                   </p>
                 </div>
               </div>
-
-              {/* Sélecteurs principaux */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Département */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-1" />
-                    Département
-                  </label>
-                  <select
-                    value={selectedDepartement}
-                    onChange={(e) => setSelectedDepartement(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {Object.entries(departements).map(([code, dept]) => (
-                      <option key={code} value={code}>
-                        {code} - {dept.nom} ({dept.taux}%)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Catégorie d'acte */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Catégorie d'acte
-                  </label>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      setSelectedCategory(e.target.value);
-                      setSelectedActe('');
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Sélectionnez une catégorie...</option>
-                    {Object.entries(categoriesActes).map(([key, cat]) => (
-                      <option key={key} value={key}>{cat.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Type d'acte */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type d'acte
-                  </label>
-                  <select
-                    value={selectedActe}
-                    onChange={(e) => setSelectedActe(e.target.value)}
-                    disabled={!selectedCategory}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Sélectionnez un acte...</option>
-                    {selectedCategory && Object.entries(categoriesActes[selectedCategory].actes).map(([key, acte]) => (
-                      <option key={key} value={key}>{acte.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Montant de l'acte */}
-              {selectedActe && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Montant de l'opération
-                  </label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={montantActe}
-                      onChange={(e) => setMontantActe(e.target.value)}
-                      placeholder="450 000"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Section spéciale pour les donations */}
-              {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
-                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-900 mb-4 flex items-center">
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    Configuration de la donation
-                  </h3>
-                  
-                  {/* Donateurs multiples */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-gray-700">Donateurs</label>
-                      <button
-                        onClick={ajouterDonateur}
-                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Ajouter un donateur
-                      </button>
-                    </div>
-                    {donateurs.map((donateur) => (
-                      <div key={donateur.id} className="flex items-center gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={donateur.nom}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, nom: e.target.value} : d
-                            ));
-                          }}
-                          placeholder="Nom du donateur"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        />
-                        <input
-                          type="text"
-                          value={donateur.montant}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, montant: e.target.value} : d
-                            ));
-                          }}
-                          placeholder="Montant"
-                          className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        />
-                        <select
-                          value={donateur.lien}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, lien: e.target.value} : d
-                            ));
-                          }}
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        >
-                          <option value="parent">Parent</option>
-                          <option value="grand-parent">Grand-parent</option>
-                          <option value="epoux">Époux</option>
-                          <option value="autre">Autre</option>
-                        </select>
-                        {donateurs.length > 1 && (
-                          <button
-                            onClick={() => supprimerDonateur(donateur.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <p className="text-xs text-gray-600 mt-2">
-                      ℹ️ Abattements 2024 : Parent→Enfant: 100 000€ | Époux: 80 724€ | Grand-parent: 31 865€
-                    </p>
-                  </div>
-                  
-                  {/* Donataires pour donation-partage */}
-                  {selectedActe === 'donation_partage' && (
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700">Donataires</label>
-                        <button
-                          onClick={ajouterDonataire}
-                          className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Ajouter un donataire
-                        </button>
-                      </div>
-                      {donataires.map((donataire) => (
-                        <div key={donataire.id} className="flex items-center gap-2 mb-2">
-                          <input
-                            type="text"
-                            value={donataire.nom}
-                            onChange={(e) => {
-                              setDonataires(donataires.map(d => 
-                                d.id === donataire.id ? {...d, nom: e.target.value} : d
-                              ));
-                            }}
-                            placeholder="Nom du donataire"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <div className="flex items-center">
-                            <input
-                              type="text"
-                              value={donataire.part}
-                              onChange={(e) => {
-                                setDonataires(donataires.map(d => 
-                                  d.id === donataire.id ? {...d, part: e.target.value} : d
-                                ));
-                              }}
-                              placeholder="Part"
-                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            />
-                            <span className="ml-1 text-sm">%</span>
-                          </div>
-                          {donataires.length > 1 && (
-                            <button
-                              onClick={() => supprimerDonataire(donataire.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Usufruit */}
-                  <div className="mt-4">
-                    <label className="flex items-center mb-2">
-                      <input
-                        type="checkbox"
-                        checked={usufruit.actif}
-                        onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
-                        className="mr-2"
-                      />
-                      <span className="text-sm font-medium">Donation avec réserve d'usufruit</span>
-                    </label>
-                    {usufruit.actif && (
-                      <div className="ml-6 mt-2">
-                        <label className="block text-sm text-gray-600 mb-1">
-                          Âge de l'usufruitier
-                        </label>
-                        <input
-                          type="number"
-                          value={usufruit.ageUsufruitier}
-                          onChange={(e) => {
-                            const age = e.target.value;
-                            setUsufruit({
-                              ...usufruit,
-                              ageUsufruitier: age,
-                              valeur: calculerUsufruit(age)
-                            });
-                          }}
-                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          min="20"
-                          max="100"
-                        />
-                        {usufruit.ageUsufruitier && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Valeur de l'usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Boutons d'action */}
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={sauvegarderCalcul}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder
-                </button>
-                <button
-                  onClick={exporterPDF}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exporter PDF
-                </button>
-                <button
-                  onClick={() => setAfficherHistorique(!afficherHistorique)}
-                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  <History className="w-4 h-4 mr-2" />
-                  Historique ({historiqueCalculs.length})
-                </button>
+              <p className="text-gray-600">
+                Décret n°2020-179 et arrêtés modificatifs - Calcul instantané et précis
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                <p className="text-sm text-indigo-600 font-medium mb-1">Total général</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                </p>
               </div>
             </div>
-            
-            {/* Section Historique */}
-            {afficherHistorique && historiqueCalculs.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          </div>
+
+          {/* Sélecteurs principaux avec design amélioré */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Département */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Département
+              </label>
+              <select
+                value={selectedDepartement}
+                onChange={(e) => setSelectedDepartement(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+              >
+                {Object.entries(departements).map(([code, dept]) => (
+                  <option key={code} value={code}>
+                    {code} - {dept.nom} ({dept.taux}%)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Catégorie d'acte */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Catégorie d'acte
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedActe('');
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+              >
+                <option value="">Sélectionnez une catégorie...</option>
+                {Object.entries(categoriesActes).map(([key, cat]) => (
+                  <option key={key} value={key}>{cat.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Type d'acte */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Type d'acte
+              </label>
+              <select
+                value={selectedActe}
+                onChange={(e) => setSelectedActe(e.target.value)}
+                disabled={!selectedCategory}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white disabled:bg-gray-100"
+              >
+                <option value="">Sélectionnez un acte...</option>
+                {selectedCategory && Object.entries(categoriesActes[selectedCategory].actes).map(([key, acte]) => (
+                  <option key={key} value={key}>{acte.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Montant de l'acte */}
+          {selectedActe && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
+            <div className="mt-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Montant de l'opération
+              </label>
+              <div className="relative">
+                <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={montantActe}
+                  onChange={(e) => setMontantActe(e.target.value)}
+                  placeholder="450 000"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white text-lg font-medium"
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Section spéciale pour les donations */}
+          {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
+            <div className="mt-8 p-6 bg-purple-50 rounded-xl border border-purple-200">
+              <h3 className="font-semibold text-purple-900 mb-6 flex items-center">
+                <UserPlus className="w-5 h-5 mr-2" />
+                Configuration de la donation
+              </h3>
+              
+              {/* Donateurs multiples */}
+              <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">Historique des calculs</h2>
+                  <label className="text-sm font-medium text-gray-700">Donateurs</label>
                   <button
-                    onClick={() => setAfficherHistorique(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    onClick={ajouterDonateur}
+                    className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
                   >
-                    <X className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
+                    Ajouter un donateur
                   </button>
                 </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {historiqueCalculs.map((calcul) => (
-                    <div key={calcul.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-gray-900">{calcul.acte}</p>
-                          <p className="text-sm text-gray-600">{calcul.date}</p>
-                          <p className="text-sm text-gray-600">Montant : {calcul.montant} €</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-indigo-600">{calcul.total.toFixed(2)} €</p>
-                          <button
-                            onClick={() => {
-                              alert('Fonction de rechargement à implémenter');
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-700 mt-1"
-                          >
-                            Recharger
-                          </button>
-                        </div>
+                {donateurs.map((donateur) => (
+                  <div key={donateur.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <input
+                      type="text"
+                      value={donateur.nom}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, nom: e.target.value} : d
+                        ));
+                      }}
+                      placeholder="Nom du donateur"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      value={donateur.montant}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, montant: e.target.value} : d
+                        ));
+                      }}
+                      placeholder="Montant"
+                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <select
+                      value={donateur.lien}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, lien: e.target.value} : d
+                        ));
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="parent">Parent</option>
+                      <option value="grand-parent">Grand-parent</option>
+                      <option value="epoux">Époux</option>
+                      <option value="autre">Autre</option>
+                    </select>
+                    {donateurs.length > 1 && (
+                      <button
+                        onClick={() => supprimerDonateur(donateur.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <div className="text-xs text-gray-600 mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <Info className="w-4 h-4 inline mr-1" />
+                  Abattements 2024 : Parent→Enfant: 100 000€ | Époux: 80 724€ | Grand-parent: 31 865€
+                </div>
+              </div>
+              
+              {/* Donataires pour donation-partage */}
+              {selectedActe === 'donation_partage' && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm font-medium text-gray-700">Donataires</label>
+                    <button
+                      onClick={ajouterDonataire}
+                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Ajouter un donataire
+                    </button>
+                  </div>
+                  {donataires.map((donataire) => (
+                    <div key={donataire.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                      <input
+                        type="text"
+                        value={donataire.nom}
+                        onChange={(e) => {
+                          setDonataires(donataires.map(d => 
+                            d.id === donataire.id ? {...d, nom: e.target.value} : d
+                          ));
+                        }}
+                        placeholder="Nom du donataire"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={donataire.part}
+                          onChange={(e) => {
+                            setDonataires(donataires.map(d => 
+                              d.id === donataire.id ? {...d, part: e.target.value} : d
+                            ));
+                          }}
+                          placeholder="Part"
+                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        <span className="ml-1 text-sm text-gray-600">%</span>
                       </div>
+                      {donataires.length > 1 && (
+                        <button
+                          onClick={() => supprimerDonataire(donataire.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                </div>
+              )}
+              
+              {/* Usufruit */}
+              <div className="mt-6">
+                <label className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    checked={usufruit.actif}
+                    onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
+                    className="mr-3 w-4 h-4 text-purple-600 focus:ring-purple-500 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Donation avec réserve d'usufruit</span>
+                </label>
+                {usufruit.actif && (
+                  <div className="ml-7 mt-3 p-4 bg-white rounded-lg border border-gray-200">
+                    <label className="block text-sm text-gray-600 mb-2">
+                      Âge de l'usufruitier
+                    </label>
+                    <input
+                      type="number"
+                      value={usufruit.ageUsufruitier}
+                      onChange={(e) => {
+                        const age = e.target.value;
+                        setUsufruit({
+                          ...usufruit,
+                          ageUsufruitier: age,
+                          valeur: calculerUsufruit(age)
+                        });
+                      }}
+                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="20"
+                      max="100"
+                    />
+                    {usufruit.ageUsufruitier && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Valeur de l'usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Boutons d'action avec design unifié */}
+          <div className="flex flex-wrap gap-3 mt-8">
+            <button
+              onClick={sauvegarderCalcul}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Save className="w-4 h-4" />
+              Sauvegarder
+            </button>
+            <button
+              onClick={exporterPDF}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Download className="w-4 h-4" />
+              Exporter PDF
+            </button>
+            <button
+              onClick={() => setAfficherHistorique(!afficherHistorique)}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <History className="w-4 h-4" />
+              Historique ({historiqueCalculs.length})
+            </button>
+          </div>
+        </div>
+        
+        {/* Section Historique */}
+        {afficherHistorique && historiqueCalculs.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Historique des calculs</h2>
+              <button
+                onClick={() => setAfficherHistorique(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {historiqueCalculs.map((calcul) => (
+                <div key={calcul.id} className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-all">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-gray-900">{calcul.acte}</p>
+                      <p className="text-sm text-gray-600">{calcul.date}</p>
+                      <p className="text-sm text-gray-600">Montant : {calcul.montant} €</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-indigo-600">{calcul.total.toFixed(2)} €</p>
+                      <button
+                        onClick={() => alert('Fonction de rechargement à implémenter')}
+                        className="text-xs text-blue-600 hover:text-blue-700 mt-1 hover:underline"
+                      >
+                        Recharger
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tabs avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+              {[
+                { id: 'emoluments', label: 'Émoluments', icon: Calculator },
+                { id: 'debours', label: 'Débours', icon: Euro },
+                { id: 'formalites', label: 'Formalités', icon: FileText },
+                { id: 'documents', label: 'Documents', icon: File },
+                { id: 'taxes', label: 'Taxes', icon: Building }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                  {tab.id === 'emoluments' && emoluments > 0 && (
+                    <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full font-semibold">
+                      {totalEmolumentsTTC.toFixed(2)}€
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Tab Content complet */}
+          <div className="p-6">
+            {activeTab === 'emoluments' && (
+              <div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-start">
+                    <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
+                    <p className="text-sm text-blue-900">
+                      Les émoluments sont calculés selon les tranches réglementaires.
+                      Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Total HT</span>
+                    <span className="font-semibold text-lg">{totalEmoluments.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600">TVA (20%)</span>
+                    <span className="text-lg">{(totalEmoluments * 0.20).toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between items-center py-4 border-t-2 border-gray-200">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalEmolumentsTTC.toFixed(2)} €
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Tabs */}
-            <div className="bg-white rounded-2xl shadow-sm">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                  {[
-                    { id: 'emoluments', label: 'Émoluments', icon: Calculator },
-                    { id: 'debours', label: 'Débours', icon: Euro },
-                    { id: 'formalites', label: 'Formalités', icon: FileText },
-                    { id: 'documents', label: 'Documents', icon: File },
-                    { id: 'taxes', label: 'Taxes', icon: Building }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center transition ${
-                        activeTab === tab.id
-                          ? 'border-indigo-500 text-indigo-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4 mr-2" />
-                      {tab.label}
-                      {tab.id === 'emoluments' && emoluments > 0 && (
-                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
-                          {totalEmolumentsTTC.toFixed(2)}€
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </nav>
+ {activeTab === 'debours' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p className="text-sm text-gray-600">Montant calculé: <span className="font-semibold">{debours.csi.toFixed(2)} €</span></p>
+                    <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
+                  </div>
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total débours</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalDebours.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
               </div>
+            )}
 
-              {/* Tab Content */}
-              <div className="p-6">
-                {activeTab === 'emoluments' && (
+            {activeTab === 'formalites' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                      <div className="flex items-start">
-                        <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-2" />
-                        <p className="text-sm text-blue-900">
-                          Les émoluments sont calculés selon les tranches réglementaires.
-                          Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total HT</span>
-                        <span className="font-semibold">{totalEmoluments.toFixed(2)} €</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-gray-600">TVA (20%)</span>
-                        <span>{(totalEmoluments * 0.20).toFixed(2)} €</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">
-                          {totalEmolumentsTTC.toFixed(2)} €
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'debours' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
-                      <div className="ml-6 bg-gray-50 p-3 rounded">
-                        <p className="text-sm text-gray-600">Montant calculé: {debours.csi.toFixed(2)} €</p>
-                        <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total débours</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalDebours.toFixed(2)} €</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'formalites' && (
-                  <div className="space-y-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">Formalités obligatoires</h3>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span>Forfait de base</span>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Forfait de base</span>
                         <span className="font-medium">{formalites.forfaitBase.toFixed(2)} €</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span>Téléactes</span>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Téléactes</span>
                         <span className="font-medium">{formalites.teleactes.toFixed(2)} €</span>
                       </div>
                     </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalFormalitesTTC.toFixed(2)} €</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Frais complémentaires</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Lettres recommandées</span>
+                        <span className="font-medium">{formalites.lettresRecommandees.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Formalités préalables</span>
+                        <span className="font-medium">{formalites.prealables.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Formalités postérieures</span>
+                        <span className="font-medium">{formalites.posterieures.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalFormalitesTTC.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                {activeTab === 'documents' && (
-                  <div className="space-y-6">
+            {activeTab === 'documents' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Configuration des documents</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Nombre de pages de l'acte
@@ -1200,96 +1239,203 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                         type="number"
                         value={documents.pagesActe}
                         onChange={(e) => setDocuments(prev => ({ ...prev, pagesActe: parseInt(e.target.value) || 0 }))}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         min="1"
                       />
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 mt-2">
                         Frais de rôle : {(documents.pagesActe * 2).toFixed(2)} € (2 € par page)
                       </p>
                     </div>
                     
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalDocumentsTTC.toFixed(2)} €</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'taxes' && (
-                  <div className="space-y-6">
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="ancien"
-                            checked={taxes.typeBien === 'ancien'}
-                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
-                            className="mr-2"
-                          />
-                          <span>Ancien</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="neuf"
-                            checked={taxes.typeBien === 'neuf'}
-                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
-                            className="mr-2"
-                          />
-                          <span>Neuf (VEFA)</span>
-                        </label>
-                      </div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies exécutoires
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesExecutoires}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesExecutoires: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        4 € par copie
+                      </p>
                     </div>
                     
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total des taxes</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalTaxes.toFixed(2)} €</span>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies authentiques
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesAuthentiques}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesAuthentiques: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        40 € par copie
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies hypothécaires
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesHypothecaires}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesHypothecaires: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        4 € par copie
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalDocumentsTTC.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'taxes' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
+                  <div className="space-y-3">
+                    <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="ancien"
+                        checked={taxes.typeBien === 'ancien'}
+                        onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                        className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900">Bien ancien</span>
+                        <p className="text-sm text-gray-600">Soumis aux droits de mutation</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="neuf"
+                        checked={taxes.typeBien === 'neuf'}
+                        onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                        className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900">Bien neuf (VEFA)</span>
+                        <p className="text-sm text-gray-600">Soumis à la TVA uniquement</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                
+                {taxes.typeBien === 'ancien' && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Droits de mutation</h3>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Taxe départementale ({departements[selectedDepartement]?.taux}%)</span>
+                          <span className="font-medium">{taxes.departementale.toFixed(2)} €</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Taxe communale (1,20%)</span>
+                          <span className="font-medium">{taxes.communale.toFixed(2)} €</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Frais d'assiette (2,37%)</span>
+                          <span className="font-medium">{taxes.fraisAssiette.toFixed(2)} €</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-            {/* Récapitulatif */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Récapitulatif</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Émoluments TTC</span>
-                  <span className="font-medium">{totalEmolumentsTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Débours</span>
-                  <span className="font-medium">{totalDebours.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Formalités TTC</span>
-                  <span className="font-medium">{totalFormalitesTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Documents TTC</span>
-                  <span className="font-medium">{totalDocumentsTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Taxes et droits</span>
-                  <span className="font-medium">{totalTaxes.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                  <span className="text-xl font-bold">TOTAL GÉNÉRAL</span>
-                  <span className="text-2xl font-bold text-indigo-600">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                  </span>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total des taxes</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalTaxes.toFixed(2)} €
+                    </span>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Récapitulatif avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <Calculator className="w-6 h-6 mr-3 text-indigo-600" />
+            Récapitulatif final
+          </h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Émoluments TTC</span>
+              <span className="font-semibold text-lg">{totalEmolumentsTTC.toFixed(2)} €</span>
             </div>
-          </div>  {/* Fermeture de max-w-7xl mx-auto */}
-        </div>  {/* Fermeture de min-h-screen bg-gray-50 p-4 */}
-      </div>  {/* Fermeture de bg-white text-black */}
-    </Layout>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Débours</span>
+              <span className="font-semibold text-lg">{totalDebours.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Formalités TTC</span>
+              <span className="font-semibold text-lg">{totalFormalitesTTC.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Documents TTC</span>
+              <span className="font-semibold text-lg">{totalDocumentsTTC.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Taxes et droits</span>
+              <span className="font-semibold text-lg">{totalTaxes.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center pt-6 border-t-2 border-gray-300">
+              <span className="text-2xl font-bold text-gray-900">TOTAL GÉNÉRAL</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+              </span>
+            </div>
+          </div>
+
+          {/* Indication de conformité */}
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="flex items-start">
+              <Check className="w-5 h-5 text-green-600 mt-0.5 mr-3" />
+              <div>
+                <p className="text-sm font-medium text-green-900">
+                  Calcul conforme au tarif réglementé 2024
+                </p>
+                <p className="text-xs text-green-700 mt-1">
+                  Décret n°2020-179 du 27 février 2020 et arrêtés modificatifs
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PretaxeIntelligente() {
+  return (
+    <MainLayout showFeedback={false}>
+      <PretaxeContent />
+    </MainLayout>
   );
 }
