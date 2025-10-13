@@ -208,7 +208,7 @@ function PlusValueContent() {
     }
 
     // Suggestion SCI
-    if (data.typeBien === 'locatif' && data.typeBien !== 'sci') {
+    if (data.typeBien === 'locatif') {
       suggestions.push("🏢 Pour un bien locatif, une SCI familiale peut offrir des avantages de transmission et de gestion patrimoniale.");
     }
 
@@ -899,6 +899,8 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                       value={formData.prixAcquisition}
                       onChange={(e) => setFormData({...formData, prixAcquisition: e.target.value})}
                       placeholder="180 000"
+                      autoComplete="off"
+                      suppressHydrationWarning
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
