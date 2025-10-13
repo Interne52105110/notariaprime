@@ -8,6 +8,7 @@ import {
   Info, Check, X, AlertCircle, HelpCircle, MapPin,
   Download, Save, History, Plus, Minus, UserPlus, FileEdit
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 // ============================================================================
 // NOUVEAUTÉ 2025/2026 : TVA DIFFÉRENCIÉE + MAJORATION DOM-TOM CORRIGÉE
@@ -842,41 +843,194 @@ function PretaxeContent() {
     alert('Calcul sauvegardé !');
   };
   
-  // ✅ EXPORT PDF CORRIGÉ
+  // ✅ EXPORT PDF AVEC jsPDF
   const exporterPDF = () => {
     const deptInfo = departements[selectedDepartement];
     const acteInfo = categoriesActes[selectedCategory]?.actes[selectedActe];
     
-    const contenu = `NotariaPrime - Calcul de Frais Notariés 2025/2026
-================================================================
-Date: ${new Date().toLocaleString('fr-FR')}
-Département: ${deptInfo?.nom} (${selectedDepartement})
-${deptInfo?.majoration > 0 ? `⚠️ DOM-TOM: +${deptInfo.majoration}% majoration\n` : ''}
-Acte: ${acteInfo?.label || 'N/A'}
-${acteInfo?.type === 'non_tarife' ? `⚖️ HONORAIRES LIBRES\nEstimation: ${acteInfo.honorairesEstimes}\n` : `Montant: ${montantActe}€`}
-
-${acteInfo?.type === 'non_tarife' ? '' : `
-ÉMOLUMENTS
-----------
-Bruts: ${emolumentsDetail.bruts.toFixed(2)}€
-${emolumentsDetail.majoration > 0 ? `Majoration DOM-TOM: +${emolumentsDetail.majoration.toFixed(2)}€\n` : ''}${emolumentsDetail.remise20 > 0 ? `Remise 20% (>100k€): -${emolumentsDetail.remise20.toFixed(2)}€\n` : ''}HT: ${emolumentsDetail.nets.toFixed(2)}€
-TVA (${getTauxTVA(selectedDepartement)}%): ${(emolumentsDetail.nets * getTauxTVA(selectedDepartement) / 100).toFixed(2)}€
-TTC: ${totalEmolumentsTTC.toFixed(2)}€
-
-TOTAL GÉNÉRAL: ${totalGeneral.toFixed(2)}€
-`}
-Conforme Décret n°2020-179 du 27/02/2020
-`;
+    const doc = new jsPDF();
     
-    const blob = new Blob([contenu], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `notariaprime_${Date.now()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Configuration
+    let y = 20;
+    const lineHeight = 7;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Titre
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('NotariaPrime - Calcul Frais Notariés', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Conforme tarif réglementé 2025/2026', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+    
+    // Informations générales
+    doc.setFontSize(11);
+    doc.text(`Date : ${new Date().toLocaleString('fr-FR')}`, 20, y);
+    y += lineHeight;
+    doc.text(`Département : ${deptInfo?.nom} (${selectedDepartement})`, 20, y);
+    y += lineHeight;
+    
+    if (deptInfo?.majoration > 0) {
+      doc.setTextColor(255, 100, 0);
+      doc.text(`⚠ Territoire DOM-TOM - Majoration +${deptInfo.majoration}%`, 20, y);
+      doc.setTextColor(0, 0, 0);
+      y += lineHeight;
+    }
+    
+    doc.text(`Type d'acte : ${acteInfo?.label || 'N/A'}`, 20, y);
+    y += lineHeight;
+    
+    if (acteInfo?.type === 'non_tarife') {
+      doc.setFont('helvetica', 'bold');
+      doc.text('⚖ ACTE NON TARIFÉ - HONORAIRES LIBRES', 20, y);
+      doc.setFont('helvetica', 'normal');
+      y += lineHeight;
+      doc.text(`Estimation : ${acteInfo.honorairesEstimes}`, 20, y);
+      y += lineHeight * 2;
+      doc.setFontSize(9);
+      doc.text('Ces honoraires sont libres et doivent être convenus avec votre notaire.', 20, y);
+      doc.text('Ils ne sont pas réglementés par le décret n°2020-179.', 20, y + 5);
+    } else {
+      doc.text(`Montant : ${montantActe} €`, 20, y);
+      y += lineHeight * 2;
+      
+      // Ligne de séparation
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, y, pageWidth - 20, y);
+      y += 10;
+      
+      // Émoluments
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('ÉMOLUMENTS', 20, y);
+      y += lineHeight + 2;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Émoluments bruts :`, 20, y);
+      doc.text(`${emolumentsDetail.bruts.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+      
+      if (emolumentsDetail.majoration > 0) {
+        doc.setTextColor(255, 100, 0);
+        doc.text(`Majoration DOM-TOM (+${deptInfo?.majoration}%) :`, 20, y);
+        doc.text(`+${emolumentsDetail.majoration.toFixed(2)} €`, pageWidth - 60, y);
+        doc.setTextColor(0, 0, 0);
+        y += lineHeight;
+      }
+      
+      if (appliquerRemise && emolumentsDetail.remise20 > 0) {
+        doc.setTextColor(0, 150, 0);
+        doc.text(`Remise 20% (>100k€) :`, 20, y);
+        doc.text(`-${emolumentsDetail.remise20.toFixed(2)} €`, pageWidth - 60, y);
+        doc.setTextColor(0, 0, 0);
+        y += lineHeight;
+      }
+      
+      doc.text(`Total HT :`, 20, y);
+      doc.text(`${emolumentsDetail.nets.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+      
+      const tauxTVAText = getTauxTVA(selectedDepartement) === 0 ? 
+        `TVA (0% - Exonéré) :` : 
+        `TVA (${getTauxTVA(selectedDepartement)}%) :`;
+      doc.text(tauxTVAText, 20, y);
+      doc.text(`${(emolumentsDetail.nets * getTauxTVA(selectedDepartement) / 100).toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total TTC :`, 20, y);
+      doc.text(`${totalEmolumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight * 2;
+      
+      // Débours
+      doc.setFontSize(12);
+      doc.text('DÉBOURS', 20, y);
+      y += lineHeight + 2;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`CSI :`, 20, y);
+      doc.text(`${debours.csi.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total débours :`, 20, y);
+      doc.text(`${totalDebours.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight * 2;
+      
+      // Formalités
+      doc.setFontSize(12);
+      doc.text('FORMALITÉS', 20, y);
+      y += lineHeight + 2;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Total TTC :`, 20, y);
+      doc.text(`${totalFormalitesTTC.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight * 2;
+      
+      // Documents
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('DOCUMENTS', 20, y);
+      y += lineHeight + 2;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Total TTC :`, 20, y);
+      doc.text(`${totalDocumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight * 2;
+      
+      // Taxes
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('TAXES ET DROITS', 20, y);
+      y += lineHeight + 2;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      if (taxes.typeBien === 'ancien') {
+        doc.text(`Taxe départementale :`, 20, y);
+        doc.text(`${taxes.departementale.toFixed(2)} €`, pageWidth - 60, y);
+        y += lineHeight;
+        doc.text(`Taxe communale :`, 20, y);
+        doc.text(`${taxes.communale.toFixed(2)} €`, pageWidth - 60, y);
+        y += lineHeight;
+        doc.text(`Frais d'assiette :`, 20, y);
+        doc.text(`${taxes.fraisAssiette.toFixed(2)} €`, pageWidth - 60, y);
+        y += lineHeight;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total taxes :`, 20, y);
+      doc.text(`${totalTaxes.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight * 3;
+      
+      // Total général
+      doc.setDrawColor(50, 50, 50);
+      doc.setLineWidth(0.5);
+      doc.line(20, y - 5, pageWidth - 20, y - 5);
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL GÉNÉRAL', 20, y);
+      doc.text(`${totalGeneral.toFixed(2)} €`, pageWidth - 60, y);
+      
+      doc.setLineWidth(0.5);
+      doc.line(20, y + 3, pageWidth - 20, y + 3);
+    }
+    
+    // Footer
+    const footerY = doc.internal.pageSize.getHeight() - 20;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Calcul conforme au Décret n°2020-179 du 27 février 2020', pageWidth / 2, footerY, { align: 'center' });
+    if (appliquerRemise) {
+      doc.text('Remise de 20% appliquée sur la tranche >100 000€', pageWidth / 2, footerY + 4, { align: 'center' });
+    }
+    doc.text(`Généré par NotariaPrime - ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, footerY + 8, { align: 'center' });
+    
+    // Téléchargement
+    doc.save(`notariaprime_${Date.now()}.pdf`);
   };
 
   useEffect(() => {
