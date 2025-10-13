@@ -4,16 +4,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
   Calculator, TrendingUp, Euro, Calendar, FileText, Download, 
-  AlertCircle, Info, CheckCircle, Clock, Percent,
-  ArrowRight, Gift, Users, Lightbulb, BarChart3, Target, Zap,
-  ChevronRight, PieChart
+  AlertCircle, Info, CheckCircle, Clock,
+  ArrowRight, Gift, Users, Lightbulb, BarChart3, Target,
+  PieChart
 } from 'lucide-react';
-// Graphiques CSS natifs - pas besoin de recharts
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-
-// ============================================================================
-// TYPES
-// ============================================================================
 
 interface FormData {
   modeAcquisition: 'achat' | 'donation' | 'succession' | 'echange';
@@ -30,7 +25,6 @@ interface FormData {
   fraisAcquisitionMontant: string;
   prixVente: string;
   dateVente: string;
-  dateVentePrevue: string;
   fraisVente: string;
   travaux: 'aucun' | 'forfait' | 'reel';
   travauxMontant: string;
@@ -59,10 +53,7 @@ interface Results {
   motifExoneration: string;
   suggestions: string[];
   economieAbattements: number;
-  valeurDemembrement?: {
-    usufruit: number;
-    nue: number;
-  };
+  valeurDemembrement?: { usufruit: number; nue: number; };
 }
 
 interface Scenario {
@@ -72,12 +63,7 @@ interface Scenario {
   results: Results;
 }
 
-// ============================================================================
-// COMPOSANT PRINCIPAL
-// ============================================================================
-
 function PlusValueContent() {
-  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     modeAcquisition: 'achat',
     typeBien: 'secondaire',
@@ -93,7 +79,6 @@ function PlusValueContent() {
     fraisAcquisitionMontant: '',
     prixVente: '',
     dateVente: '',
-    dateVentePrevue: '',
     fraisVente: '',
     travaux: 'aucun',
     travauxMontant: '',
@@ -105,8 +90,6 @@ function PlusValueContent() {
   });
 
   useEffect(() => {
-    setMounted(true);
-    // Initialiser la date de vente avec la date actuelle côté client uniquement
     setFormData(prev => ({
       ...prev,
       dateVente: new Date().toISOString().split('T')[0]
@@ -115,14 +98,9 @@ function PlusValueContent() {
 
   const [results, setResults] = useState<Results | null>(null);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [activeTab, setActiveTab] = useState('acquisition');
   const [showComparison, setShowComparison] = useState(false);
 
-  // ============================================================================
-  // FONCTIONS DE CALCUL
-  // ============================================================================
-
-  const calculerDureeDetention = (dateDebut: string, dateFin: string): { annees: number; jours: number } => {
+  const calculerDureeDetention = (dateDebut: string, dateFin: string) => {
     const debut = new Date(dateDebut);
     const fin = new Date(dateFin);
     const diffMs = fin.getTime() - debut.getTime();
@@ -131,14 +109,13 @@ function PlusValueContent() {
     return { annees, jours };
   };
 
-  const calculerAbattementIR = (duree: number): number => {
+  const calculerAbattementIR = (duree: number) => {
     if (duree < 6) return 0;
     if (duree < 22) return Math.min((duree - 5) * 6, 96);
-    if (duree >= 22) return 100;
     return 100;
   };
 
-  const calculerAbattementPS = (duree: number): number => {
+  const calculerAbattementPS = (duree: number) => {
     if (duree < 6) return 0;
     if (duree < 22) return Math.min((duree - 5) * 1.65, 26.4);
     if (duree < 23) return 26.4;
@@ -146,7 +123,7 @@ function PlusValueContent() {
     return 100;
   };
 
-  const calculerValeurUsufruit = (age: number): number => {
+  const calculerValeurUsufruit = (age: number) => {
     if (age < 21) return 90;
     if (age < 31) return 80;
     if (age < 41) return 70;
@@ -158,7 +135,7 @@ function PlusValueContent() {
     return 10;
   };
 
-  const calculerTaxeAdditionnelle = (plusValue: number): number => {
+  const calculerTaxeAdditionnelle = (plusValue: number) => {
     if (plusValue <= 50000) return 0;
     if (plusValue <= 60000) return (plusValue - 50000) * 0.02;
     if (plusValue <= 100000) return 200 + (plusValue - 60000) * 0.03;
@@ -168,68 +145,50 @@ function PlusValueContent() {
     return 10600;
   };
 
-  const genererSuggestions = (data: FormData, res: Results): string[] => {
+  const genererSuggestions = (data: FormData, res: Results) => {
     const suggestions: string[] = [];
     const duree = res.dureeDetention;
 
-    // Suggestion durée de détention
     if (duree < 6) {
       suggestions.push("⏰ Attendre 6 ans de détention vous permettrait de bénéficier des premiers abattements (6% par an pour l'IR).");
     } else if (duree < 22) {
       const anneesRestantes = 22 - duree;
-      const economie = res.impotRevenu * (1 - res.abattementIR / 100);
-      suggestions.push(`⏰ Dans ${anneesRestantes.toFixed(1)} ans, vous serez totalement exonéré d'impôt sur le revenu (économie estimée : ${economie.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €).`);
+      suggestions.push(`⏰ Dans ${anneesRestantes.toFixed(1)} ans, vous serez totalement exonéré d'impôt sur le revenu.`);
     } else if (duree < 30) {
       const anneesRestantes = 30 - duree;
-      const economie = res.prelevementsSociaux;
-      suggestions.push(`⏰ Dans ${anneesRestantes.toFixed(1)} ans, vous serez totalement exonéré de prélèvements sociaux (économie : ${economie.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €).`);
+      suggestions.push(`⏰ Dans ${anneesRestantes.toFixed(1)} ans, vous serez totalement exonéré de prélèvements sociaux.`);
     }
 
-    // Suggestion travaux
     if (data.travaux === 'aucun' && data.modeAcquisition === 'achat' && duree > 5) {
       const prixAcq = parseFloat(data.prixAcquisition.replace(/\s/g, '')) || 0;
       const travauxForfait = prixAcq * 0.15;
-      suggestions.push(`🔨 Le forfait travaux de 15% (${travauxForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €) réduirait votre plus-value sans justificatif (détention {'>'} 5 ans).`);
+      suggestions.push(`🔨 Le forfait travaux de 15% (${travauxForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €) réduirait votre plus-value sans justificatif.`);
     }
 
-    if (data.travaux === 'forfait' && data.travauxMontant) {
-      const travauxReel = parseFloat(data.travauxMontant.replace(/\s/g, ''));
-      const prixAcq = parseFloat(data.prixAcquisition.replace(/\s/g, '')) || 0;
-      const travauxForfait = prixAcq * 0.15;
-      if (travauxReel > travauxForfait) {
-        const economie = (travauxReel - travauxForfait) * 0.362;
-        suggestions.push(`📄 Vos travaux réels (${travauxReel.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €) sont supérieurs au forfait. Économie supplémentaire avec justificatifs : ${economie.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €.`);
-      }
+    if (data.typeBien === 'locatif' && data.travaux === 'reel') {
+      suggestions.push("⚠️ Bien locatif: si vous déclarez des travaux réels, vérifiez qu'ils n'ont PAS été déduits de vos revenus fonciers. Sinon, préférez le forfait 15%.");
     }
 
-    // Suggestion démembrement
     if (!data.estDemembre && data.typeBien !== 'principal') {
-      suggestions.push("👥 Un démembrement de propriété (donation de la nue-propriété) pourrait optimiser la transmission et réduire la fiscalité future.");
+      suggestions.push("👥 Un démembrement de propriété pourrait optimiser la transmission.");
     }
 
-    // Suggestion SCI
     if (data.typeBien === 'locatif') {
-      suggestions.push("🏢 Pour un bien locatif, une SCI familiale peut offrir des avantages de transmission et de gestion patrimoniale.");
+      suggestions.push("🏢 Une SCI familiale peut offrir des avantages de gestion patrimoniale.");
     }
 
-    // Suggestion frais réels
     if (data.fraisAcquisition === 'forfait' && data.modeAcquisition === 'achat') {
       const prixAcq = parseFloat(data.prixAcquisition.replace(/\s/g, '')) || 0;
       const fraisForfait = prixAcq * 0.075;
-      suggestions.push(`📋 Si vos frais d'acquisition réels dépassent ${fraisForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} € (forfait 7,5%), optez pour les frais réels avec justificatifs.`);
+      suggestions.push(`📋 Si vos frais réels dépassent ${fraisForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €, optez pour les frais réels.`);
     }
 
-    // Suggestion résidence principale
     if (data.typeBien === 'secondaire') {
-      suggestions.push("🏠 Si ce bien devient votre résidence principale avant la vente, vous bénéficierez d'une exonération totale (Art. 150 U II 1° CGI).");
+      suggestions.push("🏠 Si ce bien devient votre résidence principale avant la vente, exonération totale !");
     }
 
     return suggestions;
   };
-
-  // ============================================================================
-  // CALCUL PRINCIPAL
-  // ============================================================================
 
   const calculerPlusValue = (dateVenteCustom?: string, travauxCustom?: number): Results | null => {
     const dateVenteUtilisee = dateVenteCustom || formData.dateVente;
@@ -238,8 +197,6 @@ function PlusValueContent() {
       return null;
     }
 
-    // --- 1. EXONÉRATIONS TOTALES ---
-    
     if (formData.typeBien === 'principal') {
       return {
         plusValueBrute: 0,
@@ -280,7 +237,7 @@ function PlusValueContent() {
           taxeAdditionnelle: 0,
           totalFiscalite: 0,
           exoneration: true,
-          motifExoneration: 'Première cession résidence secondaire avec engagement de rachat sous 24 mois (Art. 150 U II 1° bis CGI)',
+          motifExoneration: 'Première cession résidence secondaire (Art. 150 U II 1° bis CGI)',
           suggestions: [],
           economieAbattements: 0
         };
@@ -305,7 +262,7 @@ function PlusValueContent() {
           taxeAdditionnelle: 0,
           totalFiscalite: 0,
           exoneration: true,
-          motifExoneration: `Retraité modeste - RFR ≤ 12 679€ (Art. 150 U II 6° CGI)`,
+          motifExoneration: 'Retraité modeste - RFR ≤ 12 679€ (Art. 150 U II 6° CGI)',
           suggestions: [],
           economieAbattements: 0
         };
@@ -357,17 +314,10 @@ function PlusValueContent() {
       };
     }
 
-    // --- 2. CALCUL PRIX D'ACQUISITION CORRIGÉ ---
-    
-    let prixAcqBase = 0;
-    
-    if (formData.modeAcquisition === 'achat') {
-      prixAcqBase = parseFloat(formData.prixAcquisition.replace(/\s/g, '')) || 0;
-    } else {
-      prixAcqBase = parseFloat(formData.valeurVenale.replace(/\s/g, '')) || 0;
-    }
+    let prixAcqBase = formData.modeAcquisition === 'achat' 
+      ? parseFloat(formData.prixAcquisition.replace(/\s/g, '')) || 0
+      : parseFloat(formData.valeurVenale.replace(/\s/g, '')) || 0;
 
-    // Démembrement
     if (formData.estDemembre && formData.typeDroit !== 'pleine' && formData.ageUsufruitier) {
       const age = parseInt(formData.ageUsufruitier);
       const valeurUsufruitPct = calculerValeurUsufruit(age);
@@ -379,7 +329,6 @@ function PlusValueContent() {
       }
     }
 
-    // Indivision / Copropriété
     if (formData.typeBien === 'sci' || parseInt(formData.nombreCoproprietaires) > 1) {
       const pourcentage = parseFloat(formData.pourcentageDetention) / 100;
       prixAcqBase = prixAcqBase * pourcentage;
@@ -407,12 +356,9 @@ function PlusValueContent() {
 
     const prixAcquisitionCorrige = prixAcqBase + fraisAcq + montantTravaux;
 
-    // --- 3. PRIX DE VENTE CORRIGÉ ---
-    
     const fraisVenteMontant = parseFloat(formData.fraisVente.replace(/\s/g, '') || '0');
     let prixVenteCorrige = prixVenteBrut - fraisVenteMontant;
 
-    // Appliquer démembrement et copropriété au prix de vente aussi
     if (formData.estDemembre && formData.typeDroit !== 'pleine' && formData.ageUsufruitier) {
       const age = parseInt(formData.ageUsufruitier);
       const valeurUsufruitPct = calculerValeurUsufruit(age);
@@ -429,35 +375,25 @@ function PlusValueContent() {
       prixVenteCorrige = prixVenteCorrige * pourcentage;
     }
 
-    // --- 4. PLUS-VALUE BRUTE ---
-    
     const plusValueBrute = Math.max(0, prixVenteCorrige - prixAcquisitionCorrige);
 
-    // --- 5. ABATTEMENTS ---
-    
     let abattementIR = calculerAbattementIR(duree);
     let abattementPS = calculerAbattementPS(duree);
 
-    // Zone tendue : abattement exceptionnel
     if (formData.zoneTendue) {
       abattementIR = Math.max(abattementIR, 70);
       abattementPS = Math.max(abattementPS, 70);
     }
 
-    // --- 6. PLUS-VALUES IMPOSABLES ---
-    
     const plusValueIR = plusValueBrute * (1 - abattementIR / 100);
     const plusValuePS = plusValueBrute * (1 - abattementPS / 100);
 
-    // --- 7. FISCALITÉ ---
-    
     const impotRevenu = plusValueIR * 0.19;
     const prelevementsSociaux = plusValuePS * 0.172;
     const taxeAdditionnelle = calculerTaxeAdditionnelle(plusValueIR);
     
     const totalFiscalite = impotRevenu + prelevementsSociaux + taxeAdditionnelle;
 
-    // Calcul économie abattements
     const fiscaliteSansAbattement = plusValueBrute * 0.362 + calculerTaxeAdditionnelle(plusValueBrute);
     const economieAbattements = fiscaliteSansAbattement - totalFiscalite;
 
@@ -483,7 +419,6 @@ function PlusValueContent() {
 
     resultats.suggestions = genererSuggestions(formData, resultats);
 
-    // Valeur démembrement
     if (formData.estDemembre && formData.ageUsufruitier) {
       const age = parseInt(formData.ageUsufruitier);
       const valeurUsufruitPct = calculerValeurUsufruit(age);
@@ -502,20 +437,15 @@ function PlusValueContent() {
       setResults(res);
       genererScenarios();
     } else {
-      alert('Veuillez remplir tous les champs obligatoires');
+      alert('Veuillez remplir les champs obligatoires');
     }
   };
-
-  // ============================================================================
-  // SCENARIOS COMPARATIFS
-  // ============================================================================
 
   const genererScenarios = () => {
     const scenariosGeneres: Scenario[] = [];
     const dateAcq = new Date(formData.dateAcquisition);
     const today = new Date();
 
-    // Scénario 1 : Vente immédiate
     const res1 = calculerPlusValue(today.toISOString().split('T')[0]);
     if (res1) {
       scenariosGeneres.push({
@@ -525,21 +455,19 @@ function PlusValueContent() {
       });
     }
 
-    // Scénario 2 : Attente 22 ans (exonération IR)
     const date22ans = new Date(dateAcq);
     date22ans.setFullYear(date22ans.getFullYear() + 22);
     if (date22ans > today) {
       const res2 = calculerPlusValue(date22ans.toISOString().split('T')[0]);
       if (res2) {
         scenariosGeneres.push({
-          nom: 'Attente exonération IR (22 ans)',
+          nom: 'Exonération IR (22 ans)',
           dateVente: date22ans.toISOString().split('T')[0],
           results: res2
         });
       }
     }
 
-    // Scénario 3 : Attente 30 ans (exonération totale)
     const date30ans = new Date(dateAcq);
     date30ans.setFullYear(date30ans.getFullYear() + 30);
     if (date30ans > today) {
@@ -553,7 +481,6 @@ function PlusValueContent() {
       }
     }
 
-    // Scénario 4 : Avec travaux optimisés
     if (formData.travaux === 'aucun' && formData.modeAcquisition === 'achat') {
       const prixAcq = parseFloat(formData.prixAcquisition.replace(/\s/g, '')) || 0;
       const travauxForfait = prixAcq * 0.15;
@@ -570,10 +497,6 @@ function PlusValueContent() {
 
     setScenarios(scenariosGeneres);
   };
-
-  // ============================================================================
-  // GRAPHIQUES
-  // ============================================================================
 
   const graphiqueEvolution = useMemo(() => {
     if (!formData.dateAcquisition || !formData.prixVente) return [];
@@ -592,9 +515,7 @@ function PlusValueContent() {
           annee,
           fiscalite: Math.round(res.totalFiscalite),
           ir: Math.round(res.impotRevenu),
-          ps: Math.round(res.prelevementsSociaux),
-          abattementIR: res.abattementIR,
-          abattementPS: res.abattementPS
+          ps: Math.round(res.prelevementsSociaux)
         });
       }
     }
@@ -602,37 +523,19 @@ function PlusValueContent() {
     return data;
   }, [formData.dateAcquisition, formData.prixVente, formData.prixAcquisition, formData.travaux, formData.travauxMontant]);
 
-  // ============================================================================
-  // EXPORT PDF
-  // ============================================================================
-
-  const exporterPDF = async () => {
+  const exporterPDF = () => {
     if (!results) {
-      alert('Veuillez d\'abord calculer la plus-value');
+      alert('Veuillez d\'abord calculer');
       return;
     }
 
-    // Utilisation basique sans jsPDF pour éviter les erreurs
-    const contenu = `
-CALCUL PLUS-VALUE IMMOBILIÈRE
+    const contenu = `CALCUL PLUS-VALUE IMMOBILIÈRE
 Date: ${new Date().toLocaleDateString('fr-FR')}
 
 ${results.exoneration ? 
-`EXONÉRATION TOTALE
-${results.motifExoneration}` :
-`RÉSULTATS
-Plus-value brute: ${results.plusValueBrute.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €
-Durée de détention: ${results.dureeDetention.toFixed(2)} ans (${results.dureeDetentionJours} jours)
-
-FISCALITÉ
-Impôt sur le revenu (19%): ${results.impotRevenu.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €
-Prélèvements sociaux (17,2%): ${results.prelevementsSociaux.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €
-${results.taxeAdditionnelle > 0 ? `Taxe additionnelle: ${results.taxeAdditionnelle.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €\n` : ''}
-TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €
-
-Économie grâce aux abattements: ${results.economieAbattements.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €`
-}
-    `;
+`EXONÉRATION: ${results.motifExoneration}` :
+`Plus-value: ${results.plusValueBrute.toLocaleString('fr-FR')} €
+Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
     const blob = new Blob([contenu], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -642,14 +545,9 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
     a.click();
   };
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* En-tête */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -659,7 +557,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Calculateur de Plus-Value Immobilière</h1>
-                  <p className="text-emerald-600 font-medium">Conforme aux articles 150 U et suivants du CGI 2025</p>
+                  <p className="text-emerald-600 font-medium">Conforme CGI 2025</p>
                 </div>
               </div>
             </div>
@@ -671,49 +569,29 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                     {results.totalFiscalite.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
                   </p>
                   <p className="text-xs text-emerald-600 mt-2">
-                    Économie : {results.economieAbattements.toLocaleString('fr-FR', {maximumFractionDigits: 0})} € grâce aux abattements
+                    Économie: {results.economieAbattements.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8" aria-label="Tabs">
-              {[
-                { id: 'acquisition', label: 'Acquisition', icon: Calendar },
-                { id: 'vente', label: 'Vente', icon: Euro },
-                { id: 'travaux', label: 'Travaux', icon: FileText },
-                { id: 'exonerations', label: 'Exonérations', icon: CheckCircle },
-                { id: 'optimisation', label: 'Optimisation', icon: Lightbulb }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition ${
-                    activeTab === tab.id
-                      ? 'border-emerald-500 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Contenu des tabs */}
-          <div className="mt-6">
-            {activeTab === 'acquisition' && (
+          <div className="space-y-8">
+            {/* SECTION 1: ACQUISITION */}
+            <div className="border-2 border-emerald-200 rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-green-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">1. Acquisition du bien</h2>
+              </div>
+              
               <div className="space-y-6">
-                {/* Mode d'acquisition */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Comment avez-vous acquis le bien ? *
+                    Mode d'acquisition *
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     {[
                       { value: 'achat', label: 'Achat', icon: Euro },
                       { value: 'donation', label: 'Donation', icon: Gift },
@@ -725,8 +603,8 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         onClick={() => setFormData({...formData, modeAcquisition: mode.value as any})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.modeAcquisition === mode.value
-                            ? 'border-emerald-500 bg-emerald-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-emerald-500 bg-white shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
                         <mode.icon className="w-6 h-6 mx-auto mb-2 text-gray-700" />
@@ -736,40 +614,38 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   </div>
                 </div>
 
-                {/* Type de bien */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Type de bien *
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Type de bien *</label>
+                  <div className="grid grid-cols-4 gap-4">
                     {[
-                      { value: 'principal', label: 'Résidence principale' },
-                      { value: 'secondaire', label: 'Résidence secondaire' },
+                      { value: 'principal', label: 'Rés. principale' },
+                      { value: 'secondaire', label: 'Rés. secondaire' },
                       { value: 'locatif', label: 'Bien locatif' },
-                      { value: 'sci', label: 'SCI à l\'IR / Indivision' }
+                      { value: 'sci', label: 'SCI / Indivision' }
                     ].map((type) => (
                       <button
                         key={type.value}
                         onClick={() => setFormData({...formData, typeBien: type.value as any})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.typeBien === type.value
-                            ? 'border-emerald-500 bg-emerald-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-emerald-500 bg-white shadow-md'
+                            : 'border-gray-200 bg-white'
                         }`}
                       >
                         <p className="text-sm font-medium">{type.label}</p>
                       </button>
                     ))}
                   </div>
-                  <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-800">
-                        <strong>Important :</strong> Ce calculateur concerne uniquement les SCI à l'IR (impôt sur le revenu). 
-                        Les SCI à l'IS relèvent du régime des plus-values professionnelles (calculateur distinct).
-                      </p>
+                  {formData.typeBien === 'sci' && (
+                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-800">
+                          <strong>Important:</strong> SCI à l'IR uniquement. Les SCI à l'IS relèvent du régime professionnel.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Démembrement */}
@@ -807,9 +683,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   {formData.estDemembre && (
                     <div className="space-y-4 mt-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Vous détenez :
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Vous détenez:</label>
                         <div className="grid grid-cols-3 gap-3">
                           {[
                             { value: 'pleine', label: 'Pleine propriété' },
@@ -833,9 +707,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
 
                       {formData.typeDroit !== 'pleine' && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Âge de l'usufruitier *
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Âge de l'usufruitier *</label>
                           <input
                             type="number"
                             value={formData.ageUsufruitier}
@@ -844,7 +716,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           />
                           <p className="text-xs text-gray-600 mt-2">
-                            Nécessaire pour calculer la valeur de l'usufruit selon le barème de l'Art. 669 CGI
+                            Nécessaire pour le barème Art. 669 CGI
                           </p>
                         </div>
                       )}
@@ -861,9 +733,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Pourcentage de détention
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">% de détention</label>
                         <input
                           type="number"
                           value={formData.pourcentageDetention}
@@ -873,9 +743,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Nombre de copropriétaires
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nb copropriétaires</label>
                         <input
                           type="number"
                           value={formData.nombreCoproprietaires}
@@ -888,19 +756,14 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   </div>
                 )}
 
-                {/* Prix ou valeur selon mode d'acquisition */}
                 {formData.modeAcquisition === 'achat' ? (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Prix d'acquisition *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Prix d'acquisition *</label>
                     <input
                       type="text"
                       value={formData.prixAcquisition}
                       onChange={(e) => setFormData({...formData, prixAcquisition: e.target.value})}
                       placeholder="180 000"
-                      autoComplete="off"
-                      suppressHydrationWarning
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -917,16 +780,13 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Valeur déclarée dans l'acte de {formData.modeAcquisition}
+                      Valeur déclarée dans l'acte
                     </p>
                   </div>
                 )}
 
-                {/* Date d'acquisition */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Date d'acquisition *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Date d'acquisition *</label>
                   <input
                     type="date"
                     value={formData.dateAcquisition}
@@ -935,19 +795,16 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   />
                 </div>
 
-                {/* Frais d'acquisition */}
                 {formData.modeAcquisition === 'achat' && (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Frais d'acquisition
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Frais d'acquisition</label>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <button
                         onClick={() => setFormData({...formData, fraisAcquisition: 'forfait'})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.fraisAcquisition === 'forfait'
-                            ? 'border-emerald-500 bg-emerald-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-emerald-500 bg-white shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
                         <p className="text-sm font-medium">Forfait 7,5%</p>
@@ -956,8 +813,8 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         onClick={() => setFormData({...formData, fraisAcquisition: 'reel'})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.fraisAcquisition === 'reel'
-                            ? 'border-emerald-500 bg-emerald-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-emerald-500 bg-white shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
                         <p className="text-sm font-medium">Montant réel</p>
@@ -975,14 +832,20 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
-            {activeTab === 'vente' && (
+            {/* SECTION 2: VENTE */}
+            <div className="border-2 border-blue-200 rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-cyan-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <Euro className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">2. Vente du bien</h2>
+              </div>
+              
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Prix de vente *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Prix de vente *</label>
                   <input
                     type="text"
                     value={formData.prixVente}
@@ -993,9 +856,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Date de vente prévue *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Date de vente prévue *</label>
                   <input
                     type="date"
                     value={formData.dateVente}
@@ -1007,16 +868,14 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                       <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div className="text-sm text-blue-800">
                         <p className="font-medium mb-1">Calcul au jour près</p>
-                        <p>La durée de détention est calculée avec précision pour optimiser vos abattements.</p>
+                        <p>Durée de détention calculée avec précision pour optimiser vos abattements.</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Frais de vente (diagnostics, etc.)
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Frais de vente (diagnostics, etc.)</label>
                   <input
                     type="text"
                     value={formData.fraisVente}
@@ -1026,21 +885,92 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   />
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === 'travaux' && (
+            {/* SECTION 3: TRAVAUX */}
+            <div className="border-2 border-purple-200 rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-pink-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">3. Travaux réalisés</h2>
+              </div>
+              
               <div className="space-y-6">
+                {/* Info importante pour bien locatif */}
+                {formData.typeBien === 'locatif' && (
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-7 h-7 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-base font-bold text-green-900 mb-3">
+                          💰 AVANTAGE FISCAL - Bien locatif : Double déduction possible !
+                        </p>
+                        <div className="text-sm text-green-800 space-y-3 bg-white rounded-lg p-4">
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 font-bold">✅</span>
+                            <div>
+                              <p className="font-semibold mb-1">Forfait 15% : TOUJOURS applicable</p>
+                              <p className="text-xs">
+                                Vous pouvez appliquer le forfait 15% <strong>MÊME SI</strong> vous avez déjà déduit des travaux 
+                                de vos revenus fonciers ! C'est un <strong>double avantage fiscal légal</strong>.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-amber-600 font-bold">⚠️</span>
+                            <div>
+                              <p className="font-semibold mb-1">Travaux réels : Uniquement si NON déduits</p>
+                              <p className="text-xs">
+                                Pour déclarer des travaux au montant réel, ils ne doivent PAS avoir été déduits 
+                                des revenus fonciers (ligne 224/229 déclaration 2044).
+                              </p>
+                            </div>
+                          </div>
+                          <div className="bg-green-100 rounded-lg p-3 mt-2">
+                            <p className="text-xs font-semibold text-green-900 mb-2">
+                              💡 Conseil d'expert :
+                            </p>
+                            <p className="text-xs text-green-800">
+                              Pour un bien locatif, le forfait 15% est souvent plus avantageux car il s'applique 
+                              systématiquement sans justificatif, même si vous avez déjà optimisé vos impôts avec 
+                              les charges déductibles !
+                            </p>
+                          </div>
+                          <div className="border-t border-green-200 pt-3 mt-3">
+                            <p className="text-xs text-green-700">
+                              <strong>📖 Base légale :</strong> Article 150 VB du CGI - 
+                              <a 
+                                href="https://bofip.impots.gouv.fr/bofip/265-PGP.html/identifiant=BOI-RFPI-PVI-20-10-20-20-20131220" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-green-900 ml-1"
+                              >
+                                BOFIP BOI-RFPI-PVI-20-10-20-20 §190
+                              </a>
+                            </p>
+                            <p className="text-xs text-green-700 italic mt-1">
+                              "Il n'y a pas lieu de rechercher si les dépenses de travaux ont déjà été 
+                              prises en compte pour l'assiette de l'impôt sur le revenu" (forfait 15%)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Travaux réalisés
+                    Travaux à déduire du prix d'acquisition
                   </label>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <button
                       onClick={() => setFormData({...formData, travaux: 'aucun'})}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         formData.travaux === 'aucun'
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-purple-500 bg-white shadow-md'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}
                     >
                       <p className="text-sm font-medium">Aucun</p>
@@ -1049,62 +979,119 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                       onClick={() => setFormData({...formData, travaux: 'forfait'})}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         formData.travaux === 'forfait'
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-purple-500 bg-white shadow-md'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}
                     >
                       <p className="text-sm font-medium">Forfait 15%</p>
+                      <p className="text-xs text-gray-500 mt-1">Sans justificatif</p>
                     </button>
                     <button
                       onClick={() => setFormData({...formData, travaux: 'reel'})}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         formData.travaux === 'reel'
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-purple-500 bg-white shadow-md'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}
                     >
                       <p className="text-sm font-medium">Montant réel</p>
+                      <p className="text-xs text-gray-500 mt-1">Avec factures</p>
                     </button>
                   </div>
 
                   {formData.travaux === 'reel' && (
-                    <input
-                      type="text"
-                      value={formData.travauxMontant}
-                      onChange={(e) => setFormData({...formData, travauxMontant: e.target.value})}
-                      placeholder="35 000"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        value={formData.travauxMontant}
+                        onChange={(e) => setFormData({...formData, travauxMontant: e.target.value})}
+                        placeholder="35 000"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      {formData.typeBien === 'locatif' && (
+                        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-800">
+                              <strong>⚠️ Attention :</strong> Pour un bien locatif, seuls les travaux NON déduits des revenus fonciers peuvent être déclarés ici. 
+                              Si vos travaux ont été déduits en charges (ligne 224 ou 229 de votre déclaration 2044), utilisez plutôt le forfait 15%.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">Forfait 15%</p>
-                        <p>Applicable si détention {'>'} 5 ans, sans justificatifs. Sinon montant réel avec factures.</p>
+                        <p className="font-medium mb-2">📋 Règles du forfait 15%</p>
+                        <ul className="space-y-1 text-xs">
+                          <li>✅ Applicable si détention &gt; 5 ans</li>
+                          <li>✅ Aucun justificatif requis</li>
+                          <li>✅ Même si aucun travaux réalisé</li>
+                          <li>✅ <strong>Même si travaux déjà déduits des revenus fonciers (bien locatif)</strong></li>
+                          <li>❌ Ne se cumule PAS avec les travaux réels</li>
+                        </ul>
+                        <div className="mt-3 pt-3 border-t border-blue-300">
+                          <p className="text-xs font-semibold mb-1">📖 Sources officielles :</p>
+                          <ul className="text-xs space-y-1">
+                            <li>
+                              • <a 
+                                href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042912489" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-blue-900"
+                              >
+                                Article 150 VB du Code Général des Impôts
+                              </a>
+                            </li>
+                            <li>
+                              • <a 
+                                href="https://bofip.impots.gouv.fr/bofip/265-PGP.html/identifiant=BOI-RFPI-PVI-20-10-20-20-20131220" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-blue-900"
+                              >
+                                BOFIP BOI-RFPI-PVI-20-10-20-20 (Documentation fiscale officielle)
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === 'exonerations' && (
+            {/* SECTION 4: EXONÉRATIONS */}
+            <div className="border-2 border-amber-200 rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">4. Exonérations possibles</h2>
+                <span className="ml-auto text-sm text-amber-700 font-semibold bg-amber-100 px-3 py-1 rounded-full">
+                  ⚠️ Ne passez pas à côté !
+                </span>
+              </div>
+              
               <div className="space-y-6">
-                {/* Première vente résidence secondaire */}
-                <div className="border-2 border-gray-200 rounded-xl p-6">
+                {/* Première vente */}
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
                   <div className="flex items-start gap-4 mb-4">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">Première vente d'une résidence secondaire</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">Première vente résidence secondaire</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Article 150 U II 1° bis du CGI - Exonération sous CONDITIONS STRICTES :
+                        Art. 150 U II 1° bis CGI - Conditions:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Vous n'avez pas été propriétaire de votre résidence principale les 4 années précédentes</li>
-                        <li>• Vous vous engagez à racheter une résidence principale dans les 24 mois</li>
-                        <li>• Le prix de vente ne dépasse pas 150 000€ (hors zone tendue)</li>
+                        <li>• Pas propriétaire RP les 4 années précédentes</li>
+                        <li>• Engagement de rachat RP sous 24 mois</li>
+                        <li>• Prix ≤ 150 000€</li>
                       </ul>
                     </div>
                   </div>
@@ -1118,7 +1105,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           formData.premiereVente
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-emerald-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Oui
@@ -1128,7 +1115,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           !formData.premiereVente
                             ? 'bg-gray-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Non
@@ -1137,19 +1124,19 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   </div>
                 </div>
 
-                {/* Retraité ou invalide */}
-                <div className="border-2 border-gray-200 rounded-xl p-6">
+                {/* Retraité */}
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
                   <div className="flex items-start gap-4 mb-4">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">Retraité modeste ou personne invalide</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">Retraité modeste / Personne invalide</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Article 150 U II 6° du CGI - Exonération si :
+                        Art. 150 U II 6° CGI - Conditions:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Vous êtes titulaire d'une pension de vieillesse OU d'une carte mobilité inclusion (invalidité)</li>
-                        <li>• Votre revenu fiscal de référence (RFR) ne dépasse pas 12 679€ (1 part) / 16 103€ (1,5 part) / 19 527€ (2 parts)</li>
-                        <li>• Le bien n'était pas loué au moment de la vente</li>
+                        <li>• Pension de vieillesse OU carte mobilité inclusion</li>
+                        <li>• RFR ≤ 12 679€ (1 part)</li>
+                        <li>• Bien non loué lors de la vente</li>
                       </ul>
                     </div>
                   </div>
@@ -1163,7 +1150,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           formData.retraite
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-emerald-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Oui
@@ -1173,7 +1160,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           !formData.retraite
                             ? 'bg-gray-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Non
@@ -1184,7 +1171,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   {formData.retraite && (
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Votre revenu fiscal de référence (RFR) de l'année N-1
+                        Revenu fiscal de référence (RFR) N-1
                       </label>
                       <input
                         type="text"
@@ -1194,30 +1181,30 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                       <p className="text-xs text-gray-600 mt-2">
-                        Visible sur votre avis d'imposition, ligne "Revenu fiscal de référence"
+                        Visible sur votre avis d'imposition
                       </p>
                     </div>
                   )}
                 </div>
 
                 {/* Expropriation */}
-                <div className="border-2 border-gray-200 rounded-xl p-6">
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
                   <div className="flex items-start gap-4 mb-4">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">Bien exproprié pour cause d'utilité publique</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">Expropriation pour utilité publique</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Article 150 U II 4° du CGI - Exonération si :
+                        Art. 150 U II 4° CGI - Conditions:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
                         <li>• Expropriation pour cause d'utilité publique</li>
-                        <li>• Vous réemployez l'indemnité dans l'acquisition, construction ou agrandissement d'un bien dans les 12 mois</li>
+                        <li>• Réemploi de l'indemnité sous 12 mois</li>
                       </ul>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium text-gray-700 flex-1">
-                      Mon bien a été exproprié et je vais réemployer l'indemnité
+                      Mon bien a été exproprié
                     </span>
                     <div className="flex gap-3">
                       <button
@@ -1225,7 +1212,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           formData.expropriation
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-emerald-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Oui
@@ -1235,7 +1222,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           !formData.expropriation
                             ? 'bg-gray-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Non
@@ -1245,18 +1232,18 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                 </div>
 
                 {/* Zone tendue */}
-                <div className="border-2 border-gray-200 rounded-xl p-6">
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
                   <div className="flex items-start gap-4 mb-4">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-2">Vente en zone tendue</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Abattement exceptionnel de 70% à 85% si :
+                        Abattement exceptionnel 70-85% si:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Le bien est situé en zone A, A bis ou B1</li>
-                        <li>• Vous vous engagez à démolir et reconstruire dans les 4 ans</li>
-                        <li>• Au moins 50% des surfaces reconstruites sont en logement social</li>
+                        <li>• Zone A, A bis ou B1</li>
+                        <li>• Engagement démolition/reconstruction 4 ans</li>
+                        <li>• ≥ 50% logement social</li>
                       </ul>
                     </div>
                   </div>
@@ -1270,7 +1257,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           formData.zoneTendue
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-emerald-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Oui
@@ -1280,7 +1267,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           !formData.zoneTendue
                             ? 'bg-gray-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-500'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
                       >
                         Non
@@ -1289,183 +1276,193 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === 'optimisation' && results && (
-              <div className="space-y-6">
-                {/* Suggestions */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Lightbulb className="w-6 h-6 text-amber-600" />
-                    <h3 className="text-lg font-bold text-gray-900">Suggestions d'optimisation</h3>
+            {/* SECTION 5: OPTIMISATION - affichée après calcul */}
+            {results && (
+              <div className="border-2 border-green-200 rounded-2xl p-6 bg-gradient-to-br from-green-50 to-emerald-50">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-white" />
                   </div>
-                  {results.suggestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {results.suggestions.map((suggestion, index) => (
-                        <div key={index} className="bg-white rounded-lg p-4 border border-amber-200">
-                          <p className="text-sm text-gray-700">{suggestion}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-600">Aucune optimisation supplémentaire détectée. Votre configuration est déjà optimale !</p>
-                  )}
+                  <h2 className="text-2xl font-bold text-gray-900">5. Optimisation fiscale</h2>
                 </div>
-
-                {/* Graphique évolution fiscalité */}
-                {graphiqueEvolution.length > 0 && (
-                  <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <BarChart3 className="w-6 h-6 text-emerald-600" />
-                      <h3 className="text-lg font-bold text-gray-900">Évolution de la fiscalité selon la durée de détention</h3>
+                
+                <div className="space-y-6">
+                  {/* Suggestions */}
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Lightbulb className="w-6 h-6 text-amber-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Suggestions d'optimisation</h3>
                     </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={graphiqueEvolution}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="annee" 
-                          label={{ value: 'Années de détention', position: 'insideBottom', offset: -5 }}
-                        />
-                        <YAxis 
-                          label={{ value: 'Fiscalité (€)', angle: -90, position: 'insideLeft' }}
-                        />
-                        <Tooltip 
-                          formatter={(value: number) => value.toLocaleString('fr-FR') + ' €'}
-                          labelFormatter={(label) => `Année ${label}`}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="fiscalite" 
-                          stroke="#10b981" 
-                          strokeWidth={3}
-                          name="Fiscalité totale"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="ir" 
-                          stroke="#3b82f6" 
-                          strokeWidth={2}
-                          name="Impôt sur le revenu"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="ps" 
-                          stroke="#f59e0b" 
-                          strokeWidth={2}
-                          name="Prélèvements sociaux"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                    <div className="mt-4 grid grid-cols-2 gap-4">
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <p className="text-xs text-blue-600 font-medium mb-1">Exonération IR</p>
-                        <p className="text-2xl font-bold text-blue-900">22 ans</p>
-                      </div>
-                      <div className="bg-amber-50 rounded-lg p-4">
-                        <p className="text-xs text-amber-600 font-medium mb-1">Exonération PS</p>
-                        <p className="text-2xl font-bold text-amber-900">30 ans</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Comparaison scénarios */}
-                {scenarios.length > 0 && (
-                  <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <Target className="w-6 h-6 text-purple-600" />
-                        <h3 className="text-lg font-bold text-gray-900">Comparaison de scénarios</h3>
-                      </div>
-                      <button
-                        onClick={() => setShowComparison(!showComparison)}
-                        className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all text-sm font-medium"
-                      >
-                        {showComparison ? 'Masquer' : 'Afficher'}
-                      </button>
-                    </div>
-
-                    {showComparison && (
-                      <div className="space-y-4">
-                        {scenarios.map((scenario, index) => (
-                          <div key={index} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-all">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold text-gray-900">{scenario.nom}</h4>
-                              <span className="text-xs text-gray-500">
-                                {new Date(scenario.dateVente).toLocaleDateString('fr-FR')}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Plus-value</p>
-                                <p className="font-semibold text-gray-900">
-                                  {scenario.results.plusValueBrute.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Abattements</p>
-                                <p className="font-semibold text-gray-900">
-                                  IR: {scenario.results.abattementIR.toFixed(0)}% / PS: {scenario.results.abattementPS.toFixed(0)}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Fiscalité</p>
-                                <p className="font-bold text-emerald-600">
-                                  {scenario.results.totalFiscalite.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
-                                </p>
-                              </div>
-                            </div>
-                            {scenario.travaux && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <p className="text-xs text-gray-600">
-                                  Travaux inclus : {scenario.travaux.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
-                                </p>
-                              </div>
-                            )}
+                    {results.suggestions.length > 0 ? (
+                      <div className="space-y-3">
+                        {results.suggestions.map((suggestion, index) => (
+                          <div key={index} className="bg-white rounded-lg p-4 border border-amber-200">
+                            <p className="text-sm text-gray-700">{suggestion}</p>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-sm text-gray-600">Aucune optimisation supplémentaire détectée. Configuration optimale !</p>
                     )}
+                  </div>
 
-                    {!showComparison && (
-                      <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={scenarios}>
+                  {/* Graphique évolution */}
+                  {graphiqueEvolution.length > 0 && (
+                    <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <BarChart3 className="w-6 h-6 text-emerald-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Évolution de la fiscalité selon durée de détention</h3>
+                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={graphiqueEvolution}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="nom" angle={-15} textAnchor="end" height={80} />
-                          <YAxis />
+                          <XAxis 
+                            dataKey="annee" 
+                            label={{ value: 'Années de détention', position: 'insideBottom', offset: -5 }}
+                          />
+                          <YAxis 
+                            label={{ value: 'Fiscalité (€)', angle: -90, position: 'insideLeft' }}
+                          />
                           <Tooltip 
                             formatter={(value: number) => value.toLocaleString('fr-FR') + ' €'}
+                            labelFormatter={(label) => `Année ${label}`}
                           />
-                          <Bar dataKey="results.totalFiscalite" fill="#10b981" name="Fiscalité totale" />
-                        </BarChart>
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="fiscalite" 
+                            stroke="#10b981" 
+                            strokeWidth={3}
+                            name="Fiscalité totale"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="ir" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2}
+                            name="Impôt sur le revenu"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="ps" 
+                            stroke="#f59e0b" 
+                            strokeWidth={2}
+                            name="Prélèvements sociaux"
+                          />
+                        </LineChart>
                       </ResponsiveContainer>
-                    )}
-                  </div>
-                )}
+                      <div className="mt-4 grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <p className="text-xs text-blue-600 font-medium mb-1">Exonération IR</p>
+                          <p className="text-2xl font-bold text-blue-900">22 ans</p>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-4">
+                          <p className="text-xs text-amber-600 font-medium mb-1">Exonération PS</p>
+                          <p className="text-2xl font-bold text-amber-900">30 ans</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Valeur démembrement */}
-                {results.valeurDemembrement && (
-                  <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <PieChart className="w-6 h-6 text-blue-600" />
-                      <h3 className="text-lg font-bold text-gray-900">Valeur du démembrement</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
-                        <p className="text-sm text-blue-600 font-medium mb-2">Usufruit</p>
-                        <p className="text-3xl font-bold text-blue-900">{results.valeurDemembrement.usufruit}%</p>
+                  {/* Comparaison scénarios */}
+                  {scenarios.length > 0 && (
+                    <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <Target className="w-6 h-6 text-purple-600" />
+                          <h3 className="text-lg font-bold text-gray-900">Comparaison de scénarios</h3>
+                        </div>
+                        <button
+                          onClick={() => setShowComparison(!showComparison)}
+                          className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all text-sm font-medium"
+                        >
+                          {showComparison ? 'Masquer' : 'Afficher'}
+                        </button>
                       </div>
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-                        <p className="text-sm text-green-600 font-medium mb-2">Nue-propriété</p>
-                        <p className="text-3xl font-bold text-green-900">{results.valeurDemembrement.nue}%</p>
-                      </div>
+
+                      {showComparison && (
+                        <div className="space-y-4">
+                          {scenarios.map((scenario, index) => (
+                            <div key={index} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-all">
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-semibold text-gray-900">{scenario.nom}</h4>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(scenario.dateVente).toLocaleDateString('fr-FR')}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-1">Plus-value</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {scenario.results.plusValueBrute.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-1">Abattements</p>
+                                  <p className="font-semibold text-gray-900">
+                                    IR: {scenario.results.abattementIR.toFixed(0)}% / PS: {scenario.results.abattementPS.toFixed(0)}%
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-1">Fiscalité</p>
+                                  <p className="font-bold text-emerald-600">
+                                    {scenario.results.totalFiscalite.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
+                                  </p>
+                                </div>
+                              </div>
+                              {scenario.travaux && (
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                  <p className="text-xs text-gray-600">
+                                    Travaux inclus: {scenario.travaux.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {!showComparison && (
+                        <ResponsiveContainer width="100%" height={250}>
+                          <BarChart data={scenarios}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="nom" angle={-15} textAnchor="end" height={80} />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => value.toLocaleString('fr-FR') + ' €'}
+                            />
+                            <Bar dataKey="results.totalFiscalite" fill="#10b981" name="Fiscalité totale" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-4">
-                      Barème fiscal de l'article 669 du CGI
-                    </p>
-                  </div>
-                )}
+                  )}
+
+                  {/* Valeur démembrement */}
+                  {results.valeurDemembrement && (
+                    <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <PieChart className="w-6 h-6 text-blue-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Valeur du démembrement</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+                          <p className="text-sm text-blue-600 font-medium mb-2">Usufruit</p>
+                          <p className="text-3xl font-bold text-blue-900">{results.valeurDemembrement.usufruit}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                          <p className="text-sm text-green-600 font-medium mb-2">Nue-propriété</p>
+                          <p className="text-3xl font-bold text-green-900">{results.valeurDemembrement.nue}%</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-4">
+                        Barème fiscal Art. 669 CGI
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -1503,7 +1500,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Durée détention avec précision */}
+                {/* Durée détention */}
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
                   <div className="flex items-center gap-3 mb-3">
                     <Clock className="w-6 h-6 text-blue-600" />
@@ -1561,7 +1558,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                     </div>
                   </div>
                   <p className="text-sm text-emerald-700 font-medium text-center">
-                    Économie totale grâce aux abattements : {results.economieAbattements.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
+                    Économie totale grâce aux abattements: {results.economieAbattements.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €
                   </p>
                 </div>
 
@@ -1590,7 +1587,7 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
                       <div>
                         <span className="text-gray-900 font-medium">Taxe additionnelle</span>
                         <p className="text-xs text-gray-500">
-                          Sur PV imposable {'>'} 50 000€
+                          Sur PV imposable &gt; 50 000€
                         </p>
                       </div>
                       <span className="font-semibold text-lg">{results.taxeAdditionnelle.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
@@ -1631,10 +1628,6 @@ TOTAL: ${results.totalFiscalite.toLocaleString('fr-FR', {minimumFractionDigits: 
     </div>
   );
 }
-
-// ============================================================================
-// EXPORT AVEC LAYOUT
-// ============================================================================
 
 export default function PlusValuePage() {
   return (
