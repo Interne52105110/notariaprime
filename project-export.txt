@@ -1,5 +1,5 @@
 NotariaPrime - Project Export
-Generated: 2025-10-13T08:55:38.558Z
+Generated: 2025-10-13T10:16:40.301Z
 ================================================================================
 
 PROJECT STRUCTURE:
@@ -742,8 +742,8 @@ button:focus-visible {
 
 ================================================================================
 [10] FILE: src\app\layout.tsx
-SIZE: 0.61 KB
-LAST MODIFIED: 2025-09-24T14:03:17.405Z
+SIZE: 2.45 KB
+LAST MODIFIED: 2025-10-13T09:47:26.032Z
 ================================================================================
 
 import type { Metadata } from "next";
@@ -757,7 +757,65 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "NotariaPrime - Calculateur de frais notariés",
-  description: "Plateforme open source pour calculer vos frais notariés",
+  description: "Plateforme open source pour calculer vos frais notariés. 100% gratuit, conforme au tarif réglementé 2025/2026.",
+  
+  // Open Graph pour réseaux sociaux
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://notariaprime.fr',
+    siteName: 'NotariaPrime',
+    title: 'NotariaPrime - Calculateur de frais notariés',
+    description: 'Calculateur de frais notariés open source • 100% gratuit • Conforme tarif 2025/2026',
+    images: [
+      {
+        url: '/images/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'NotariaPrime - Calculateur de frais notariés',
+      }
+    ],
+  },
+  
+  // Twitter Card
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NotariaPrime - Calculateur de frais notariés',
+    description: 'Calculateur de frais notariés open source • 100% gratuit • Conforme tarif 2025/2026',
+    images: ['/images/og-image.png'],
+  },
+  
+  // Meta tags additionnels
+  keywords: ['frais notariés', 'notaire', 'calculateur', 'émoluments', 'open source', 'gratuit', 'DOM-TOM', 'tarif réglementé'],
+  authors: [{ name: 'NotariaPrime' }],
+  creator: 'NotariaPrime',
+  publisher: 'NotariaPrime',
+  
+  // Favicon
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  
+  // Verification
+  verification: {
+    // google: 'votre-code-google-search-console',
+    // yandex: 'votre-code-yandex',
+  },
 };
 
 interface RootLayoutProps {
@@ -767,6 +825,15 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="fr">
+      <head>
+        {/* Charset et viewport déjà gérés par Next.js */}
+        
+        {/* Theme color pour mobile */}
+        <meta name="theme-color" content="#4f46e5" />
+        
+        {/* Liens canonical */}
+        <link rel="canonical" href="https://notariaprime.fr" />
+      </head>
       <body className={`${inter.variable} antialiased`}>
         {children}
       </body>
@@ -1368,8 +1435,8 @@ export default function NotariaPrimeHomepage() {
 
 ================================================================================
 [12] FILE: src\app\pretaxe\page.tsx
-SIZE: 60.00 KB
-LAST MODIFIED: 2025-09-24T15:33:38.677Z
+SIZE: 72.53 KB
+LAST MODIFIED: 2025-10-13T09:33:46.564Z
 ================================================================================
 
 "use client";
@@ -1383,7 +1450,48 @@ import {
   Download, Save, History, Plus, Minus, UserPlus
 } from 'lucide-react';
 
-// Types TypeScript
+// ============================================================================
+// NOUVEAUTÉ 2025/2026 : TVA DIFFÉRENCIÉE + MAJORATION DOM-TOM
+// CORRIGÉ : Guyane (973) et Mayotte (976) exonérés de TVA (Article 294 CGI)
+// ============================================================================
+
+const TVA_CONFIG = {
+  metropole: 20.0,
+  guadeloupe: 8.5,
+  martinique: 8.5,
+  guyane: 0,        // ✅ Exonéré TVA (Art. 294 CGI)
+  reunion: 8.5,
+  mayotte: 0,       // ✅ Exonéré TVA (Art. 294 CGI)
+} as const;
+
+const MAJORATION_DOM_TOM: Record<string, number> = {
+  '971': 30, // Guadeloupe
+  '972': 30, // Martinique
+  '973': 30, // Guyane
+  '974': 30, // La Réunion
+  '976': 30, // Mayotte
+};
+
+function getTauxTVA(codeDepartement: string): number {
+  const mapping: Record<string, number> = {
+    '971': TVA_CONFIG.guadeloupe,  // 8,5%
+    '972': TVA_CONFIG.martinique,  // 8,5%
+    '973': TVA_CONFIG.guyane,      // 0% ✅ Exonéré
+    '974': TVA_CONFIG.reunion,     // 8,5%
+    '976': TVA_CONFIG.mayotte,     // 0% ✅ Exonéré
+  };
+  
+  return mapping[codeDepartement] ?? TVA_CONFIG.metropole;
+}
+
+function getMajorationDOMTOM(codeDepartement: string): number {
+  return MAJORATION_DOM_TOM[codeDepartement] || 0;
+}
+
+// ============================================================================
+// TYPES TYPESCRIPT (inchangés)
+// ============================================================================
+
 interface TrancheTarif {
   min: number;
   max: number;
@@ -1434,6 +1542,8 @@ interface HistoriqueCalcul {
 interface Departement {
   nom: string;
   taux: number;
+  tauxTVA: number;
+  majoration: number;
 }
 
 function PretaxeContent() {
@@ -1446,12 +1556,22 @@ function PretaxeContent() {
   
   // États pour les calculs
   const [emoluments, setEmoluments] = useState(0);
+  const [emolumentsDetail, setEmolumentsDetail] = useState({
+    bruts: 0,
+    majoration: 0,
+    avantRemise: 0,
+    remise10: 0,
+    remise20: 0,
+    nets: 0
+  });
+  
   const [debours, setDebours] = useState({
     csi: 15,
     etatsHypothecaires: 0,
     cadastre: 0,
     urbanisme: 0
   });
+  
   const [formalites, setFormalites] = useState({
     forfaitBase: 130,
     teleactes: 50,
@@ -1459,12 +1579,14 @@ function PretaxeContent() {
     prealables: 100,
     posterieures: 100
   });
+  
   const [documents, setDocuments] = useState({
     pagesActe: 10,
     copiesExecutoires: 0,
     copiesAuthentiques: 1,
     copiesHypothecaires: 0
   });
+  
   const [taxes, setTaxes] = useState({
     typeBien: 'ancien',
     departementale: 0,
@@ -1527,111 +1649,116 @@ function PretaxeContent() {
     return 10;
   };
 
+  // ============================================================================
+  // DÉPARTEMENTS AVEC TVA ET MAJORATION (MODIFIÉ)
+  // ============================================================================
+  
   const departements: Record<string, Departement> = {
-    '01': { nom: 'Ain', taux: 4.50 },
-    '02': { nom: 'Aisne', taux: 4.50 },
-    '03': { nom: 'Allier', taux: 4.50 },
-    '04': { nom: 'Alpes-de-Haute-Provence', taux: 4.50 },
-    '05': { nom: 'Hautes-Alpes', taux: 4.50 },
-    '06': { nom: 'Alpes-Maritimes', taux: 4.50 },
-    '07': { nom: 'Ardèche', taux: 4.50 },
-    '08': { nom: 'Ardennes', taux: 4.50 },
-    '09': { nom: 'Ariège', taux: 4.50 },
-    '10': { nom: 'Aube', taux: 4.50 },
-    '11': { nom: 'Aude', taux: 4.50 },
-    '12': { nom: 'Aveyron', taux: 4.50 },
-    '13': { nom: 'Bouches-du-Rhône', taux: 4.50 },
-    '14': { nom: 'Calvados', taux: 4.50 },
-    '15': { nom: 'Cantal', taux: 4.50 },
-    '16': { nom: 'Charente', taux: 4.50 },
-    '17': { nom: 'Charente-Maritime', taux: 4.50 },
-    '18': { nom: 'Cher', taux: 4.50 },
-    '19': { nom: 'Corrèze', taux: 4.50 },
-    '21': { nom: 'Côte-d\'Or', taux: 4.50 },
-    '22': { nom: 'Côtes-d\'Armor', taux: 4.50 },
-    '23': { nom: 'Creuse', taux: 4.50 },
-    '24': { nom: 'Dordogne', taux: 4.50 },
-    '25': { nom: 'Doubs', taux: 4.50 },
-    '26': { nom: 'Drôme', taux: 4.50 },
-    '27': { nom: 'Eure', taux: 4.50 },
-    '28': { nom: 'Eure-et-Loir', taux: 4.50 },
-    '29': { nom: 'Finistère', taux: 4.50 },
-    '2A': { nom: 'Corse-du-Sud', taux: 4.50 },
-    '2B': { nom: 'Haute-Corse', taux: 4.50 },
-    '30': { nom: 'Gard', taux: 4.50 },
-    '31': { nom: 'Haute-Garonne', taux: 4.50 },
-    '32': { nom: 'Gers', taux: 4.50 },
-    '33': { nom: 'Gironde', taux: 4.50 },
-    '34': { nom: 'Hérault', taux: 4.50 },
-    '35': { nom: 'Ille-et-Vilaine', taux: 4.50 },
-    '36': { nom: 'Indre', taux: 4.50 },
-    '37': { nom: 'Indre-et-Loire', taux: 4.50 },
-    '38': { nom: 'Isère', taux: 3.80 },
-    '39': { nom: 'Jura', taux: 4.50 },
-    '40': { nom: 'Landes', taux: 4.50 },
-    '41': { nom: 'Loir-et-Cher', taux: 4.50 },
-    '42': { nom: 'Loire', taux: 4.50 },
-    '43': { nom: 'Haute-Loire', taux: 4.50 },
-    '44': { nom: 'Loire-Atlantique', taux: 4.50 },
-    '45': { nom: 'Loiret', taux: 4.50 },
-    '46': { nom: 'Lot', taux: 4.50 },
-    '47': { nom: 'Lot-et-Garonne', taux: 4.50 },
-    '48': { nom: 'Lozère', taux: 4.50 },
-    '49': { nom: 'Maine-et-Loire', taux: 4.50 },
-    '50': { nom: 'Manche', taux: 4.50 },
-    '51': { nom: 'Marne', taux: 4.50 },
-    '52': { nom: 'Haute-Marne', taux: 4.50 },
-    '53': { nom: 'Mayenne', taux: 4.50 },
-    '54': { nom: 'Meurthe-et-Moselle', taux: 4.50 },
-    '55': { nom: 'Meuse', taux: 4.50 },
-    '56': { nom: 'Morbihan', taux: 3.80 },
-    '57': { nom: 'Moselle', taux: 4.50 },
-    '58': { nom: 'Nièvre', taux: 4.50 },
-    '59': { nom: 'Nord', taux: 4.50 },
-    '60': { nom: 'Oise', taux: 4.50 },
-    '61': { nom: 'Orne', taux: 4.50 },
-    '62': { nom: 'Pas-de-Calais', taux: 4.50 },
-    '63': { nom: 'Puy-de-Dôme', taux: 4.50 },
-    '64': { nom: 'Pyrénées-Atlantiques', taux: 4.50 },
-    '65': { nom: 'Hautes-Pyrénées', taux: 4.50 },
-    '66': { nom: 'Pyrénées-Orientales', taux: 4.50 },
-    '67': { nom: 'Bas-Rhin', taux: 4.50 },
-    '68': { nom: 'Haut-Rhin', taux: 4.50 },
-    '69': { nom: 'Rhône', taux: 4.50 },
-    '70': { nom: 'Haute-Saône', taux: 4.50 },
-    '71': { nom: 'Saône-et-Loire', taux: 4.50 },
-    '72': { nom: 'Sarthe', taux: 4.50 },
-    '73': { nom: 'Savoie', taux: 4.50 },
-    '74': { nom: 'Haute-Savoie', taux: 4.50 },
-    '75': { nom: 'Paris', taux: 4.50 },
-    '76': { nom: 'Seine-Maritime', taux: 4.50 },
-    '77': { nom: 'Seine-et-Marne', taux: 4.50 },
-    '78': { nom: 'Yvelines', taux: 4.50 },
-    '79': { nom: 'Deux-Sèvres', taux: 4.50 },
-    '80': { nom: 'Somme', taux: 4.50 },
-    '81': { nom: 'Tarn', taux: 4.50 },
-    '82': { nom: 'Tarn-et-Garonne', taux: 4.50 },
-    '83': { nom: 'Var', taux: 4.50 },
-    '84': { nom: 'Vaucluse', taux: 4.50 },
-    '85': { nom: 'Vendée', taux: 4.50 },
-    '86': { nom: 'Vienne', taux: 4.50 },
-    '87': { nom: 'Haute-Vienne', taux: 4.50 },
-    '88': { nom: 'Vosges', taux: 4.50 },
-    '89': { nom: 'Yonne', taux: 4.50 },
-    '90': { nom: 'Territoire de Belfort', taux: 4.50 },
-    '91': { nom: 'Essonne', taux: 4.50 },
-    '92': { nom: 'Hauts-de-Seine', taux: 4.50 },
-    '93': { nom: 'Seine-Saint-Denis', taux: 4.50 },
-    '94': { nom: 'Val-de-Marne', taux: 4.50 },
-    '95': { nom: 'Val-d\'Oise', taux: 4.50 },
-    '971': { nom: 'Guadeloupe', taux: 4.50 },
-    '972': { nom: 'Martinique', taux: 4.50 },
-    '973': { nom: 'Guyane', taux: 4.50 },
-    '974': { nom: 'La Réunion', taux: 4.50 },
-    '976': { nom: 'Mayotte', taux: 3.80 }
+    '01': { nom: 'Ain', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '02': { nom: 'Aisne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '03': { nom: 'Allier', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '04': { nom: 'Alpes-de-Haute-Provence', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '05': { nom: 'Hautes-Alpes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '06': { nom: 'Alpes-Maritimes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '07': { nom: 'Ardèche', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '08': { nom: 'Ardennes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '09': { nom: 'Ariège', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '10': { nom: 'Aube', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '11': { nom: 'Aude', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '12': { nom: 'Aveyron', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '13': { nom: 'Bouches-du-Rhône', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '14': { nom: 'Calvados', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '15': { nom: 'Cantal', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '16': { nom: 'Charente', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '17': { nom: 'Charente-Maritime', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '18': { nom: 'Cher', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '19': { nom: 'Corrèze', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '21': { nom: 'Côte-d\'Or', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '22': { nom: 'Côtes-d\'Armor', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '23': { nom: 'Creuse', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '24': { nom: 'Dordogne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '25': { nom: 'Doubs', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '26': { nom: 'Drôme', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '27': { nom: 'Eure', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '28': { nom: 'Eure-et-Loir', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '29': { nom: 'Finistère', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '2A': { nom: 'Corse-du-Sud', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '2B': { nom: 'Haute-Corse', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '30': { nom: 'Gard', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '31': { nom: 'Haute-Garonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '32': { nom: 'Gers', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '33': { nom: 'Gironde', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '34': { nom: 'Hérault', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '35': { nom: 'Ille-et-Vilaine', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '36': { nom: 'Indre', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '37': { nom: 'Indre-et-Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '38': { nom: 'Isère', taux: 3.80, tauxTVA: 20.0, majoration: 0 },
+    '39': { nom: 'Jura', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '40': { nom: 'Landes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '41': { nom: 'Loir-et-Cher', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '42': { nom: 'Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '43': { nom: 'Haute-Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '44': { nom: 'Loire-Atlantique', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '45': { nom: 'Loiret', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '46': { nom: 'Lot', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '47': { nom: 'Lot-et-Garonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '48': { nom: 'Lozère', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '49': { nom: 'Maine-et-Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '50': { nom: 'Manche', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '51': { nom: 'Marne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '52': { nom: 'Haute-Marne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '53': { nom: 'Mayenne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '54': { nom: 'Meurthe-et-Moselle', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '55': { nom: 'Meuse', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '56': { nom: 'Morbihan', taux: 3.80, tauxTVA: 20.0, majoration: 0 },
+    '57': { nom: 'Moselle', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '58': { nom: 'Nièvre', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '59': { nom: 'Nord', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '60': { nom: 'Oise', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '61': { nom: 'Orne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '62': { nom: 'Pas-de-Calais', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '63': { nom: 'Puy-de-Dôme', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '64': { nom: 'Pyrénées-Atlantiques', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '65': { nom: 'Hautes-Pyrénées', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '66': { nom: 'Pyrénées-Orientales', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '67': { nom: 'Bas-Rhin', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '68': { nom: 'Haut-Rhin', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '69': { nom: 'Rhône', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '70': { nom: 'Haute-Saône', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '71': { nom: 'Saône-et-Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '72': { nom: 'Sarthe', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '73': { nom: 'Savoie', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '74': { nom: 'Haute-Savoie', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '75': { nom: 'Paris', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '76': { nom: 'Seine-Maritime', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '77': { nom: 'Seine-et-Marne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '78': { nom: 'Yvelines', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '79': { nom: 'Deux-Sèvres', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '80': { nom: 'Somme', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '81': { nom: 'Tarn', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '82': { nom: 'Tarn-et-Garonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '83': { nom: 'Var', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '84': { nom: 'Vaucluse', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '85': { nom: 'Vendée', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '86': { nom: 'Vienne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '87': { nom: 'Haute-Vienne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '88': { nom: 'Vosges', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '89': { nom: 'Yonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '90': { nom: 'Territoire de Belfort', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '91': { nom: 'Essonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '92': { nom: 'Hauts-de-Seine', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '93': { nom: 'Seine-Saint-Denis', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '94': { nom: 'Val-de-Marne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    '95': { nom: 'Val-d\'Oise', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+    // DOM-TOM avec TVA CORRIGÉE
+    '971': { nom: 'Guadeloupe', taux: 4.50, tauxTVA: 8.5, majoration: 30 },
+    '972': { nom: 'Martinique', taux: 4.50, tauxTVA: 8.5, majoration: 30 },
+    '973': { nom: 'Guyane', taux: 4.50, tauxTVA: 0, majoration: 30 },        // ✅ Exonéré TVA
+    '974': { nom: 'La Réunion', taux: 4.50, tauxTVA: 8.5, majoration: 30 },
+    '976': { nom: 'Mayotte', taux: 3.80, tauxTVA: 0, majoration: 30 }        // ✅ Exonéré TVA
   };
 
-  // Catégories et actes selon l'Annexe 4-7 du Code de commerce
+  // Catégories et actes selon l'Annexe 4-7 du Code de commerce (INCHANGÉ)
   const categoriesActes: Record<string, CategorieActes> = {
     'biens_immobiliers': {
       label: 'Actes relatifs aux biens immobiliers',
@@ -1941,8 +2068,12 @@ function PretaxeContent() {
     }
   };
 
-  // Calcul des émoluments avec application des remises Table 5
-  const calculerEmoluments = (montant: number, tranches: TrancheTarif[]): number => {
+  // ============================================================================
+  // CALCUL DES ÉMOLUMENTS CORRIGÉ AVEC MAJORATION DOM-TOM
+  // ============================================================================
+  
+  const calculerEmoluments = (montant: number, tranches: TrancheTarif[]) => {
+    // Étape 1: Calcul des émoluments bruts
     let emolumentsBruts = 0;
     
     tranches.forEach(tranche => {
@@ -1952,8 +2083,15 @@ function PretaxeContent() {
       }
     });
 
-    // Application des remises (Table 5 - Article A444-174)
-    let emolumentsNets = emolumentsBruts;
+    // Étape 2: Application majoration DOM-TOM (AVANT remises)
+    const tauxMajoration = getMajorationDOMTOM(selectedDepartement);
+    const majoration = emolumentsBruts * (tauxMajoration / 100);
+    const emolumentsAvantRemise = emolumentsBruts + majoration;
+
+    // Étape 3: Application des remises Table 5 (Article A444-174)
+    let remise10 = 0;
+    let remise20 = 0;
+    let emolumentsNets = emolumentsAvantRemise;
     
     if (montant > 150000) {
       let emolumentsAuDela150k = 0;
@@ -1968,9 +2106,9 @@ function PretaxeContent() {
         }
       });
       
-      const remise10 = emolumentsAuDela150k * 0.10;
+      const majorationAuDela150k = emolumentsAuDela150k * (tauxMajoration / 100);
+      remise10 = (emolumentsAuDela150k + majorationAuDela150k) * 0.10;
       
-      let remise20 = 0;
       if (montant > 10000000) {
         let emolumentsAuDela10M = 0;
         
@@ -1984,13 +2122,21 @@ function PretaxeContent() {
           }
         });
         
-        remise20 = emolumentsAuDela10M * 0.10;
+        const majorationAuDela10M = emolumentsAuDela10M * (tauxMajoration / 100);
+        remise20 = (emolumentsAuDela10M + majorationAuDela10M) * 0.10;
       }
       
-      emolumentsNets = emolumentsBruts - remise10 - remise20;
+      emolumentsNets = emolumentsAvantRemise - remise10 - remise20;
     }
     
-    return emolumentsNets;
+    return {
+      bruts: emolumentsBruts,
+      majoration: majoration,
+      avantRemise: emolumentsAvantRemise,
+      remise10: remise10,
+      remise20: remise20,
+      nets: emolumentsNets
+    };
   };
 
   // Calcul des taxes selon le département
@@ -2052,25 +2198,46 @@ function PretaxeContent() {
     alert('Calcul sauvegardé dans l\'historique !');
   };
   
-  // Fonction d'export PDF simplifiée
+  // Fonction d'export PDF améliorée
   const exporterPDF = () => {
+    const deptInfo = departements[selectedDepartement];
     const contenu = `
-CALCUL DE FRAIS NOTARIÉS
-========================
+CALCUL DE FRAIS NOTARIÉS - TARIF 2025/2026
+==========================================
 Date : ${new Date().toLocaleString('fr-FR')}
-Département : ${departements[selectedDepartement]?.nom}
+Département : ${deptInfo?.nom} (${selectedDepartement})
+${deptInfo?.majoration > 0 ? `⚠️ TERRITOIRE DOM-TOM - MAJORATION +${deptInfo.majoration}%\n` : ''}
 Type d'acte : ${categoriesActes[selectedCategory]?.actes[selectedActe]?.label || 'N/A'}
 Montant : ${montantActe} €
 
-DÉTAIL DES FRAIS
-================
-Émoluments TTC : ${totalEmolumentsTTC.toFixed(2)} €
+DÉTAIL DES ÉMOLUMENTS
+=====================
+Émoluments bruts : ${emolumentsDetail.bruts.toFixed(2)} €
+${emolumentsDetail.majoration > 0 ? `Majoration DOM-TOM (+${deptInfo?.majoration}%) : +${emolumentsDetail.majoration.toFixed(2)} €\n` : ''}
+${emolumentsDetail.remise10 > 0 ? `Remise 10% (>150k€) : -${emolumentsDetail.remise10.toFixed(2)} €\n` : ''}
+${emolumentsDetail.remise20 > 0 ? `Remise 20% (>10M€) : -${emolumentsDetail.remise20.toFixed(2)} €\n` : ''}
+Total HT : ${emolumentsDetail.nets.toFixed(2)} €
+TVA (${getTauxTVA(selectedDepartement)}%) : ${(emolumentsDetail.nets * getTauxTVA(selectedDepartement) / 100).toFixed(2)} €
+TOTAL TTC : ${totalEmolumentsTTC.toFixed(2)} €
+
+AUTRES FRAIS
+============
 Débours : ${totalDebours.toFixed(2)} €
+  - CSI : ${debours.csi.toFixed(2)} €
 Formalités TTC : ${totalFormalitesTTC.toFixed(2)} €
 Documents TTC : ${totalDocumentsTTC.toFixed(2)} €
 Taxes et droits : ${totalTaxes.toFixed(2)} €
+  - Taxe départementale : ${taxes.departementale.toFixed(2)} €
+  - Taxe communale : ${taxes.communale.toFixed(2)} €
+  - Frais assiette : ${taxes.fraisAssiette.toFixed(2)} €
 
+═══════════════════════════════════════
 TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
+═══════════════════════════════════════
+
+Calcul conforme au Décret n°2020-179 du 27 février 2020
+${deptInfo?.majoration > 0 ? 'Article A444-176 du Code de commerce (majoration DOM-TOM)\n' : ''}
+Tarif applicable : 2025/2026 (inchangé depuis 2020)
     `;
     
     const blob = new Blob([contenu], { type: 'text/plain' });
@@ -2089,8 +2256,19 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
         const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
         if (acte) {
           if (acte.type === 'proportionnel' && acte.tranches) {
-            setEmoluments(calculerEmoluments(montant, acte.tranches));
+            const detail = calculerEmoluments(montant, acte.tranches);
+            setEmolumentsDetail(detail);
+            setEmoluments(detail.nets);
           } else if (acte.type === 'fixe' && acte.montant) {
+            const detail = {
+              bruts: acte.montant,
+              majoration: 0,
+              avantRemise: acte.montant,
+              remise10: 0,
+              remise20: 0,
+              nets: acte.montant
+            };
+            setEmolumentsDetail(detail);
             setEmoluments(acte.montant);
           }
           calculerCSI();
@@ -2100,22 +2278,24 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
     }
   }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory]);
 
-  // Calcul des totaux
-  const totalEmoluments = emoluments;
-  const totalEmolumentsTTC = totalEmoluments * 1.20;
+  // Calcul des totaux avec TVA différenciée
+  const tauxTVA = getTauxTVA(selectedDepartement);
+  const totalEmoluments = emolumentsDetail.nets;
+  const montantTVA = totalEmoluments * (tauxTVA / 100);
+  const totalEmolumentsTTC = totalEmoluments + montantTVA;
   
   const totalDebours = Object.values(debours).reduce((sum, val) => sum + val, 0);
   
   const totalFormalites = formalites.forfaitBase + formalites.teleactes + 
     (formalites.lettresRecommandees * 1) + formalites.prealables + formalites.posterieures;
-  const totalFormalitesTTC = totalFormalites * 1.20;
+  const totalFormalitesTTC = totalFormalites * (1 + tauxTVA / 100);
   
   const fraisRole = documents.pagesActe * 2;
   const copiesExec = documents.copiesExecutoires * 4;
   const copiesAuth = documents.copiesAuthentiques * 40;
   const copiesHypo = documents.copiesHypothecaires * 4;
   const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo;
-  const totalDocumentsTTC = totalDocuments * 1.20;
+  const totalDocumentsTTC = totalDocuments * (1 + tauxTVA / 100);
   
   const totalTaxes = taxes.departementale + taxes.communale + taxes.fraisAssiette;
   
@@ -2137,7 +2317,7 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                     Calculateur de frais notariés
                   </h1>
                   <p className="text-indigo-600 font-medium">
-                    Conforme au tarif réglementé 2024
+                    Conforme au tarif réglementé 2025/2026
                   </p>
                 </div>
               </div>
@@ -2171,6 +2351,9 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                 {Object.entries(departements).map(([code, dept]) => (
                   <option key={code} value={code}>
                     {code} - {dept.nom} ({dept.taux}%)
+                    {dept.majoration > 0 && ` • DOM +${dept.majoration}%`}
+                    {dept.tauxTVA === 0 && ' • Exo. TVA'}
+                    {dept.tauxTVA > 0 && dept.tauxTVA < 20 && ` • TVA ${dept.tauxTVA}%`}
                   </option>
                 ))}
               </select>
@@ -2234,7 +2417,28 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
             </div>
           )}
           
-          {/* Section spéciale pour les donations */}
+          {/* NOUVEAUTÉ: Bandeau DOM-TOM */}
+          {getMajorationDOMTOM(selectedDepartement) > 0 && (
+            <div className="mt-6 bg-orange-50 border border-orange-200 rounded-xl p-4">
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-orange-900">
+                    Territoire DOM-TOM : {departements[selectedDepartement]?.nom}
+                  </p>
+                  <p className="text-xs text-orange-700 mt-1">
+                    • Majoration des émoluments : <strong>+{getMajorationDOMTOM(selectedDepartement)}%</strong> (Article A444-176 du Code de commerce)
+                    <br />
+                    • TVA : <strong>{getTauxTVA(selectedDepartement)}%</strong>
+                    {getTauxTVA(selectedDepartement) === 0 && <span> - EXONÉRÉ (Article 294 CGI)</span>}
+                    {getTauxTVA(selectedDepartement) > 0 && getTauxTVA(selectedDepartement) < 20 && <span> (taux réduit au lieu de 20%)</span>}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Section spéciale pour les donations (CONSERVÉE INTÉGRALEMENT) */}
           {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
             <div className="mt-8 p-6 bg-purple-50 rounded-xl border border-purple-200">
               <h3 className="font-semibold text-purple-900 mb-6 flex items-center">
@@ -2505,22 +2709,64 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                   <div className="flex items-start">
                     <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
-                    <p className="text-sm text-blue-900">
-                      Les émoluments sont calculés selon les tranches réglementaires.
-                      Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
-                    </p>
+                    <div>
+                      <p className="text-sm text-blue-900">
+                        Les émoluments sont calculés selon les tranches réglementaires.
+                        Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
+                      </p>
+                      {getMajorationDOMTOM(selectedDepartement) > 0 && (
+                        <p className="text-sm text-blue-900 mt-2 font-medium">
+                          ⚠️ Majoration DOM-TOM de {getMajorationDOMTOM(selectedDepartement)}% appliquée (Article A444-176)
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span className="text-gray-600">Total HT</span>
+                    <span className="text-gray-600">Émoluments bruts</span>
+                    <span className="font-semibold text-lg">{emolumentsDetail.bruts.toFixed(2)} €</span>
+                  </div>
+                  
+                  {emolumentsDetail.majoration > 0 && (
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100 bg-orange-50 px-3 rounded-lg">
+                      <span className="text-orange-900 font-medium">
+                        Majoration DOM-TOM (+{getMajorationDOMTOM(selectedDepartement)}%)
+                      </span>
+                      <span className="font-semibold text-lg text-orange-900">
+                        +{emolumentsDetail.majoration.toFixed(2)} €
+                      </span>
+                    </div>
+                  )}
+                  
+                  {emolumentsDetail.remise10 > 0 && (
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                      <span className="text-green-600">Remise 10% (au-delà 150k€)</span>
+                      <span className="text-green-600 text-lg">-{emolumentsDetail.remise10.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  
+                  {emolumentsDetail.remise20 > 0 && (
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                      <span className="text-green-600">Remise 20% (au-delà 10M€)</span>
+                      <span className="text-green-600 text-lg">-{emolumentsDetail.remise20.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600 font-medium">Total HT</span>
                     <span className="font-semibold text-lg">{totalEmoluments.toFixed(2)} €</span>
                   </div>
+                  
                   <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span className="text-gray-600">TVA (20%)</span>
-                    <span className="text-lg">{(totalEmoluments * 0.20).toFixed(2)} €</span>
+                    <span className="text-gray-600">
+                      TVA ({tauxTVA}%)
+                      {tauxTVA === 0 && <span className="text-green-600 font-medium"> - EXONÉRÉ</span>}
+                    </span>
+                    <span className="text-lg">{montantTVA.toFixed(2)} €</span>
                   </div>
+                  
                   <div className="flex justify-between items-center py-4 border-t-2 border-gray-200">
                     <span className="font-bold text-xl">Total TTC</span>
                     <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -2531,7 +2777,7 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
               </div>
             )}
 
- {activeTab === 'debours' && (
+            {activeTab === 'debours' && (
               <div className="space-y-6">
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
@@ -2590,7 +2836,10 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                 
                 <div className="border-t-2 border-gray-200 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-xl">
+                      Total TTC (TVA {tauxTVA}%)
+                      {tauxTVA === 0 && <span className="text-sm font-normal text-gray-600"> - Exonéré</span>}
+                    </span>
                     <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                       {totalFormalitesTTC.toFixed(2)} €
                     </span>
@@ -2673,7 +2922,10 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                 
                 <div className="border-t-2 border-gray-200 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-xl">
+                      Total TTC (TVA {tauxTVA}%)
+                      {tauxTVA === 0 && <span className="text-sm font-normal text-gray-600"> - Exonéré</span>}
+                    </span>
                     <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                       {totalDocumentsTTC.toFixed(2)} €
                     </span>
@@ -2792,10 +3044,17 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
               <Check className="w-5 h-5 text-green-600 mt-0.5 mr-3" />
               <div>
                 <p className="text-sm font-medium text-green-900">
-                  Calcul conforme au tarif réglementé 2024
+                  Calcul conforme au tarif réglementé 2025/2026
                 </p>
                 <p className="text-xs text-green-700 mt-1">
                   Décret n°2020-179 du 27 février 2020 et arrêtés modificatifs
+                  {getMajorationDOMTOM(selectedDepartement) > 0 && 
+                    ` • Article A444-176 (majoration DOM-TOM +${getMajorationDOMTOM(selectedDepartement)}%)`
+                  }
+                  {' • TVA '}
+                  {getTauxTVA(selectedDepartement)}%
+                  {getTauxTVA(selectedDepartement) === 0 && ' (exonéré - Art. 294 CGI)'}
+                  {getTauxTVA(selectedDepartement) > 0 && getTauxTVA(selectedDepartement) < 20 && ' (taux réduit)'}
                 </p>
               </div>
             </div>
@@ -3342,6 +3601,6 @@ LAST MODIFIED: 2025-09-19T10:31:05.636Z
 EXPORT SUMMARY:
 ================================================================================
 Total files exported: 19
-Total size: 0.11 MB
-Export date: 2025-10-13T08:55:38.599Z
+Total size: 0.13 MB
+Export date: 2025-10-13T10:16:40.315Z
 ================================================================================
