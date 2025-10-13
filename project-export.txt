@@ -1,5 +1,5 @@
 NotariaPrime - Project Export
-Generated: 2025-09-24T13:44:33.600Z
+Generated: 2025-10-13T08:55:38.558Z
 ================================================================================
 
 PROJECT STRUCTURE:
@@ -21,7 +21,10 @@ PROJECT STRUCTURE:
     │   ├── home/
     │   ├── layout/
     │   ├── ui/
-    │   └── Layout.tsx
+    │   ├── FeedbackModal.tsx
+    │   ├── Footer.tsx
+    │   ├── Header.tsx
+    │   └── MainLayout.tsx
     └── lib/
     │   └── utils.ts
 ├── README.md
@@ -739,8 +742,8 @@ button:focus-visible {
 
 ================================================================================
 [10] FILE: src\app\layout.tsx
-SIZE: 0.58 KB
-LAST MODIFIED: 2025-09-22T18:35:03.009Z
+SIZE: 0.61 KB
+LAST MODIFIED: 2025-09-24T14:03:17.405Z
 ================================================================================
 
 import type { Metadata } from "next";
@@ -757,11 +760,11 @@ export const metadata: Metadata = {
   description: "Plateforme open source pour calculer vos frais notariés",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="fr">
       <body className={`${inter.variable} antialiased`}>
@@ -773,18 +776,18 @@ export default function RootLayout({
 
 ================================================================================
 [11] FILE: src\app\page.tsx
-SIZE: 32.62 KB
-LAST MODIFIED: 2025-09-22T19:09:24.676Z
+SIZE: 25.43 KB
+LAST MODIFIED: 2025-09-24T15:05:35.763Z
 ================================================================================
 
 "use client";
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
+import MainLayout from '@/components/MainLayout';
 import { 
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
   CheckCircle, Users, Award, Lock, Globe,
-  Menu, X, Play, 
-  FileCheck, Clock, Star, Building2, 
+  Play, FileCheck, Clock, Star, Building2, 
   Rocket, Brain, Cpu
 } from 'lucide-react';
 
@@ -837,6 +840,8 @@ const StatsCard = memo(({ stat }: { stat: Stat }) => (
   </div>
 ));
 
+StatsCard.displayName = 'StatsCard';
+
 const FeatureCard = memo(({ feature }: { feature: Feature }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:border-indigo-300">
     <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
@@ -854,6 +859,8 @@ const FeatureCard = memo(({ feature }: { feature: Feature }) => (
     </div>
   </div>
 ));
+
+FeatureCard.displayName = 'FeatureCard';
 
 const SolutionCard = memo(({ solution, index, onHover }: { 
   solution: Solution; 
@@ -900,7 +907,7 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       
       {isAvailable ? (
         <a href={solution.link} className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all">
-          Utiliser l&apos;outil
+          Utiliser l'outil
           <ArrowRight className="w-4 h-4" />
         </a>
       ) : (
@@ -910,9 +917,9 @@ const SolutionCard = memo(({ solution, index, onHover }: {
   );
 });
 
-export default function NotariaPrimeHomepage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+SolutionCard.displayName = 'SolutionCard';
+
+function HomepageContent() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -923,15 +930,11 @@ export default function NotariaPrimeHomepage() {
       setIsMobile(window.innerWidth < 768);
     };
 
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-
     updateDeviceType();
     window.addEventListener('resize', updateDeviceType);
-    window.addEventListener('scroll', handleScroll);
 
     return () => {
       window.removeEventListener('resize', updateDeviceType);
-      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -953,7 +956,7 @@ export default function NotariaPrimeHomepage() {
     {
       icon: Brain,
       title: 'IA Assistée',
-      description: 'Suggestions intelligentes et détection d&apos;erreurs',
+      description: 'Suggestions intelligentes et détection d\'erreurs',
       metric: '99.9%',
       metricLabel: 'Précision'
     },
@@ -1016,93 +1019,13 @@ export default function NotariaPrimeHomepage() {
   ];
 
   const handleCardHover = useCallback((index: number | null) => {
-    // Handle card hover logic
+    console.log('Card hovered:', index);
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation optimisée */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo avec animation */}
-            <div className="flex items-center gap-12">
-              <div className="flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Calculator className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                </div>
-                <div>
-                  <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
-                  <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
-                </div>
-              </div>
-
-              {/* Menu desktop */}
-              {isDesktop && (
-                <nav className="flex items-center gap-8">
-                  <a href="#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">Solutions</a>
-                  <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium transition">Fonctionnalités</a>
-                  <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition">Tarifs</a>
-                  <a href="#enterprise" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium transition">
-                    Enterprise
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">NEW</span>
-                  </a>
-                </nav>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-4">
-              {!isMobile && (
-                <>
-                  <a href="/login" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Connexion
-                  </a>
-                  <a href="/demo" className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
-                    Demander une démo
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </>
-              )}
-              {!isDesktop && (
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
-                  aria-label="Menu"
-                >
-                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu avec animation */}
-      {mobileMenuOpen && !isDesktop && (
-        <div className="fixed inset-0 z-40 bg-white pt-20">
-          <nav className="flex flex-col p-6 space-y-4">
-            <a href="#solutions" className="text-lg font-medium text-gray-900 py-2">Solutions</a>
-            <a href="#features" className="text-lg font-medium text-gray-900 py-2">Fonctionnalités</a>
-            <a href="#pricing" className="text-lg font-medium text-gray-900 py-2">Tarifs</a>
-            <a href="#enterprise" className="text-lg font-medium text-gray-900 py-2">Enterprise</a>
-            <hr className="my-4" />
-            <a href="/login" className="text-lg font-medium text-gray-900 py-2">Connexion</a>
-            <a href="/demo" className="flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium">
-              Demander une démo
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </nav>
-        </div>
-      )}
-
       {/* Hero Section amélioré */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative py-20 overflow-hidden">
         {/* Gradient animé */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
         
@@ -1267,7 +1190,7 @@ export default function NotariaPrimeHomepage() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Calcul terminé</p>
-                      <p className="font-semibold text-gray-900">À l&apos;instant</p>
+                      <p className="font-semibold text-gray-900">À l'instant</p>
                     </div>
                   </div>
                 </div>
@@ -1278,7 +1201,7 @@ export default function NotariaPrimeHomepage() {
                       <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-600">&quot;Interface exceptionnelle&quot;</p>
+                  <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
                   <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
                 </div>
               </div>
@@ -1401,7 +1324,7 @@ export default function NotariaPrimeHomepage() {
             Simplifiez vos calculs notariaux dès maintenant
           </h2>
           <p className="text-xl text-gray-300 mb-10">
-            Rejoignez notre communauté grandissante d&apos;utilisateurs.
+            Rejoignez notre communauté grandissante d'utilisateurs.
             <br />100% gratuit, sans inscription, open source.
           </p>
           
@@ -1431,78 +1354,27 @@ export default function NotariaPrimeHomepage() {
           </div>
         </div>
       </section>
-
-      {/* Footer optimisé */}
-      <footer className="py-16 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid gap-8 mb-12 ${isDesktop ? 'grid-cols-5' : 'grid-cols-2'}`}>
-            <div className={isDesktop ? 'col-span-2' : 'col-span-2'}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
-              </div>
-              <p className="text-gray-600 mb-6">
-                La plateforme open source pour digitaliser et automatiser vos calculs notariaux.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Tarifs</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Roadmap</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">Documentation</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">API</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Blog</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Entreprise</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition">À propos</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Contact</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition">Partenaires</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="pt-8 border-t border-gray-200">
-            <div className={`flex items-center gap-6 ${isMobile ? 'flex-col text-center' : 'justify-between'}`}>
-              <p className="text-gray-600 text-sm">
-                © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
-              </p>
-              <div className="flex items-center gap-6 text-sm">
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Mentions légales</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">Confidentialité</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition">CGU</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
+  );
+}
+
+export default function NotariaPrimeHomepage() {
+  return (
+    <MainLayout>
+      <HomepageContent />
+    </MainLayout>
   );
 }
 
 ================================================================================
 [12] FILE: src\app\pretaxe\page.tsx
-SIZE: 51.20 KB
-LAST MODIFIED: 2025-09-22T19:15:16.853Z
+SIZE: 60.00 KB
+LAST MODIFIED: 2025-09-24T15:33:38.677Z
 ================================================================================
 
 "use client";
 
-import Layout from '@/components/Layout';
+import MainLayout from '@/components/MainLayout';
 import React, { useState, useEffect } from 'react';
 import { 
   Calculator, FileText, Euro, Building, Users, Home,
@@ -1510,6 +1382,26 @@ import {
   Info, Check, X, AlertCircle, HelpCircle, MapPin,
   Download, Save, History, Plus, Minus, UserPlus
 } from 'lucide-react';
+
+// Types TypeScript
+interface TrancheTarif {
+  min: number;
+  max: number;
+  taux: number;
+}
+
+interface ActeConfig {
+  label: string;
+  type: 'proportionnel' | 'fixe';
+  tranches?: TrancheTarif[];
+  montant?: number;
+}
+
+interface CategorieActes {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  actes: Record<string, ActeConfig>;
+}
 
 interface Donateur {
   id: number;
@@ -1539,7 +1431,12 @@ interface HistoriqueCalcul {
   };
 }
 
-export default function PretaxeIntelligente() {
+interface Departement {
+  nom: string;
+  taux: number;
+}
+
+function PretaxeContent() {
   // États principaux
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedActe, setSelectedActe] = useState('');
@@ -1617,20 +1514,20 @@ export default function PretaxeIntelligente() {
   };
   
   // Barème usufruit selon l'âge (Article 669 CGI)
-const calculerUsufruit = (age: string | number) => {
-  const ageNum = parseInt(String(age));
-  if (ageNum < 21) return 90;
-  if (ageNum < 31) return 80;
-  if (ageNum < 41) return 70;
-  if (ageNum < 51) return 60;
-  if (ageNum < 61) return 50;
-  if (ageNum < 71) return 40;
-  if (ageNum < 81) return 30;
-  if (ageNum < 91) return 20;
-  return 10;
-};
+  const calculerUsufruit = (age: string | number): number => {
+    const ageNum = parseInt(String(age));
+    if (ageNum < 21) return 90;
+    if (ageNum < 31) return 80;
+    if (ageNum < 41) return 70;
+    if (ageNum < 51) return 60;
+    if (ageNum < 61) return 50;
+    if (ageNum < 71) return 40;
+    if (ageNum < 81) return 30;
+    if (ageNum < 91) return 20;
+    return 10;
+  };
 
-  const departements = {
+  const departements: Record<string, Departement> = {
     '01': { nom: 'Ain', taux: 4.50 },
     '02': { nom: 'Aisne', taux: 4.50 },
     '03': { nom: 'Allier', taux: 4.50 },
@@ -1735,7 +1632,7 @@ const calculerUsufruit = (age: string | number) => {
   };
 
   // Catégories et actes selon l'Annexe 4-7 du Code de commerce
-  const categoriesActes = {
+  const categoriesActes: Record<string, CategorieActes> = {
     'biens_immobiliers': {
       label: 'Actes relatifs aux biens immobiliers',
       icon: Home,
@@ -2045,7 +1942,7 @@ const calculerUsufruit = (age: string | number) => {
   };
 
   // Calcul des émoluments avec application des remises Table 5
-  const calculerEmoluments = (montant, tranches) => {
+  const calculerEmoluments = (montant: number, tranches: TrancheTarif[]): number => {
     let emolumentsBruts = 0;
     
     tranches.forEach(tranche => {
@@ -2136,7 +2033,7 @@ const calculerUsufruit = (age: string | number) => {
   
   // Fonction de sauvegarde
   const sauvegarderCalcul = () => {
-    const nouveauCalcul = {
+    const nouveauCalcul: HistoriqueCalcul = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
       acte: categoriesActes[selectedCategory]?.actes[selectedActe]?.label || 'N/A',
@@ -2191,9 +2088,9 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
       if (!isNaN(montant)) {
         const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
         if (acte) {
-          if (acte.type === 'proportionnel') {
+          if (acte.type === 'proportionnel' && acte.tranches) {
             setEmoluments(calculerEmoluments(montant, acte.tranches));
-          } else {
+          } else if (acte.type === 'fixe' && acte.montant) {
             setEmoluments(acte.montant);
           }
           calculerCSI();
@@ -2201,7 +2098,7 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory]);
 
   // Calcul des totaux
   const totalEmoluments = emoluments;
@@ -2225,450 +2122,489 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
   const totalGeneral = totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes;
 
   return (
-    <Layout>
-      <div className="bg-white text-black">
-        <div className="min-h-screen bg-gray-50 p-4">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-              <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Calculator className="w-6 h-6 text-white" />
+                </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    <Calculator className="w-8 h-8 mr-3 text-indigo-600" />
+                  <h1 className="text-3xl font-bold text-gray-900">
                     Calculateur de frais notariés
                   </h1>
-                  <p className="text-gray-600 mt-2">
-                    Conforme au tarif réglementé 2024 - Décret n°2020-179 et arrêtés modificatifs
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Total général</p>
-                  <p className="text-3xl font-bold text-indigo-600">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                  <p className="text-indigo-600 font-medium">
+                    Conforme au tarif réglementé 2024
                   </p>
                 </div>
               </div>
-
-              {/* Sélecteurs principaux */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Département */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-1" />
-                    Département
-                  </label>
-                  <select
-                    value={selectedDepartement}
-                    onChange={(e) => setSelectedDepartement(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {Object.entries(departements).map(([code, dept]) => (
-                      <option key={code} value={code}>
-                        {code} - {dept.nom} ({dept.taux}%)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Catégorie d'acte */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Catégorie d'acte
-                  </label>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      setSelectedCategory(e.target.value);
-                      setSelectedActe('');
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Sélectionnez une catégorie...</option>
-                    {Object.entries(categoriesActes).map(([key, cat]) => (
-                      <option key={key} value={key}>{cat.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Type d'acte */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type d'acte
-                  </label>
-                  <select
-                    value={selectedActe}
-                    onChange={(e) => setSelectedActe(e.target.value)}
-                    disabled={!selectedCategory}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Sélectionnez un acte...</option>
-                    {selectedCategory && Object.entries(categoriesActes[selectedCategory].actes).map(([key, acte]) => (
-                      <option key={key} value={key}>{acte.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Montant de l'acte */}
-              {selectedActe && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Montant de l'opération
-                  </label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={montantActe}
-                      onChange={(e) => setMontantActe(e.target.value)}
-                      placeholder="450 000"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Section spéciale pour les donations */}
-              {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
-                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-900 mb-4 flex items-center">
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    Configuration de la donation
-                  </h3>
-                  
-                  {/* Donateurs multiples */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-gray-700">Donateurs</label>
-                      <button
-                        onClick={ajouterDonateur}
-                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Ajouter un donateur
-                      </button>
-                    </div>
-                    {donateurs.map((donateur) => (
-                      <div key={donateur.id} className="flex items-center gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={donateur.nom}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, nom: e.target.value} : d
-                            ));
-                          }}
-                          placeholder="Nom du donateur"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        />
-                        <input
-                          type="text"
-                          value={donateur.montant}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, montant: e.target.value} : d
-                            ));
-                          }}
-                          placeholder="Montant"
-                          className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        />
-                        <select
-                          value={donateur.lien}
-                          onChange={(e) => {
-                            setDonateurs(donateurs.map(d => 
-                              d.id === donateur.id ? {...d, lien: e.target.value} : d
-                            ));
-                          }}
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        >
-                          <option value="parent">Parent</option>
-                          <option value="grand-parent">Grand-parent</option>
-                          <option value="epoux">Époux</option>
-                          <option value="autre">Autre</option>
-                        </select>
-                        {donateurs.length > 1 && (
-                          <button
-                            onClick={() => supprimerDonateur(donateur.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <p className="text-xs text-gray-600 mt-2">
-                      ℹ️ Abattements 2024 : Parent→Enfant: 100 000€ | Époux: 80 724€ | Grand-parent: 31 865€
-                    </p>
-                  </div>
-                  
-                  {/* Donataires pour donation-partage */}
-                  {selectedActe === 'donation_partage' && (
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700">Donataires</label>
-                        <button
-                          onClick={ajouterDonataire}
-                          className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Ajouter un donataire
-                        </button>
-                      </div>
-                      {donataires.map((donataire) => (
-                        <div key={donataire.id} className="flex items-center gap-2 mb-2">
-                          <input
-                            type="text"
-                            value={donataire.nom}
-                            onChange={(e) => {
-                              setDonataires(donataires.map(d => 
-                                d.id === donataire.id ? {...d, nom: e.target.value} : d
-                              ));
-                            }}
-                            placeholder="Nom du donataire"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <div className="flex items-center">
-                            <input
-                              type="text"
-                              value={donataire.part}
-                              onChange={(e) => {
-                                setDonataires(donataires.map(d => 
-                                  d.id === donataire.id ? {...d, part: e.target.value} : d
-                                ));
-                              }}
-                              placeholder="Part"
-                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            />
-                            <span className="ml-1 text-sm">%</span>
-                          </div>
-                          {donataires.length > 1 && (
-                            <button
-                              onClick={() => supprimerDonataire(donataire.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Usufruit */}
-                  <div className="mt-4">
-                    <label className="flex items-center mb-2">
-                      <input
-                        type="checkbox"
-                        checked={usufruit.actif}
-                        onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
-                        className="mr-2"
-                      />
-                      <span className="text-sm font-medium">Donation avec réserve d'usufruit</span>
-                    </label>
-                    {usufruit.actif && (
-                      <div className="ml-6 mt-2">
-                        <label className="block text-sm text-gray-600 mb-1">
-                          Âge de l'usufruitier
-                        </label>
-                        <input
-                          type="number"
-                          value={usufruit.ageUsufruitier}
-                          onChange={(e) => {
-                            const age = e.target.value;
-                            setUsufruit({
-                              ...usufruit,
-                              ageUsufruitier: age,
-                              valeur: calculerUsufruit(age)
-                            });
-                          }}
-                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          min="20"
-                          max="100"
-                        />
-                        {usufruit.ageUsufruitier && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Valeur de l'usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Boutons d'action */}
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={sauvegarderCalcul}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder
-                </button>
-                <button
-                  onClick={exporterPDF}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exporter PDF
-                </button>
-                <button
-                  onClick={() => setAfficherHistorique(!afficherHistorique)}
-                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  <History className="w-4 h-4 mr-2" />
-                  Historique ({historiqueCalculs.length})
-                </button>
+              <p className="text-gray-600">
+                Décret n°2020-179 et arrêtés modificatifs - Calcul instantané et précis
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                <p className="text-sm text-indigo-600 font-medium mb-1">Total général</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                </p>
               </div>
             </div>
-            
-            {/* Section Historique */}
-            {afficherHistorique && historiqueCalculs.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          </div>
+
+          {/* Sélecteurs principaux avec design amélioré */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Département */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Département
+              </label>
+              <select
+                value={selectedDepartement}
+                onChange={(e) => setSelectedDepartement(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+              >
+                {Object.entries(departements).map(([code, dept]) => (
+                  <option key={code} value={code}>
+                    {code} - {dept.nom} ({dept.taux}%)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Catégorie d'acte */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Catégorie d'acte
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedActe('');
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+              >
+                <option value="">Sélectionnez une catégorie...</option>
+                {Object.entries(categoriesActes).map(([key, cat]) => (
+                  <option key={key} value={key}>{cat.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Type d'acte */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Type d'acte
+              </label>
+              <select
+                value={selectedActe}
+                onChange={(e) => setSelectedActe(e.target.value)}
+                disabled={!selectedCategory}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white disabled:bg-gray-100"
+              >
+                <option value="">Sélectionnez un acte...</option>
+                {selectedCategory && Object.entries(categoriesActes[selectedCategory].actes).map(([key, acte]) => (
+                  <option key={key} value={key}>{acte.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Montant de l'acte */}
+          {selectedActe && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
+            <div className="mt-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Montant de l'opération
+              </label>
+              <div className="relative">
+                <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={montantActe}
+                  onChange={(e) => setMontantActe(e.target.value)}
+                  placeholder="450 000"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white text-lg font-medium"
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Section spéciale pour les donations */}
+          {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
+            <div className="mt-8 p-6 bg-purple-50 rounded-xl border border-purple-200">
+              <h3 className="font-semibold text-purple-900 mb-6 flex items-center">
+                <UserPlus className="w-5 h-5 mr-2" />
+                Configuration de la donation
+              </h3>
+              
+              {/* Donateurs multiples */}
+              <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">Historique des calculs</h2>
+                  <label className="text-sm font-medium text-gray-700">Donateurs</label>
                   <button
-                    onClick={() => setAfficherHistorique(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    onClick={ajouterDonateur}
+                    className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
                   >
-                    <X className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
+                    Ajouter un donateur
                   </button>
                 </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {historiqueCalculs.map((calcul) => (
-                    <div key={calcul.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-gray-900">{calcul.acte}</p>
-                          <p className="text-sm text-gray-600">{calcul.date}</p>
-                          <p className="text-sm text-gray-600">Montant : {calcul.montant} €</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-indigo-600">{calcul.total.toFixed(2)} €</p>
-                          <button
-                            onClick={() => {
-                              alert('Fonction de rechargement à implémenter');
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-700 mt-1"
-                          >
-                            Recharger
-                          </button>
-                        </div>
+                {donateurs.map((donateur) => (
+                  <div key={donateur.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <input
+                      type="text"
+                      value={donateur.nom}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, nom: e.target.value} : d
+                        ));
+                      }}
+                      placeholder="Nom du donateur"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      value={donateur.montant}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, montant: e.target.value} : d
+                        ));
+                      }}
+                      placeholder="Montant"
+                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <select
+                      value={donateur.lien}
+                      onChange={(e) => {
+                        setDonateurs(donateurs.map(d => 
+                          d.id === donateur.id ? {...d, lien: e.target.value} : d
+                        ));
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="parent">Parent</option>
+                      <option value="grand-parent">Grand-parent</option>
+                      <option value="epoux">Époux</option>
+                      <option value="autre">Autre</option>
+                    </select>
+                    {donateurs.length > 1 && (
+                      <button
+                        onClick={() => supprimerDonateur(donateur.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <div className="text-xs text-gray-600 mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <Info className="w-4 h-4 inline mr-1" />
+                  Abattements 2024 : Parent→Enfant: 100 000€ | Époux: 80 724€ | Grand-parent: 31 865€
+                </div>
+              </div>
+              
+              {/* Donataires pour donation-partage */}
+              {selectedActe === 'donation_partage' && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm font-medium text-gray-700">Donataires</label>
+                    <button
+                      onClick={ajouterDonataire}
+                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Ajouter un donataire
+                    </button>
+                  </div>
+                  {donataires.map((donataire) => (
+                    <div key={donataire.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                      <input
+                        type="text"
+                        value={donataire.nom}
+                        onChange={(e) => {
+                          setDonataires(donataires.map(d => 
+                            d.id === donataire.id ? {...d, nom: e.target.value} : d
+                          ));
+                        }}
+                        placeholder="Nom du donataire"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={donataire.part}
+                          onChange={(e) => {
+                            setDonataires(donataires.map(d => 
+                              d.id === donataire.id ? {...d, part: e.target.value} : d
+                            ));
+                          }}
+                          placeholder="Part"
+                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        <span className="ml-1 text-sm text-gray-600">%</span>
                       </div>
+                      {donataires.length > 1 && (
+                        <button
+                          onClick={() => supprimerDonataire(donataire.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                </div>
+              )}
+              
+              {/* Usufruit */}
+              <div className="mt-6">
+                <label className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    checked={usufruit.actif}
+                    onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
+                    className="mr-3 w-4 h-4 text-purple-600 focus:ring-purple-500 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Donation avec réserve d'usufruit</span>
+                </label>
+                {usufruit.actif && (
+                  <div className="ml-7 mt-3 p-4 bg-white rounded-lg border border-gray-200">
+                    <label className="block text-sm text-gray-600 mb-2">
+                      Âge de l'usufruitier
+                    </label>
+                    <input
+                      type="number"
+                      value={usufruit.ageUsufruitier}
+                      onChange={(e) => {
+                        const age = e.target.value;
+                        setUsufruit({
+                          ...usufruit,
+                          ageUsufruitier: age,
+                          valeur: calculerUsufruit(age)
+                        });
+                      }}
+                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="20"
+                      max="100"
+                    />
+                    {usufruit.ageUsufruitier && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Valeur de l'usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Boutons d'action avec design unifié */}
+          <div className="flex flex-wrap gap-3 mt-8">
+            <button
+              onClick={sauvegarderCalcul}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Save className="w-4 h-4" />
+              Sauvegarder
+            </button>
+            <button
+              onClick={exporterPDF}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Download className="w-4 h-4" />
+              Exporter PDF
+            </button>
+            <button
+              onClick={() => setAfficherHistorique(!afficherHistorique)}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <History className="w-4 h-4" />
+              Historique ({historiqueCalculs.length})
+            </button>
+          </div>
+        </div>
+        
+        {/* Section Historique */}
+        {afficherHistorique && historiqueCalculs.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Historique des calculs</h2>
+              <button
+                onClick={() => setAfficherHistorique(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {historiqueCalculs.map((calcul) => (
+                <div key={calcul.id} className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-all">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-gray-900">{calcul.acte}</p>
+                      <p className="text-sm text-gray-600">{calcul.date}</p>
+                      <p className="text-sm text-gray-600">Montant : {calcul.montant} €</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-indigo-600">{calcul.total.toFixed(2)} €</p>
+                      <button
+                        onClick={() => alert('Fonction de rechargement à implémenter')}
+                        className="text-xs text-blue-600 hover:text-blue-700 mt-1 hover:underline"
+                      >
+                        Recharger
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tabs avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+              {[
+                { id: 'emoluments', label: 'Émoluments', icon: Calculator },
+                { id: 'debours', label: 'Débours', icon: Euro },
+                { id: 'formalites', label: 'Formalités', icon: FileText },
+                { id: 'documents', label: 'Documents', icon: File },
+                { id: 'taxes', label: 'Taxes', icon: Building }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                  {tab.id === 'emoluments' && emoluments > 0 && (
+                    <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full font-semibold">
+                      {totalEmolumentsTTC.toFixed(2)}€
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Tab Content complet */}
+          <div className="p-6">
+            {activeTab === 'emoluments' && (
+              <div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-start">
+                    <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
+                    <p className="text-sm text-blue-900">
+                      Les émoluments sont calculés selon les tranches réglementaires.
+                      Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Total HT</span>
+                    <span className="font-semibold text-lg">{totalEmoluments.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600">TVA (20%)</span>
+                    <span className="text-lg">{(totalEmoluments * 0.20).toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between items-center py-4 border-t-2 border-gray-200">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalEmolumentsTTC.toFixed(2)} €
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Tabs */}
-            <div className="bg-white rounded-2xl shadow-sm">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                  {[
-                    { id: 'emoluments', label: 'Émoluments', icon: Calculator },
-                    { id: 'debours', label: 'Débours', icon: Euro },
-                    { id: 'formalites', label: 'Formalités', icon: FileText },
-                    { id: 'documents', label: 'Documents', icon: File },
-                    { id: 'taxes', label: 'Taxes', icon: Building }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center transition ${
-                        activeTab === tab.id
-                          ? 'border-indigo-500 text-indigo-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4 mr-2" />
-                      {tab.label}
-                      {tab.id === 'emoluments' && emoluments > 0 && (
-                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
-                          {totalEmolumentsTTC.toFixed(2)}€
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </nav>
+ {activeTab === 'debours' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p className="text-sm text-gray-600">Montant calculé: <span className="font-semibold">{debours.csi.toFixed(2)} €</span></p>
+                    <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
+                  </div>
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total débours</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalDebours.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
               </div>
+            )}
 
-              {/* Tab Content */}
-              <div className="p-6">
-                {activeTab === 'emoluments' && (
+            {activeTab === 'formalites' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                      <div className="flex items-start">
-                        <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-2" />
-                        <p className="text-sm text-blue-900">
-                          Les émoluments sont calculés selon les tranches réglementaires.
-                          Les remises de la Table 5 (10% au-delà de 150 000€, 20% au-delà de 10M€) sont appliquées automatiquement.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total HT</span>
-                        <span className="font-semibold">{totalEmoluments.toFixed(2)} €</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-gray-600">TVA (20%)</span>
-                        <span>{(totalEmoluments * 0.20).toFixed(2)} €</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">
-                          {totalEmolumentsTTC.toFixed(2)} €
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'debours' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
-                      <div className="ml-6 bg-gray-50 p-3 rounded">
-                        <p className="text-sm text-gray-600">Montant calculé: {debours.csi.toFixed(2)} €</p>
-                        <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total débours</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalDebours.toFixed(2)} €</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'formalites' && (
-                  <div className="space-y-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">Formalités obligatoires</h3>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span>Forfait de base</span>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Forfait de base</span>
                         <span className="font-medium">{formalites.forfaitBase.toFixed(2)} €</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span>Téléactes</span>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Téléactes</span>
                         <span className="font-medium">{formalites.teleactes.toFixed(2)} €</span>
                       </div>
                     </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalFormalitesTTC.toFixed(2)} €</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Frais complémentaires</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Lettres recommandées</span>
+                        <span className="font-medium">{formalites.lettresRecommandees.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Formalités préalables</span>
+                        <span className="font-medium">{formalites.prealables.toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <span className="text-gray-600">Formalités postérieures</span>
+                        <span className="font-medium">{formalites.posterieures.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalFormalitesTTC.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                {activeTab === 'documents' && (
-                  <div className="space-y-6">
+            {activeTab === 'documents' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Configuration des documents</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Nombre de pages de l'acte
@@ -2677,359 +2613,645 @@ TOTAL GÉNÉRAL : ${totalGeneral.toFixed(2)} €
                         type="number"
                         value={documents.pagesActe}
                         onChange={(e) => setDocuments(prev => ({ ...prev, pagesActe: parseInt(e.target.value) || 0 }))}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         min="1"
                       />
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 mt-2">
                         Frais de rôle : {(documents.pagesActe * 2).toFixed(2)} € (2 € par page)
                       </p>
                     </div>
                     
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalDocumentsTTC.toFixed(2)} €</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'taxes' && (
-                  <div className="space-y-6">
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="ancien"
-                            checked={taxes.typeBien === 'ancien'}
-                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
-                            className="mr-2"
-                          />
-                          <span>Ancien</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="neuf"
-                            checked={taxes.typeBien === 'neuf'}
-                            onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
-                            className="mr-2"
-                          />
-                          <span>Neuf (VEFA)</span>
-                        </label>
-                      </div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies exécutoires
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesExecutoires}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesExecutoires: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        4 € par copie
+                      </p>
                     </div>
                     
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total des taxes</span>
-                        <span className="font-bold text-lg text-indigo-600">{totalTaxes.toFixed(2)} €</span>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies authentiques
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesAuthentiques}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesAuthentiques: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        40 € par copie
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Copies hypothécaires
+                      </label>
+                      <input
+                        type="number"
+                        value={documents.copiesHypothecaires}
+                        onChange={(e) => setDocuments(prev => ({ ...prev, copiesHypothecaires: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        4 € par copie
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total TTC</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalDocumentsTTC.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'taxes' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
+                  <div className="space-y-3">
+                    <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="ancien"
+                        checked={taxes.typeBien === 'ancien'}
+                        onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                        className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900">Bien ancien</span>
+                        <p className="text-sm text-gray-600">Soumis aux droits de mutation</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="neuf"
+                        checked={taxes.typeBien === 'neuf'}
+                        onChange={(e) => setTaxes(prev => ({ ...prev, typeBien: e.target.value }))}
+                        className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900">Bien neuf (VEFA)</span>
+                        <p className="text-sm text-gray-600">Soumis à la TVA uniquement</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                
+                {taxes.typeBien === 'ancien' && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Droits de mutation</h3>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Taxe départementale ({departements[selectedDepartement]?.taux}%)</span>
+                          <span className="font-medium">{taxes.departementale.toFixed(2)} €</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Taxe communale (1,20%)</span>
+                          <span className="font-medium">{taxes.communale.toFixed(2)} €</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Frais d'assiette (2,37%)</span>
+                          <span className="font-medium">{taxes.fraisAssiette.toFixed(2)} €</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-            {/* Récapitulatif */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Récapitulatif</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Émoluments TTC</span>
-                  <span className="font-medium">{totalEmolumentsTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Débours</span>
-                  <span className="font-medium">{totalDebours.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Formalités TTC</span>
-                  <span className="font-medium">{totalFormalitesTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Documents TTC</span>
-                  <span className="font-medium">{totalDocumentsTTC.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Taxes et droits</span>
-                  <span className="font-medium">{totalTaxes.toFixed(2)} €</span>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                  <span className="text-xl font-bold">TOTAL GÉNÉRAL</span>
-                  <span className="text-2xl font-bold text-indigo-600">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                  </span>
+                
+                <div className="border-t-2 border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl">Total des taxes</span>
+                    <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {totalTaxes.toFixed(2)} €
+                    </span>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Récapitulatif avec design unifié */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <Calculator className="w-6 h-6 mr-3 text-indigo-600" />
+            Récapitulatif final
+          </h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Émoluments TTC</span>
+              <span className="font-semibold text-lg">{totalEmolumentsTTC.toFixed(2)} €</span>
             </div>
-          </div>  {/* Fermeture de max-w-7xl mx-auto */}
-        </div>  {/* Fermeture de min-h-screen bg-gray-50 p-4 */}
-      </div>  {/* Fermeture de bg-white text-black */}
-    </Layout>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Débours</span>
+              <span className="font-semibold text-lg">{totalDebours.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Formalités TTC</span>
+              <span className="font-semibold text-lg">{totalFormalitesTTC.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Documents TTC</span>
+              <span className="font-semibold text-lg">{totalDocumentsTTC.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Taxes et droits</span>
+              <span className="font-semibold text-lg">{totalTaxes.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between items-center pt-6 border-t-2 border-gray-300">
+              <span className="text-2xl font-bold text-gray-900">TOTAL GÉNÉRAL</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+              </span>
+            </div>
+          </div>
+
+          {/* Indication de conformité */}
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="flex items-start">
+              <Check className="w-5 h-5 text-green-600 mt-0.5 mr-3" />
+              <div>
+                <p className="text-sm font-medium text-green-900">
+                  Calcul conforme au tarif réglementé 2024
+                </p>
+                <p className="text-xs text-green-700 mt-1">
+                  Décret n°2020-179 du 27 février 2020 et arrêtés modificatifs
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PretaxeIntelligente() {
+  return (
+    <MainLayout showFeedback={false}>
+      <PretaxeContent />
+    </MainLayout>
   );
 }
 
 ================================================================================
-[13] FILE: src\components\Layout.tsx
-SIZE: 10.61 KB
-LAST MODIFIED: 2025-09-20T20:05:58.651Z
+[13] FILE: src\components\FeedbackModal.tsx
+SIZE: 4.55 KB
+LAST MODIFIED: 2025-09-24T15:25:33.028Z
 ================================================================================
 
 "use client";
 
-import Link from 'next/link';
-import { Calculator, ArrowLeft, MessageSquare, Github, Home } from 'lucide-react';
 import { useState } from 'react';
+import { X } from 'lucide-react';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
+interface FeedbackModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
+  const [formData, setFormData] = useState({
+    type: 'suggestion',
+    message: '',
+    email: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Feedback envoyé:', formData);
+    alert('Merci pour votre feedback !');
+    onClose();
+    setFormData({ type: 'suggestion', message: '', email: '' });
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 glass">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Left side */}
-            <div className="flex items-center gap-6">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="w-9 h-9 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent-700)] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-[var(--color-text-primary)]">
-                  NotariaPrime
-                </span>
-              </Link>
-              
-              {/* Breadcrumb separator */}
-              <div className="h-6 w-px bg-[var(--color-border-default)]" />
-              
-              <nav className="flex items-center gap-2 text-sm">
-                <Link href="/" className="flex items-center gap-1 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
-                  <Home className="w-4 h-4" />
-                  Accueil
-                </Link>
-                <span className="text-[var(--color-text-tertiary)]">/</span>
-                <span className="text-[var(--color-text-primary)] font-medium">
-                  Calculateur
-                </span>
-              </nav>
-            </div>
-
-            {/* Right side */}
-            <div className="flex items-center gap-4">
-              <a 
-                href="https://github.com" 
-                className="btn btn-ghost hidden sm:flex"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="w-4 h-4" />
-                GitHub
-              </a>
-              <button 
-                onClick={() => setFeedbackOpen(true)}
-                className="btn btn-secondary"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Feedback</span>
-              </button>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">
+            Votre retour est précieux
+          </h3>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            aria-label="Fermer"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
-      </header>
-
-      {/* Main content */}
-      <main className="relative">
-        {children}
-      </main>
-
-      {/* Footer simplifié */}
-      <footer className="mt-auto py-12 px-6 border-t border-[var(--color-border-default)] bg-[var(--color-bg-primary)]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* About */}
-            <div>
-              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
-                À propos
-              </h3>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                NotariaPrime est un projet open source et gratuit développé par la communauté pour simplifier les calculs notariaux.
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="community-badge">
-                  <span>💙</span>
-                  <span>Communautaire</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
-                Liens utiles
-              </h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="/documentation" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
-                    Documentation API
-                  </a>
-                </li>
-                <li>
-                  <a href="/tarifs" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
-                    Tarifs réglementés 2024
-                  </a>
-                </li>
-                <li>
-                  <a href="https://github.com" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
-                    Contribuer sur GitHub
-                  </a>
-                </li>
-                <li>
-                  <a href="/changelog" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-600)] transition">
-                    Changelog
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
-                Support
-              </h3>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                Besoin d'aide ? La communauté est là pour vous.
-              </p>
-              <div className="space-y-2">
-                <a 
-                  href="https://discord.com" 
-                  className="btn btn-secondary w-full justify-center"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Rejoindre Discord
-                </a>
-                <button 
-                  onClick={() => setFeedbackOpen(true)}
-                  className="btn btn-ghost w-full justify-center"
-                >
-                  Signaler un bug
-                </button>
-              </div>
-            </div>
+        
+        <p className="text-gray-600 mb-6">
+          Aidez-nous à améliorer NotariaPrime. Chaque suggestion compte !
+        </p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de retour
+            </label>
+            <select 
+              value={formData.type}
+              onChange={(e) => setFormData({...formData, type: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="suggestion">💡 Suggestion de fonctionnalité</option>
+              <option value="bug">🐛 Signaler un bug</option>
+              <option value="improvement">📝 Amélioration</option>
+              <option value="question">❓ Question</option>
+              <option value="positive">👍 Retour positif</option>
+            </select>
           </div>
-
-          {/* Bottom bar */}
-          <div className="mt-12 pt-8 border-t border-[var(--color-border-default)] flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-[var(--color-text-tertiary)]">
-              © 2025 NotariaPrime - Projet open source sous licence MIT
-            </div>
-            <div className="flex items-center gap-6 text-sm">
-              <a href="/legal" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
-                Mentions légales
-              </a>
-              <a href="/privacy" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
-                Confidentialité
-              </a>
-              <a href="/terms" className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition">
-                CGU
-              </a>
-            </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Votre message
+            </label>
+            <textarea 
+              value={formData.message}
+              onChange={(e) => setFormData({...formData, message: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              rows={4}
+              placeholder="Décrivez votre retour..."
+              required
+            />
           </div>
-        </div>
-      </footer>
-
-      {/* Feedback Modal */}
-      {feedbackOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-[var(--color-bg-primary)] rounded-xl p-6 max-w-md w-full animate-fade-in shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
-                Votre retour est précieux
-              </h3>
-              <button 
-                onClick={() => setFeedbackOpen(false)}
-                className="p-2 hover:bg-[var(--color-bg-tertiary)] rounded-lg transition"
-              >
-                <span className="sr-only">Fermer</span>
-                ✕
-              </button>
-            </div>
-            
-            <p className="text-[var(--color-text-secondary)] mb-6">
-              Aidez-nous à améliorer NotariaPrime. Chaque suggestion compte !
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  Type de retour
-                </label>
-                <select className="w-full p-3 border border-[var(--color-border-default)] rounded-lg bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]">
-                  <option>💡 Suggestion de fonctionnalité</option>
-                  <option>🐛 Signaler un bug</option>
-                  <option>📝 Amélioration</option>
-                  <option>❓ Question</option>
-                  <option>👍 Retour positif</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  Votre message
-                </label>
-                <textarea 
-                  className="w-full p-3 border border-[var(--color-border-default)] rounded-lg resize-none bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]"
-                  rows={4}
-                  placeholder="Décrivez votre retour..."
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  Email (optionnel)
-                </label>
-                <input 
-                  type="email"
-                  className="w-full p-3 border border-[var(--color-border-default)] rounded-lg bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-500)]"
-                  placeholder="vous@exemple.com"
-                />
-                <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-                  Pour vous tenir informé de la suite donnée à votre retour
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button className="btn btn-primary flex-1">
-                Envoyer le feedback
-              </button>
-              <button 
-                onClick={() => setFeedbackOpen(false)}
-                className="btn btn-secondary flex-1"
-              >
-                Annuler
-              </button>
-            </div>
-            
-            <p className="text-xs text-[var(--color-text-tertiary)] text-center mt-4">
-              Vous pouvez aussi contribuer directement sur{' '}
-              <a href="https://github.com" className="text-[var(--color-accent-600)] hover:underline">
-                GitHub
-              </a>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email (optionnel)
+            </label>
+            <input 
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="vous@exemple.com"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Pour vous tenir informé de la suite donnée à votre retour
             </p>
           </div>
-        </div>
-      )}
+          
+          <div className="flex gap-3 mt-6">
+            <button 
+              type="submit"
+              className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-all"
+            >
+              Envoyer le feedback
+            </button>
+            <button 
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-medium transition-all"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+        
+        <p className="text-xs text-gray-500 text-center mt-4">
+          Vous pouvez aussi contribuer directement sur{' '}
+          <a 
+            href="https://github.com" 
+            className="text-indigo-600 hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
 
 ================================================================================
-[14] FILE: src\lib\utils.ts
+[14] FILE: src\components\Footer.tsx
+SIZE: 3.50 KB
+LAST MODIFIED: 2025-09-24T15:25:14.336Z
+================================================================================
+
+"use client";
+
+import { Calculator } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer className="py-16 bg-white border-t border-gray-200">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid md:grid-cols-5 gap-8 mb-12">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Calculator className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
+            </div>
+            <p className="text-gray-600 mb-6">
+              La plateforme open source pour digitaliser et automatiser vos calculs notariaux.
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="text-sm font-medium text-blue-900">💙 Communautaire</span>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
+            <ul className="space-y-3 text-gray-600">
+              <li><a href="/#features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
+              <li><a href="/pretaxe" className="hover:text-gray-900 transition">Calculateur</a></li>
+              <li><a href="#roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
+            <ul className="space-y-3 text-gray-600">
+              <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
+              <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
+              <li><a href="/blog" className="hover:text-gray-900 transition">Blog</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4 text-gray-900">Entreprise</h4>
+            <ul className="space-y-3 text-gray-600">
+              <li><a href="/about" className="hover:text-gray-900 transition">À propos</a></li>
+              <li><a href="/contact" className="hover:text-gray-900 transition">Contact</a></li>
+              <li><a href="https://github.com" className="hover:text-gray-900 transition" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="pt-8 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-gray-600">
+              © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
+            </div>
+            <div className="flex items-center gap-6 text-sm">
+              <a href="/legal" className="text-gray-600 hover:text-gray-900 transition">
+                Mentions légales
+              </a>
+              <a href="/privacy" className="text-gray-600 hover:text-gray-900 transition">
+                Confidentialité
+              </a>
+              <a href="/terms" className="text-gray-600 hover:text-gray-900 transition">
+                CGU
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+================================================================================
+[15] FILE: src\components\Header.tsx
+SIZE: 6.34 KB
+LAST MODIFIED: 2025-09-24T15:24:55.669Z
+================================================================================
+
+"use client";
+
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { 
+  Calculator, Menu, X, ArrowRight, Github, Home
+} from 'lucide-react';
+
+export default function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const updateDeviceType = () => {
+      setIsDesktop(window.innerWidth > 1024);
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+
+    updateDeviceType();
+    window.addEventListener('resize', updateDeviceType);
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('resize', updateDeviceType);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  return (
+    <>
+      {/* Navigation principale */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo et navigation */}
+            <div className="flex items-center gap-12">
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Calculator className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
+                  <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
+                </div>
+              </Link>
+
+              {/* Menu desktop */}
+              {isDesktop && (
+                <nav className="flex items-center gap-8">
+                  <Link href="/#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Solutions
+                  </Link>
+                  <Link href="/#features" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Fonctionnalités
+                  </Link>
+                  <Link href="/pretaxe" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Calculateur
+                  </Link>
+                  <a href="#enterprise" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium transition">
+                    Enterprise
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">NEW</span>
+                  </a>
+                </nav>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4">
+              {!isMobile && (
+                <>
+                  <a 
+                    href="https://github.com" 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Github className="w-4 h-4" />
+                    GitHub
+                  </a>
+                  <Link href="/pretaxe" className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
+                    Calculer
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
+              {!isDesktop && (
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  aria-label="Menu"
+                >
+                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Menu mobile */}
+      {mobileMenuOpen && !isDesktop && (
+        <div className="fixed inset-0 z-40 bg-white pt-20">
+          <nav className="flex flex-col p-6 space-y-4">
+            <Link 
+              href="/#solutions" 
+              className="text-lg font-medium text-gray-900 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Solutions
+            </Link>
+            <Link 
+              href="/#features" 
+              className="text-lg font-medium text-gray-900 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Fonctionnalités
+            </Link>
+            <Link 
+              href="/pretaxe" 
+              className="text-lg font-medium text-gray-900 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Calculateur
+            </Link>
+            <a href="#enterprise" className="text-lg font-medium text-gray-900 py-2">
+              Enterprise
+            </a>
+            <hr className="my-4" />
+            <a 
+              href="https://github.com" 
+              className="flex items-center gap-2 text-lg font-medium text-gray-900 py-2"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="w-5 h-5" />
+              GitHub
+            </a>
+            <Link 
+              href="/pretaxe" 
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Commencer maintenant
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </nav>
+        </div>
+      )}
+    </>
+  );
+}
+
+================================================================================
+[16] FILE: src\components\MainLayout.tsx
+SIZE: 1.59 KB
+LAST MODIFIED: 2025-09-24T15:25:46.320Z
+================================================================================
+
+"use client";
+
+import Header from './Header';
+import Footer from './Footer';
+import FeedbackModal from './FeedbackModal';
+import { useState } from 'react';
+
+interface MainLayoutProps {
+  children: React.ReactNode;
+  showFeedback?: boolean;
+}
+
+export default function MainLayout({ children, showFeedback = true }: MainLayoutProps) {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      {/* Main content avec padding-top pour compenser le header fixe */}
+      <main className="pt-20">
+        {children}
+      </main>
+      
+      <Footer />
+      
+      {/* Bouton feedback flottant */}
+      {showFeedback && (
+        <button 
+          onClick={() => setFeedbackOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <span className="hidden sm:inline">Feedback</span>
+        </button>
+      )}
+
+      {/* Modal de feedback */}
+      <FeedbackModal 
+        isOpen={feedbackOpen} 
+        onClose={() => setFeedbackOpen(false)} 
+      />
+    </div>
+  );
+}
+
+================================================================================
+[17] FILE: src\lib\utils.ts
 SIZE: 0.17 KB
 LAST MODIFIED: 2025-09-19T10:39:25.672Z
 ================================================================================
@@ -3042,7 +3264,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 ================================================================================
-[15] FILE: tailwind.config.js
+[18] FILE: tailwind.config.js
 SIZE: 0.94 KB
 LAST MODIFIED: 2025-09-22T18:32:53.385Z
 ================================================================================
@@ -3081,7 +3303,7 @@ module.exports = {
 }
 
 ================================================================================
-[16] FILE: tsconfig.json
+[19] FILE: tsconfig.json
 SIZE: 0.59 KB
 LAST MODIFIED: 2025-09-19T10:31:05.636Z
 ================================================================================
@@ -3119,7 +3341,7 @@ LAST MODIFIED: 2025-09-19T10:31:05.636Z
 ================================================================================
 EXPORT SUMMARY:
 ================================================================================
-Total files exported: 16
+Total files exported: 19
 Total size: 0.11 MB
-Export date: 2025-09-24T13:44:33.618Z
+Export date: 2025-10-13T08:55:38.599Z
 ================================================================================
