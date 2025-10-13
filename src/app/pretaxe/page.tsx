@@ -9,6 +9,7 @@ import {
   Download, Save, History, Plus, Minus, UserPlus, FileEdit
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { actesConfig, configParDefaut, type ConfigActe } from '@/config/actesConfig';
 
 // ============================================================================
 // NOUVEAUTÉ 2025/2026 : TVA DIFFÉRENCIÉE + MAJORATION DOM-TOM CORRIGÉE
@@ -18,18 +19,17 @@ const TVA_CONFIG = {
   metropole: 20.0,
   guadeloupe: 8.5,
   martinique: 8.5,
-  guyane: 0,        // ✅ Exonéré TVA (Art. 294 CGI)
+  guyane: 0,
   reunion: 8.5,
-  mayotte: 0,       // ✅ Exonéré TVA (Art. 294 CGI)
+  mayotte: 0,
 } as const;
 
-// ✅ MAJORATIONS CORRIGÉES SELON LÉGIFRANCE 2025
 const MAJORATION_DOM_TOM: Record<string, number> = {
-  '971': 23, // Guadeloupe ✅
-  '972': 24, // Martinique ✅
-  '973': 20, // Guyane ✅
-  '974': 36, // La Réunion ✅
-  '976': 36, // Mayotte ✅
+  '971': 23, // Guadeloupe
+  '972': 24, // Martinique
+  '973': 20, // Guyane
+  '974': 36, // La Réunion
+  '976': 36, // Mayotte
 };
 
 function getTauxTVA(codeDepartement: string): number {
@@ -127,7 +127,6 @@ function PretaxeContent() {
     nets: 0
   });
   
-  // ✅ État pour la remise (option à cocher)
   const [appliquerRemise, setAppliquerRemise] = useState(false);
   
   const [debours, setDebours] = useState({
@@ -137,9 +136,8 @@ function PretaxeContent() {
     urbanisme: 0
   });
   
-  // ✅ FORMALITÉS DÉTAILLÉES (pas de forfait 700€)
   const [formalites, setFormalites] = useState({
-    publiciteFonciere: { actif: true, montant: 339.58 },
+    publiciteFonciere: { actif: false, montant: 339.58 },
     cadastre: { actif: false, montant: 11.32 },
     casierJudiciaire: { actif: false, montant: 37.73 },
     notification: { actif: false, montant: 37.73 },
@@ -154,7 +152,7 @@ function PretaxeContent() {
       erp: { actif: false, montant: 15.09 }
     },
     transmissionCSN: { actif: false, montant: 15.31 },
-    requisition: { actif: true, montant: 18.87 },
+    requisition: { actif: false, montant: 18.87 },
     teleactes: 50,
     lettresRecommandees: 7.08
   });
@@ -189,6 +187,109 @@ function PretaxeContent() {
   // États pour l'historique
   const [historiqueCalculs, setHistoriqueCalculs] = useState<HistoriqueCalcul[]>([]);
   const [afficherHistorique, setAfficherHistorique] = useState(false);
+
+  // ============================================================================
+  // 🔥 FONCTION POUR APPLIQUER LA CONFIG PAR DÉFAUT
+  // ============================================================================
+  
+  const appliquerConfigParDefaut = (acteKey: string) => {
+    const config: ConfigActe = actesConfig[acteKey] || configParDefaut;
+    
+    // Appliquer les débours
+    if (config.debours) {
+      setDebours(prev => ({
+        ...prev,
+        csi: config.debours?.csi?.auto ? prev.csi : 15,
+        etatsHypothecaires: config.debours?.etatsHypothecaires?.defaut ? 
+          config.debours.etatsHypothecaires.montant : 0,
+        cadastre: config.debours?.cadastre?.defaut ? 
+          config.debours.cadastre.montant : 0
+      }));
+    }
+    
+    // Appliquer les formalités
+    if (config.formalites) {
+      setFormalites(prev => ({
+        ...prev,
+        publiciteFonciere: {
+          actif: config.formalites?.publiciteFonciere?.defaut || false,
+          montant: config.formalites?.publiciteFonciere?.montant || 339.58
+        },
+        cadastre: {
+          actif: config.formalites?.cadastre?.defaut || false,
+          montant: config.formalites?.cadastre?.montant || 11.32
+        },
+        casierJudiciaire: {
+          actif: config.formalites?.casierJudiciaire?.defaut || false,
+          montant: config.formalites?.casierJudiciaire?.montant || 37.73
+        },
+        notification: {
+          actif: config.formalites?.notification?.defaut || false,
+          montant: config.formalites?.notification?.montant || 37.73
+        },
+        mesurage: {
+          actif: config.formalites?.mesurage?.defaut || false,
+          montant: config.formalites?.mesurage?.montant || 15.09
+        },
+        diagnostics: {
+          dpe: {
+            actif: config.formalites?.diagnostics?.dpe?.defaut || false,
+            montant: config.formalites?.diagnostics?.dpe?.montant || 15.09
+          },
+          amiante: {
+            actif: config.formalites?.diagnostics?.amiante?.defaut || false,
+            montant: config.formalites?.diagnostics?.amiante?.montant || 15.09
+          },
+          plomb: {
+            actif: config.formalites?.diagnostics?.plomb?.defaut || false,
+            montant: config.formalites?.diagnostics?.plomb?.montant || 15.09
+          },
+          termites: {
+            actif: config.formalites?.diagnostics?.termites?.defaut || false,
+            montant: config.formalites?.diagnostics?.termites?.montant || 15.09
+          },
+          gaz: {
+            actif: config.formalites?.diagnostics?.gaz?.defaut || false,
+            montant: config.formalites?.diagnostics?.gaz?.montant || 15.09
+          },
+          electricite: {
+            actif: config.formalites?.diagnostics?.electricite?.defaut || false,
+            montant: config.formalites?.diagnostics?.electricite?.montant || 15.09
+          },
+          erp: {
+            actif: config.formalites?.diagnostics?.erp?.defaut || false,
+            montant: config.formalites?.diagnostics?.erp?.montant || 15.09
+          }
+        },
+        transmissionCSN: {
+          actif: config.formalites?.transmissionCSN?.defaut || false,
+          montant: config.formalites?.transmissionCSN?.montant || 15.31
+        },
+        requisition: {
+          actif: config.formalites?.requisition?.defaut || false,
+          montant: config.formalites?.requisition?.montant || 18.87
+        }
+      }));
+    }
+    
+    // Appliquer les documents
+    if (config.documents) {
+      setDocuments({
+        pagesActe: config.documents.pagesActe || 10,
+        copiesExecutoires: config.documents.copiesExecutoires || 0,
+        copiesAuthentiques: config.documents.copiesAuthentiques || 1,
+        copiesHypothecaires: config.documents.copiesHypothecaires || 0
+      });
+    }
+    
+    // Appliquer le type de taxes
+    if (config.taxes) {
+      setTaxes(prev => ({
+        ...prev,
+        typeBien: config.taxes?.type === 'tva' ? 'neuf' : 'ancien'
+      }));
+    }
+  };
   
   const ajouterDonateur = () => {
     const newId = Math.max(...donateurs.map(d => d.id)) + 1;
@@ -226,7 +327,7 @@ function PretaxeContent() {
   };
 
   // ============================================================================
-  // DÉPARTEMENTS (INCHANGÉ DU FICHIER ORIGINAL)
+  // DÉPARTEMENTS
   // ============================================================================
   
   const departements: Record<string, Departement> = {
@@ -326,7 +427,6 @@ function PretaxeContent() {
     '93': { nom: 'Seine-Saint-Denis', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
     '94': { nom: 'Val-de-Marne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
     '95': { nom: 'Val-d\'Oise', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
-    // ✅ DOM-TOM AVEC MAJORATIONS CORRIGÉES
     '971': { nom: 'Guadeloupe', taux: 4.50, tauxTVA: 8.5, majoration: 23 },
     '972': { nom: 'Martinique', taux: 4.50, tauxTVA: 8.5, majoration: 24 },
     '973': { nom: 'Guyane', taux: 4.50, tauxTVA: 0, majoration: 20 },
@@ -335,409 +435,441 @@ function PretaxeContent() {
   };
 
   // ============================================================================
-  // ✅ CATÉGORIES D'ACTES AVEC ACTES NON TARIFÉS AJOUTÉS
+  // CATÉGORIES D'ACTES
   // ============================================================================
   
   const categoriesActes: Record<string, CategorieActes> = {
-    'actes_non_tarifies': {
-      label: '⚖️ Actes non tarifés (honoraires libres)',
-      icon: FileEdit,
-      actes: {
-        'statuts_societe_simple': {
-          label: 'Statuts société (EURL/SASU simple)',
-          type: 'non_tarife',
-          description: 'Rédaction statuts société unipersonnelle standard',
-          honorairesEstimes: '800-1 000€ HT'
-        },
-        'statuts_societe_complexe': {
-          label: 'Statuts société (SARL/SAS pluripersonnelle)',
-          type: 'non_tarife',
-          description: 'Rédaction statuts avec clauses spécifiques',
-          honorairesEstimes: '1 500-2 500€ HT'
-        },
-        'bail_commercial': {
-          label: 'Bail commercial',
-          type: 'non_tarife',
-          description: 'Rédaction bail 3/6/9 - Usage: ~1 mois loyer annuel HT',
-          honorairesEstimes: '800-2 000€ HT + enregistrement 25€'
-        },
-        'bail_professionnel': {
-          label: 'Bail professionnel',
-          type: 'non_tarife',
-          description: 'Bail professions libérales - Usage: ~1 mois loyer annuel HT',
-          honorairesEstimes: '500-1 000€ HT'
-        },
-        'commodat': {
-          label: 'Commodat (prêt à usage)',
-          type: 'non_tarife',
-          description: 'Contrat de prêt gratuit d\'un bien',
-          honorairesEstimes: '400-800€ HT'
-        },
-        'promesse_vente': {
-          label: 'Promesse de vente',
-          type: 'non_tarife',
-          description: 'Compromis de vente immobilière',
-          honorairesEstimes: '500-1 200€ HT'
-        },
-        'convention_indivision': {
-          label: 'Convention d\'indivision',
-          type: 'non_tarife',
-          description: 'Organisation gestion bien indivis',
-          honorairesEstimes: '600-1 200€ HT'
-        },
-        'vente_fonds_commerce': {
-          label: 'Vente de fonds de commerce',
-          type: 'non_tarife',
-          description: 'Sans publicité foncière',
-          honorairesEstimes: '1 000-2 500€ HT'
-        },
-        'pacte_actionnaires': {
-          label: 'Pacte d\'actionnaires',
-          type: 'non_tarife',
-          description: 'Clauses gouvernance et cession',
-          honorairesEstimes: '1 500-3 000€ HT'
-        },
-        'mandat_vente': {
-          label: 'Mandat de vente/recherche',
-          type: 'non_tarife',
-          description: 'Mandat immobilier',
-          honorairesEstimes: '300-800€ HT'
-        },
-        'transaction_mediation': {
-          label: 'Transaction (Art. 2044 CC)',
-          type: 'non_tarife',
-          description: 'Résolution amiable conflits',
-          honorairesEstimes: '800-2 000€ HT'
-        },
-        'consultation': {
-          label: 'Consultation juridique',
-          type: 'non_tarife',
-          description: 'Conseil détachable',
-          honorairesEstimes: '150-500€ HT/heure'
-        },
-        'pacte_tontine': {
-          label: 'Pacte tontinier',
-          type: 'non_tarife',
-          description: 'Clause d\'accroissement concubins',
-          honorairesEstimes: '600-1 200€ HT'
-        }
-      }
-    },
-    'biens_immobiliers': {
-      label: 'Actes relatifs aux biens immobiliers',
-      icon: Home,
-      actes: {
-        'vente_immeuble': { 
-          label: 'Vente d\'immeuble',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 3.870 },
-            { min: 6500, max: 17000, taux: 1.596 },
-            { min: 17000, max: 60000, taux: 1.064 },
-            { min: 60000, max: Infinity, taux: 0.799 }
-          ]
-        },
-        'vente_terrain': { 
-          label: 'Vente de terrain à bâtir',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 3.870 },
-            { min: 6500, max: 17000, taux: 1.596 },
-            { min: 17000, max: 60000, taux: 1.064 },
-            { min: 60000, max: Infinity, taux: 0.799 }
-          ]
-        },
-        'vefa': { 
-          label: 'Vente en état futur d\'achèvement (VEFA)',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 3.870 },
-            { min: 6500, max: 17000, taux: 1.596 },
-            { min: 17000, max: 60000, taux: 1.064 },
-            { min: 60000, max: Infinity, taux: 0.799 }
-          ]
-        },
-        'echange': { 
-          label: 'Échange d\'immeubles',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 3.870 },
-            { min: 6500, max: 17000, taux: 1.596 },
-            { min: 17000, max: 60000, taux: 1.064 },
-            { min: 60000, max: Infinity, taux: 0.799 }
-          ]
-        },
-        'licitation': { 
-          label: 'Licitation',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 4.837 },
-            { min: 6500, max: 17000, taux: 1.995 },
-            { min: 17000, max: 60000, taux: 1.330 },
-            { min: 60000, max: Infinity, taux: 0.998 }
-          ]
-        },
-        'partage': { 
-          label: 'Partage',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 4.837 },
-            { min: 6500, max: 17000, taux: 1.995 },
-            { min: 17000, max: 60000, taux: 1.330 },
-            { min: 60000, max: Infinity, taux: 0.998 }
-          ]
-        },
-        'bail_construction': { 
-          label: 'Bail à construction',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.935 },
-            { min: 6500, max: 17000, taux: 0.798 },
-            { min: 17000, max: 60000, taux: 0.532 },
-            { min: 60000, max: Infinity, taux: 0.399 }
-          ]
-        },
-        'servitude': { 
-          label: 'Constitution de servitude',
-          type: 'fixe',
-          montant: 134.61
-        }
-      }
-    },
-    'famille': {
-      label: 'Actes relatifs à la famille',
-      icon: Users,
-      actes: {
-        'contrat_mariage': { 
-          label: 'Contrat de mariage',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 2.580 },
-            { min: 6500, max: 17000, taux: 1.064 },
-            { min: 17000, max: 60000, taux: 0.709 },
-            { min: 60000, max: Infinity, taux: 0.532 }
-          ]
-        },
-        'changement_regime': { 
-          label: 'Changement de régime matrimonial',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.935 },
-            { min: 6500, max: 17000, taux: 0.798 },
-            { min: 17000, max: 60000, taux: 0.532 },
-            { min: 60000, max: Infinity, taux: 0.399 }
-          ]
-        },
-        'pacs': { 
-          label: 'PACS',
-          type: 'fixe',
-          montant: 101.41
-        },
-        'divorce_consentement': { 
-          label: 'Dépôt convention divorce par consentement mutuel',
-          type: 'fixe',
-          montant: 50.70
-        },
-        'liquidation_regime': { 
-          label: 'Liquidation de régime matrimonial',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 2.580 },
-            { min: 6500, max: 17000, taux: 1.064 },
-            { min: 17000, max: 60000, taux: 0.709 },
-            { min: 60000, max: Infinity, taux: 0.532 }
-          ]
-        }
-      }
-    },
-    'successions': {
-      label: 'Actes relatifs aux successions et libéralités',
-      icon: FileSignature,
-      actes: {
-        'donation': { 
-          label: 'Donation',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 4.837 },
-            { min: 6500, max: 17000, taux: 1.995 },
-            { min: 17000, max: 60000, taux: 1.330 },
-            { min: 60000, max: Infinity, taux: 0.998 }
-          ]
-        },
-        'donation_partage': { 
-          label: 'Donation-partage',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 4.837 },
-            { min: 6500, max: 17000, taux: 1.995 },
-            { min: 17000, max: 60000, taux: 1.330 },
-            { min: 60000, max: Infinity, taux: 0.998 }
-          ]
-        },
-        'testament': { 
-          label: 'Testament authentique',
-          type: 'fixe',
-          montant: 115.39
-        },
-        'notoriete': { 
-          label: 'Acte de notoriété',
-          type: 'fixe',
-          montant: 69.23
-        },
-        'attestation_propriete': { 
-          label: 'Attestation de propriété immobilière',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 0.968 },
-            { min: 6500, max: 17000, taux: 0.399 },
-            { min: 17000, max: 60000, taux: 0.266 },
-            { min: 60000, max: Infinity, taux: 0.200 }
-          ]
-        },
-        'inventaire': { 
-          label: 'Inventaire successoral',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.290 },
-            { min: 6500, max: 17000, taux: 0.532 },
-            { min: 17000, max: 60000, taux: 0.355 },
-            { min: 60000, max: Infinity, taux: 0.266 }
-          ]
-        },
-        'renonciation': { 
-          label: 'Renonciation à succession',
-          type: 'fixe',
-          montant: 26.92
-        }
-      }
-    },
-    'prets': {
-      label: 'Actes relatifs aux prêts et sûretés',
-      icon: Landmark,
-      actes: {
-        'pret_hypothecaire': { 
-          label: 'Prêt avec hypothèque conventionnelle',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.935 },
-            { min: 6500, max: 17000, taux: 0.798 },
-            { min: 17000, max: 60000, taux: 0.532 },
-            { min: 60000, max: Infinity, taux: 0.399 }
-          ]
-        },
-        'pret_viager': { 
-          label: 'Prêt viager hypothécaire',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 2.322 },
-            { min: 6500, max: 17000, taux: 0.958 },
-            { min: 17000, max: 60000, taux: 0.638 },
-            { min: 60000, max: Infinity, taux: 0.479 }
-          ]
-        },
-        'mainlevee': { 
-          label: 'Mainlevée d\'hypothèque',
-          type: 'fixe',
-          montant: 96.92
-        },
-        'caution_hypothecaire': { 
-          label: 'Caution hypothécaire',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 0.968 },
-            { min: 6500, max: 17000, taux: 0.399 },
-            { min: 17000, max: 60000, taux: 0.266 },
-            { min: 60000, max: Infinity, taux: 0.200 }
-          ]
-        },
-        'ppd': { 
-          label: 'Privilège de prêteur de deniers',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.935 },
-            { min: 6500, max: 17000, taux: 0.798 },
-            { min: 17000, max: 60000, taux: 0.532 },
-            { min: 60000, max: Infinity, taux: 0.399 }
-          ]
-        }
-      }
-    },
-    'societes': {
-      label: 'Actes relatifs aux sociétés',
-      icon: Briefcase,
-      actes: {
-        'constitution_societe': { 
-          label: 'Constitution de société',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.935 },
-            { min: 6500, max: 17000, taux: 0.798 },
-            { min: 17000, max: 60000, taux: 0.532 },
-            { min: 60000, max: Infinity, taux: 0.399 }
-          ]
-        },
-        'augmentation_capital': { 
-          label: 'Augmentation de capital',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 0.968 },
-            { min: 6500, max: 17000, taux: 0.399 },
-            { min: 17000, max: 60000, taux: 0.266 },
-            { min: 60000, max: Infinity, taux: 0.200 }
-          ]
-        },
-        'cession_parts': { 
-          label: 'Cession de parts sociales',
-          type: 'proportionnel',
-          tranches: [
-            { min: 0, max: 6500, taux: 1.290 },
-            { min: 6500, max: 17000, taux: 0.532 },
-            { min: 17000, max: 60000, taux: 0.355 },
-            { min: 60000, max: Infinity, taux: 0.266 }
-          ]
-        },
-        'dissolution': { 
-          label: 'Dissolution de société',
-          type: 'fixe',
-          montant: 230.77
-        },
-        'transformation': { 
-          label: 'Transformation de société',
-          type: 'fixe',
-          montant: 192.31
-        }
-      }
-    },
-    'divers': {
-      label: 'Actes divers et procurations',
-      icon: File,
-      actes: {
-        'procuration': { 
-          label: 'Procuration',
-          type: 'fixe',
-          montant: 26.92
-        },
-        'quittance': { 
-          label: 'Quittance',
-          type: 'fixe',
-          montant: 26.92
-        },
-        'apostille': { 
-          label: 'Apostille',
-          type: 'fixe',
-          montant: 50.00
-        },
-        'consentement_adoption': { 
-          label: 'Consentement à adoption',
-          type: 'fixe',
-          montant: 76.92
-        }
+  
+  'actes_non_tarifies': {
+    label: '⚖️ Actes non tarifés (honoraires libres)',
+    icon: FileEdit,
+    actes: {
+      'statuts_societe_simple': {
+        label: 'Statuts société (EURL/SASU simple)',
+        type: 'non_tarife',
+        description: 'Rédaction statuts société unipersonnelle standard',
+        honorairesEstimes: '800-1 000€ HT'
+      },
+      'statuts_societe_complexe': {
+        label: 'Statuts société (SARL/SAS pluripersonnelle)',
+        type: 'non_tarife',
+        description: 'Rédaction statuts avec clauses spécifiques',
+        honorairesEstimes: '1 500-2 500€ HT'
+      },
+      'bail_commercial': {
+        label: 'Bail commercial',
+        type: 'non_tarife',
+        description: 'Rédaction bail 3/6/9 - Usage: ~1 mois loyer annuel HT',
+        honorairesEstimes: '800-2 000€ HT + enregistrement 25€'
+      },
+      'bail_professionnel': {
+        label: 'Bail professionnel',
+        type: 'non_tarife',
+        description: 'Bail professions libérales - Usage: ~1 mois loyer annuel HT',
+        honorairesEstimes: '500-1 000€ HT'
+      },
+      'commodat': {
+        label: 'Commodat (prêt à usage)',
+        type: 'non_tarife',
+        description: 'Contrat de prêt gratuit d\'un bien',
+        honorairesEstimes: '400-800€ HT'
+      },
+      'promesse_vente': {
+        label: 'Promesse de vente',
+        type: 'non_tarife',
+        description: 'Compromis de vente immobilière',
+        honorairesEstimes: '500-1 200€ HT'
+      },
+      'convention_indivision': {
+        label: 'Convention d\'indivision',
+        type: 'non_tarife',
+        description: 'Organisation gestion bien indivis',
+        honorairesEstimes: '600-1 200€ HT'
+      },
+      'vente_fonds_commerce': {
+        label: 'Vente de fonds de commerce',
+        type: 'non_tarife',
+        description: 'Sans publicité foncière',
+        honorairesEstimes: '1 000-2 500€ HT'
+      },
+      'pacte_actionnaires': {
+        label: 'Pacte d\'actionnaires',
+        type: 'non_tarife',
+        description: 'Clauses gouvernance et cession',
+        honorairesEstimes: '1 500-3 000€ HT'
+      },
+      'mandat_vente': {
+        label: 'Mandat de vente/recherche',
+        type: 'non_tarife',
+        description: 'Mandat immobilier',
+        honorairesEstimes: '300-800€ HT'
+      },
+      'transaction_mediation': {
+        label: 'Transaction (Art. 2044 CC)',
+        type: 'non_tarife',
+        description: 'Résolution amiable conflits',
+        honorairesEstimes: '800-2 000€ HT'
+      },
+      'consultation': {
+        label: 'Consultation juridique',
+        type: 'non_tarife',
+        description: 'Conseil détachable',
+        honorairesEstimes: '150-500€ HT/heure'
+      },
+      'pacte_tontine': {
+        label: 'Pacte tontinier',
+        type: 'non_tarife',
+        description: 'Clause d\'accroissement concubins',
+        honorairesEstimes: '600-1 200€ HT'
       }
     }
-  };
+  },
+
+  'biens_immobiliers': {
+    label: 'Actes relatifs aux biens immobiliers',
+    icon: Home,
+    actes: {
+      'vente_immeuble': { 
+        label: 'Vente d\'immeuble',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      },
+      'vente_terrain': { 
+        label: 'Vente de terrain à bâtir',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      },
+      'vefa': { 
+        label: 'Vente en état futur d\'achèvement (VEFA)',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      },
+      'echange': { 
+        label: 'Échange d\'immeubles',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      },
+      'licitation': { 
+        label: 'Licitation',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 4.837 },
+          { min: 6500, max: 17000, taux: 1.995 },
+          { min: 17000, max: 60000, taux: 1.330 },
+          { min: 60000, max: Infinity, taux: 0.998 }
+        ]
+      },
+      'partage': { 
+        label: 'Partage',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 4.837 },
+          { min: 6500, max: 17000, taux: 1.995 },
+          { min: 17000, max: 60000, taux: 1.330 },
+          { min: 60000, max: Infinity, taux: 0.998 }
+        ]
+      },
+      'bail_construction': { 
+        label: 'Bail à construction',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 0.798 },
+          { min: 17000, max: 60000, taux: 0.532 },
+          { min: 60000, max: Infinity, taux: 0.399 }
+        ]
+      },
+      'servitude_fixe': { 
+        label: 'Constitution servitude ≤ 4 875€',
+        type: 'fixe',
+        montant: 188.66
+      },
+      'servitude_proportionnel': { 
+        label: 'Constitution servitude > 4 875€',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      }
+    }
+  },
+
+  'famille': {
+    label: 'Actes relatifs à la famille',
+    icon: Users,
+    actes: {
+      'contrat_mariage': { 
+        label: 'Contrat de mariage',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 2.580 },
+          { min: 6500, max: 17000, taux: 1.064 },
+          { min: 17000, max: 60000, taux: 0.709 },
+          { min: 60000, max: Infinity, taux: 0.532 }
+        ]
+      },
+      'changement_regime': { 
+        label: 'Changement de régime matrimonial',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 0.798 },
+          { min: 17000, max: 60000, taux: 0.532 },
+          { min: 60000, max: Infinity, taux: 0.399 }
+        ]
+      },
+      'pacs': { 
+        label: 'PACS',
+        type: 'fixe',
+        montant: 84.51
+      },
+      'divorce_consentement': { 
+        label: 'Dépôt convention divorce par consentement mutuel',
+        type: 'fixe',
+        montant: 41.20
+      },
+      'liquidation_regime': { 
+        label: 'Liquidation de régime matrimonial',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 2.515 },
+          { min: 6500, max: 17000, taux: 1.038 },
+          { min: 17000, max: 60000, taux: 0.692 },
+          { min: 60000, max: Infinity, taux: 0.519 }
+        ]
+      }
+    }
+  },
+
+  'successions': {
+    label: 'Actes relatifs aux successions et libéralités',
+    icon: FileSignature,
+    actes: {
+      'donation': { 
+        label: 'Donation',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 4.837 },
+          { min: 6500, max: 17000, taux: 1.995 },
+          { min: 17000, max: 60000, taux: 1.330 },
+          { min: 60000, max: Infinity, taux: 0.998 }
+        ]
+      },
+      'donation_partage': { 
+        label: 'Donation-partage',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 4.837 },
+          { min: 6500, max: 17000, taux: 1.995 },
+          { min: 17000, max: 60000, taux: 1.330 },
+          { min: 60000, max: Infinity, taux: 0.998 }
+        ]
+      },
+      'testament': { 
+        label: 'Testament authentique',
+        type: 'fixe',
+        montant: 113.19
+      },
+      'notoriete': { 
+        label: 'Acte de notoriété',
+        type: 'fixe',
+        montant: 56.60
+      },
+      'attestation_propriete': { 
+        label: 'Attestation de propriété immobilière',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 0.968 },
+          { min: 6500, max: 17000, taux: 0.399 },
+          { min: 17000, max: 60000, taux: 0.266 },
+          { min: 60000, max: Infinity, taux: 0.200 }
+        ]
+      },
+      'inventaire': { 
+        label: 'Inventaire successoral',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
+        ]
+      },
+      'renonciation': { 
+        label: 'Renonciation à succession',
+        type: 'fixe',
+        montant: 57.69
+      },
+      'declaration_succession': {
+        label: 'Déclaration de succession',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.548 },
+          { min: 6500, max: 17000, taux: 0.638 },
+          { min: 17000, max: 30000, taux: 0.425 },
+          { min: 30000, max: Infinity, taux: 0.319 }
+        ]
+      }
+    }
+  },
+
+  'prets': {
+    label: 'Actes relatifs aux prêts et sûretés',
+    icon: Landmark,
+    actes: {
+      'pret_hypothecaire': { 
+        label: 'Prêt avec hypothèque conventionnelle',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 0.798 },
+          { min: 17000, max: 60000, taux: 0.532 },
+          { min: 60000, max: Infinity, taux: 0.399 }
+        ]
+      },
+      'pret_viager': { 
+        label: 'Prêt viager hypothécaire',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 2.322 },
+          { min: 6500, max: 17000, taux: 0.958 },
+          { min: 17000, max: 60000, taux: 0.638 },
+          { min: 60000, max: Infinity, taux: 0.479 }
+        ]
+      },
+      'mainlevee_saisie': { 
+        label: 'Mainlevée de saisie',
+        type: 'fixe',
+        montant: 26.41
+      },
+      'mainlevee_hypo_inf': { 
+        label: 'Mainlevée hypothèque < 77 090€',
+        type: 'fixe',
+        montant: 78.00
+      },
+      'mainlevee_hypo_sup': { 
+        label: 'Mainlevée hypothèque ≥ 77 090€',
+        type: 'fixe',
+        montant: 150.00
+      },
+      'caution_hypothecaire': { 
+        label: 'Caution hypothécaire',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 0.968 },
+          { min: 6500, max: 17000, taux: 0.399 },
+          { min: 17000, max: 60000, taux: 0.266 },
+          { min: 60000, max: Infinity, taux: 0.200 }
+        ]
+      },
+      'ppd': { 
+        label: 'Privilège de prêteur de deniers',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 0.798 },
+          { min: 17000, max: 60000, taux: 0.532 },
+          { min: 60000, max: Infinity, taux: 0.399 }
+        ]
+      }
+    }
+  },
+
+  'societes': {
+    label: 'Actes relatifs aux sociétés',
+    icon: Briefcase,
+    actes: {
+      'constitution_societe': { 
+        label: 'Constitution de société',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 0.798 },
+          { min: 17000, max: 60000, taux: 0.532 },
+          { min: 60000, max: Infinity, taux: 0.399 }
+        ]
+      },
+      'augmentation_capital': { 
+        label: 'Augmentation de capital',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 0.968 },
+          { min: 6500, max: 17000, taux: 0.399 },
+          { min: 17000, max: 60000, taux: 0.266 },
+          { min: 60000, max: Infinity, taux: 0.200 }
+        ]
+      },
+      'cession_parts': { 
+        label: 'Cession de parts sociales',
+        type: 'proportionnel',
+        tranches: [
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
+        ]
+      },
+      'dissolution': { 
+        label: 'Dissolution de société',
+        type: 'fixe',
+        montant: 230.77
+      },
+      'transformation': { 
+        label: 'Transformation de société',
+        type: 'fixe',
+        montant: 192.31
+      }
+    }
+  },
+
+  'divers': {
+    label: 'Actes divers et procurations',
+    icon: File,
+    actes: {
+      'procuration': { 
+        label: 'Procuration',
+        type: 'fixe',
+        montant: 26.41
+      },
+      'quittance': { 
+        label: 'Quittance',
+        type: 'fixe',
+        montant: 26.41
+      },
+      'consentement_adoption': { 
+        label: 'Consentement à adoption',
+        type: 'fixe',
+        montant: 77.11
+      }
+    }
+  }
+};
 
   // ============================================================================
-  // ✅ CALCUL DES ÉMOLUMENTS AVEC REMISE CORRIGÉE (20% à partir de 100k€)
+  // CALCUL DES ÉMOLUMENTS
   // ============================================================================
   
   const calculerEmoluments = (montant: number, tranches: TrancheTarif[]) => {
@@ -754,7 +886,6 @@ function PretaxeContent() {
     const majoration = emolumentsBruts * (tauxMajoration / 100);
     const emolumentsAvantRemise = emolumentsBruts + majoration;
 
-    // ✅ REMISE OPTIONNELLE : 20% au-delà de 100 000€ (seulement si cochée)
     let remise20 = 0;
     let emolumentsNets = emolumentsAvantRemise;
     
@@ -843,19 +974,16 @@ function PretaxeContent() {
     alert('Calcul sauvegardé !');
   };
   
-  // ✅ EXPORT PDF AVEC jsPDF
   const exporterPDF = () => {
     const deptInfo = departements[selectedDepartement];
     const acteInfo = categoriesActes[selectedCategory]?.actes[selectedActe];
     
     const doc = new jsPDF();
     
-    // Configuration
     let y = 20;
     const lineHeight = 7;
     const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Titre
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('NotariaPrime - Calcul Frais Notariés', pageWidth / 2, y, { align: 'center' });
@@ -866,7 +994,6 @@ function PretaxeContent() {
     doc.text('Conforme tarif réglementé 2025/2026', pageWidth / 2, y, { align: 'center' });
     y += 15;
     
-    // Informations générales
     doc.setFontSize(11);
     doc.text(`Date : ${new Date().toLocaleString('fr-FR')}`, 20, y);
     y += lineHeight;
@@ -897,12 +1024,10 @@ function PretaxeContent() {
       doc.text(`Montant : ${montantActe} €`, 20, y);
       y += lineHeight * 2;
       
-      // Ligne de séparation
       doc.setDrawColor(200, 200, 200);
       doc.line(20, y, pageWidth - 20, y);
       y += 10;
       
-      // Émoluments
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
       doc.text('ÉMOLUMENTS', 20, y);
@@ -946,7 +1071,6 @@ function PretaxeContent() {
       doc.text(`${totalEmolumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight * 2;
       
-      // Débours
       doc.setFontSize(12);
       doc.text('DÉBOURS', 20, y);
       y += lineHeight + 2;
@@ -960,7 +1084,6 @@ function PretaxeContent() {
       doc.text(`${totalDebours.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight * 2;
       
-      // Formalités
       doc.setFontSize(12);
       doc.text('FORMALITÉS', 20, y);
       y += lineHeight + 2;
@@ -970,7 +1093,6 @@ function PretaxeContent() {
       doc.text(`${totalFormalitesTTC.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight * 2;
       
-      // Documents
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
       doc.text('DOCUMENTS', 20, y);
@@ -981,7 +1103,6 @@ function PretaxeContent() {
       doc.text(`${totalDocumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight * 2;
       
-      // Taxes
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
       doc.text('TAXES ET DROITS', 20, y);
@@ -1004,7 +1125,6 @@ function PretaxeContent() {
       doc.text(`${totalTaxes.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight * 3;
       
-      // Total général
       doc.setDrawColor(50, 50, 50);
       doc.setLineWidth(0.5);
       doc.line(20, y - 5, pageWidth - 20, y - 5);
@@ -1018,7 +1138,6 @@ function PretaxeContent() {
       doc.line(20, y + 3, pageWidth - 20, y + 3);
     }
     
-    // Footer
     const footerY = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
@@ -1029,34 +1148,40 @@ function PretaxeContent() {
     }
     doc.text(`Généré par NotariaPrime - ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, footerY + 8, { align: 'center' });
     
-    // Téléchargement
     doc.save(`notariaprime_${Date.now()}.pdf`);
   };
 
+  // ============================================================================
+  // 🔥 useEffect POUR APPLIQUER LA CONFIG AUTOMATIQUEMENT
+  // ============================================================================
+  
   useEffect(() => {
-    if (selectedActe && montantActe) {
-      const montant = parseFloat(montantActe.replace(/\s/g, ''));
-      if (!isNaN(montant)) {
-        const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
-        if (acte && acte.type !== 'non_tarife') {
-          if (acte.type === 'proportionnel' && acte.tranches) {
+    if (selectedActe) {
+      // 🔥 Appliquer la configuration par défaut
+      appliquerConfigParDefaut(selectedActe);
+      
+      const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
+      if (acte && acte.type !== 'non_tarife') {
+        if (acte.type === 'fixe' && acte.montant) {
+          const detail = {
+            bruts: acte.montant,
+            majoration: 0,
+            avantRemise: acte.montant,
+            remise10: 0,
+            remise20: 0,
+            nets: acte.montant
+          };
+          setEmolumentsDetail(detail);
+          setEmoluments(acte.montant);
+        } else if (acte.type === 'proportionnel' && montantActe && acte.tranches) {
+          const montant = parseFloat(montantActe.replace(/\s/g, ''));
+          if (!isNaN(montant)) {
             const detail = calculerEmoluments(montant, acte.tranches);
             setEmolumentsDetail(detail);
             setEmoluments(detail.nets);
-          } else if (acte.type === 'fixe' && acte.montant) {
-            const detail = {
-              bruts: acte.montant,
-              majoration: 0,
-              avantRemise: acte.montant,
-              remise10: 0,
-              remise20: 0,
-              nets: acte.montant
-            };
-            setEmolumentsDetail(detail);
-            setEmoluments(acte.montant);
+            calculerCSI();
+            calculerTaxes();
           }
-          calculerCSI();
-          calculerTaxes();
         }
       }
     }
@@ -1096,6 +1221,19 @@ function PretaxeContent() {
 
   const acteActuel = categoriesActes[selectedCategory]?.actes[selectedActe];
   const estActeNonTarife = acteActuel?.type === 'non_tarife';
+
+  // ============================================================================
+  // 🔥 FONCTION POUR VÉRIFIER SI UNE FORMALITÉ EST OBLIGATOIRE
+  // ============================================================================
+  
+  const estFormaliteObligatoire = (nomFormalite: string): boolean => {
+    if (!selectedActe) return false;
+    const config = actesConfig[selectedActe];
+    if (!config || !config.formalites) return false;
+    
+    const formalite = config.formalites[nomFormalite as keyof typeof config.formalites];
+    return (formalite as any)?.obligatoire === true;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1178,7 +1316,6 @@ function PretaxeContent() {
             </div>
           </div>
 
-          {/* ✅ AFFICHAGE POUR ACTES NON TARIFÉS */}
           {estActeNonTarife && acteActuel && (
             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
               <div className="flex items-start gap-4">
@@ -1199,7 +1336,6 @@ function PretaxeContent() {
             </div>
           )}
 
-          {/* Montant pour actes tarifés */}
           {selectedActe && !estActeNonTarife && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
             <div className="mt-6">
               <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de l'opération</label>
@@ -1216,7 +1352,6 @@ function PretaxeContent() {
             </div>
           )}
           
-          {/* Bandeau DOM-TOM */}
           {getMajorationDOMTOM(selectedDepartement) > 0 && (
             <div className="mt-6 bg-orange-50 border border-orange-200 rounded-xl p-4">
               <div className="flex items-start">
@@ -1236,7 +1371,6 @@ function PretaxeContent() {
             </div>
           )}
           
-          {/* Section donations (CONSERVÉE INTÉGRALEMENT) */}
           {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
             <div className="mt-8 p-6 bg-purple-50 rounded-xl border border-purple-200">
               <h3 className="font-semibold text-purple-900 mb-6 flex items-center">
@@ -1356,47 +1490,9 @@ function PretaxeContent() {
                   ))}
                 </div>
               )}
-              
-              <div className="mt-6">
-                <label className="flex items-center mb-3">
-                  <input
-                    type="checkbox"
-                    checked={usufruit.actif}
-                    onChange={(e) => setUsufruit({...usufruit, actif: e.target.checked})}
-                    className="mr-3 w-4 h-4 text-purple-600 focus:ring-purple-500 rounded"
-                  />
-                  <span className="text-sm font-medium text-gray-700">Donation avec réserve d'usufruit</span>
-                </label>
-                {usufruit.actif && (
-                  <div className="ml-7 mt-3 p-4 bg-white rounded-lg border border-gray-200">
-                    <label className="block text-sm text-gray-600 mb-2">Âge de l'usufruitier</label>
-                    <input
-                      type="number"
-                      value={usufruit.ageUsufruitier}
-                      onChange={(e) => {
-                        const age = e.target.value;
-                        setUsufruit({
-                          ...usufruit,
-                          ageUsufruitier: age,
-                          valeur: calculerUsufruit(age)
-                        });
-                      }}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      min="20"
-                      max="100"
-                    />
-                    {usufruit.ageUsufruitier && (
-                      <p className="text-xs text-gray-600 mt-2">
-                        Usufruit : {usufruit.valeur}% | Nue-propriété : {100 - usufruit.valeur}%
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
           )}
           
-          {/* Boutons d'action */}
           <div className="flex flex-wrap gap-3 mt-8">
             <button
               onClick={sauvegarderCalcul}
@@ -1419,10 +1515,19 @@ function PretaxeContent() {
               <History className="w-4 h-4" />
               Historique ({historiqueCalculs.length})
             </button>
+            <button
+              onClick={() => appliquerConfigParDefaut(selectedActe)}
+              disabled={!selectedActe}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Réinitialiser
+            </button>
           </div>
         </div>
         
-        {/* Historique */}
         {afficherHistorique && historiqueCalculs.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
             <div className="flex items-center justify-between mb-6">
@@ -1451,7 +1556,6 @@ function PretaxeContent() {
           </div>
         )}
 
-        {/* Tabs - Seulement pour actes tarifés */}
         {!estActeNonTarife && selectedActe && (
           <>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
@@ -1589,35 +1693,43 @@ function PretaxeContent() {
                   <div className="space-y-6">
                     <div className="space-y-3">
                       {Object.entries({
-                        'Publicité foncière': formalites.publiciteFonciere,
-                        'Documents cadastraux': formalites.cadastre,
-                        'Casier judiciaire': formalites.casierJudiciaire,
-                        'Notification préemption': formalites.notification,
-                        'Certificat mesurage': formalites.mesurage,
-                      }).map(([label, item]) => (
-                        <label key={label} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={item.actif}
-                              onChange={(e) => {
-                                const key = label.toLowerCase().replace(/[é]/g, 'e').replace(/\s+/g, '');
-                                setFormalites(prev => ({
-                                  ...prev,
-                                  [key === 'publicitefonciere' ? 'publiciteFonciere' : 
-                                   key === 'documentscadastraux' ? 'cadastre' :
-                                   key === 'casierjudiciaire' ? 'casierJudiciaire' :
-                                   key === 'notificationpreemption' ? 'notification' : 'mesurage']: 
-                                    { ...item, actif: e.target.checked }
-                                }));
-                              }}
-                              className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded"
-                            />
-                            <span className="text-sm font-medium text-gray-700">{label}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-900">{item.montant.toFixed(2)} €</span>
-                        </label>
-                      ))}
+                        'publiciteFonciere': { label: 'Publicité foncière', item: formalites.publiciteFonciere },
+                        'cadastre': { label: 'Documents cadastraux', item: formalites.cadastre },
+                        'casierJudiciaire': { label: 'Casier judiciaire', item: formalites.casierJudiciaire },
+                        'notification': { label: 'Notification préemption', item: formalites.notification },
+                        'mesurage': { label: 'Certificat mesurage', item: formalites.mesurage },
+                        'transmissionCSN': { label: 'Transmission CSN', item: formalites.transmissionCSN },
+                        'requisition': { label: 'Réquisition SPF', item: formalites.requisition }
+                      }).map(([key, { label, item }]) => {
+                        const obligatoire = estFormaliteObligatoire(key);
+                        return (
+                          <label key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={item.actif}
+                                disabled={obligatoire}
+                                onChange={(e) => {
+                                  if (!obligatoire) {
+                                    setFormalites(prev => ({
+                                      ...prev,
+                                      [key]: { ...item, actif: e.target.checked }
+                                    }));
+                                  }
+                                }}
+                                className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded disabled:opacity-50"
+                              />
+                              <span className="text-sm font-medium text-gray-700">{label}</span>
+                              {obligatoire && (
+                                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                                  Obligatoire
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900">{item.montant.toFixed(2)} €</span>
+                          </label>
+                        );
+                      })}
                       
                       <div className="mt-4">
                         <p className="text-sm font-semibold text-gray-700 mb-2">Diagnostics</p>
@@ -1791,7 +1903,6 @@ function PretaxeContent() {
               </div>
             </div>
 
-            {/* Récapitulatif final */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <Calculator className="w-6 h-6 mr-3 text-indigo-600" />

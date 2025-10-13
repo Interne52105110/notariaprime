@@ -43,12 +43,9 @@ export const metadata: Metadata = {
   creator: 'NotariaPrime',
   publisher: 'NotariaPrime',
   
-  // Favicon
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
+  // ✅ FAVICON - Next.js 15 gère automatiquement avec icon.tsx
+  // Pas besoin de la section icons: {} car vous avez créé src/app/icon.tsx
+  // Next.js va automatiquement utiliser icon.tsx pour générer le favicon
   
   // Robots
   robots: {
