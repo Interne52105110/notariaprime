@@ -25,9 +25,9 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
             <ul className="space-y-3 text-gray-600">
-              <li><a href="/#features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
+              <li><a href="/features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
               <li><a href="/pretaxe" className="hover:text-gray-900 transition">Calculateur</a></li>
-              <li><a href="#roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
+              <li><a href="/roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
             </ul>
           </div>
           
@@ -36,16 +36,15 @@ export default function Footer() {
             <ul className="space-y-3 text-gray-600">
               <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
               <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
-              <li><a href="/blog" className="hover:text-gray-900 transition">Blog</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-gray-900">Entreprise</h4>
+            <h4 className="font-semibold mb-4 text-gray-900">Liens</h4>
             <ul className="space-y-3 text-gray-600">
               <li><a href="/about" className="hover:text-gray-900 transition">À propos</a></li>
               <li><a href="/contact" className="hover:text-gray-900 transition">Contact</a></li>
-              <li><a href="https://github.com" className="hover:text-gray-900 transition" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+              <li><a href="https://github.com/Interne52105110/notariaprime" className="hover:text-gray-900 transition" target="_blank" rel="noopener noreferrer">GitHub</a></li>
             </ul>
           </div>
         </div>
@@ -56,13 +55,13 @@ export default function Footer() {
               © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <a href="/legal" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/mentions-legales" className="text-gray-600 hover:text-gray-900 transition">
                 Mentions légales
               </a>
-              <a href="/privacy" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/confidentialite" className="text-gray-600 hover:text-gray-900 transition">
                 Confidentialité
               </a>
-              <a href="/terms" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/cgu" className="text-gray-600 hover:text-gray-900 transition">
                 CGU
               </a>
             </div>
