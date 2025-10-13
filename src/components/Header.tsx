@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { 
-  Calculator, Menu, X, ArrowRight, Github, Home
+  Calculator, Menu, X, ArrowRight, Github
 } from 'lucide-react';
 
 export default function Header() {
@@ -59,16 +59,15 @@ export default function Header() {
                   <Link href="/#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">
                     Solutions
                   </Link>
-                  <Link href="/#features" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                  <Link href="/features" className="text-gray-600 hover:text-gray-900 font-medium transition">
                     Fonctionnalités
                   </Link>
                   <Link href="/pretaxe" className="text-gray-600 hover:text-gray-900 font-medium transition">
                     Calculateur
                   </Link>
-                  <a href="#enterprise" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium transition">
-                    Enterprise
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">NEW</span>
-                  </a>
+                  <Link href="/roadmap" className="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Roadmap
+                  </Link>
                 </nav>
               )}
             </div>
@@ -78,7 +77,7 @@ export default function Header() {
               {!isMobile && (
                 <>
                   <a 
-                    href="https://github.com" 
+                    href="https://github.com/Interne52105110/notariaprime" 
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -118,7 +117,7 @@ export default function Header() {
               Solutions
             </Link>
             <Link 
-              href="/#features" 
+              href="/features" 
               className="text-lg font-medium text-gray-900 py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -131,12 +130,16 @@ export default function Header() {
             >
               Calculateur
             </Link>
-            <a href="#enterprise" className="text-lg font-medium text-gray-900 py-2">
-              Enterprise
-            </a>
+            <Link 
+              href="/roadmap" 
+              className="text-lg font-medium text-gray-900 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Roadmap
+            </Link>
             <hr className="my-4" />
             <a 
-              href="https://github.com" 
+              href="https://github.com/Interne52105110/notariaprime" 
               className="flex items-center gap-2 text-lg font-medium text-gray-900 py-2"
               target="_blank"
               rel="noopener noreferrer"
