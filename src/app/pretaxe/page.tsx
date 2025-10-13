@@ -126,6 +126,9 @@ function PretaxeContent() {
     nets: 0
   });
   
+  // ✅ État pour la remise (option à cocher)
+  const [appliquerRemise, setAppliquerRemise] = useState(false);
+  
   const [debours, setDebours] = useState({
     csi: 15,
     etatsHypothecaires: 0,
@@ -339,77 +342,83 @@ function PretaxeContent() {
       label: '⚖️ Actes non tarifés (honoraires libres)',
       icon: FileEdit,
       actes: {
-        'commodat': {
-          label: 'Commodat (prêt à usage)',
+        'statuts_societe_simple': {
+          label: 'Statuts société (EURL/SASU simple)',
           type: 'non_tarife',
-          description: 'Contrat de prêt gratuit d\'un bien immobilier ou mobilier',
-          honorairesEstimes: '200-500€'
+          description: 'Rédaction statuts société unipersonnelle standard',
+          honorairesEstimes: '800-1 000€ HT'
+        },
+        'statuts_societe_complexe': {
+          label: 'Statuts société (SARL/SAS pluripersonnelle)',
+          type: 'non_tarife',
+          description: 'Rédaction statuts avec clauses spécifiques',
+          honorairesEstimes: '1 500-2 500€ HT'
         },
         'bail_commercial': {
           label: 'Bail commercial',
           type: 'non_tarife',
-          description: 'Bail pour local professionnel (Chapitre V du Code de commerce)',
-          honorairesEstimes: '300-800€'
-        },
-        'promesse_vente': {
-          label: 'Promesse de vente',
-          type: 'non_tarife',
-          description: 'Engagement de vendre un bien immobilier',
-          honorairesEstimes: '200-800€'
-        },
-        'convention_indivision': {
-          label: 'Convention d\'indivision',
-          type: 'non_tarife',
-          description: 'Organisation de la gestion d\'un bien en indivision',
-          honorairesEstimes: '300-600€'
-        },
-        'vente_fonds_commerce': {
-          label: 'Vente de fonds de commerce (sans publicité foncière)',
-          type: 'non_tarife',
-          description: 'Vente d\'éléments de fonds, unités de production',
-          honorairesEstimes: '400-1200€'
-        },
-        'statuts_societe': {
-          label: 'Statuts de société (hors publicité foncière)',
-          type: 'non_tarife',
-          description: 'Rédaction de statuts, pactes d\'actionnaires',
-          honorairesEstimes: '500-2000€'
-        },
-        'mandat_vente': {
-          label: 'Mandat de vente exclusif',
-          type: 'non_tarife',
-          description: 'Mandat de recherche immobilière',
-          honorairesEstimes: 'Variable'
-        },
-        'transaction_mediation': {
-          label: 'Transaction / Médiation (Art. 2044)',
-          type: 'non_tarife',
-          description: 'Résolution amiable de conflits',
-          honorairesEstimes: '400-1500€'
-        },
-        'consultation': {
-          label: 'Consultation juridique',
-          type: 'non_tarife',
-          description: 'Conseil juridique détachable',
-          honorairesEstimes: '150-400€/h'
-        },
-        'contrat_association': {
-          label: 'Contrat d\'association',
-          type: 'non_tarife',
-          description: 'Constitution ou modification de statuts',
-          honorairesEstimes: '200-600€'
-        },
-        'pacte_tontine': {
-          label: 'Pacte tontinier',
-          type: 'non_tarife',
-          description: 'Clause d\'accroissement',
-          honorairesEstimes: '300-700€'
+          description: 'Rédaction bail 3/6/9 - Usage: ~1 mois loyer annuel HT',
+          honorairesEstimes: '800-2 000€ HT + enregistrement 25€'
         },
         'bail_professionnel': {
           label: 'Bail professionnel',
           type: 'non_tarife',
-          description: 'Bail pour activité libérale',
-          honorairesEstimes: '250-600€'
+          description: 'Bail professions libérales - Usage: ~1 mois loyer annuel HT',
+          honorairesEstimes: '500-1 000€ HT'
+        },
+        'commodat': {
+          label: 'Commodat (prêt à usage)',
+          type: 'non_tarife',
+          description: 'Contrat de prêt gratuit d\'un bien',
+          honorairesEstimes: '400-800€ HT'
+        },
+        'promesse_vente': {
+          label: 'Promesse de vente',
+          type: 'non_tarife',
+          description: 'Compromis de vente immobilière',
+          honorairesEstimes: '500-1 200€ HT'
+        },
+        'convention_indivision': {
+          label: 'Convention d\'indivision',
+          type: 'non_tarife',
+          description: 'Organisation gestion bien indivis',
+          honorairesEstimes: '600-1 200€ HT'
+        },
+        'vente_fonds_commerce': {
+          label: 'Vente de fonds de commerce',
+          type: 'non_tarife',
+          description: 'Sans publicité foncière',
+          honorairesEstimes: '1 000-2 500€ HT'
+        },
+        'pacte_actionnaires': {
+          label: 'Pacte d\'actionnaires',
+          type: 'non_tarife',
+          description: 'Clauses gouvernance et cession',
+          honorairesEstimes: '1 500-3 000€ HT'
+        },
+        'mandat_vente': {
+          label: 'Mandat de vente/recherche',
+          type: 'non_tarife',
+          description: 'Mandat immobilier',
+          honorairesEstimes: '300-800€ HT'
+        },
+        'transaction_mediation': {
+          label: 'Transaction (Art. 2044 CC)',
+          type: 'non_tarife',
+          description: 'Résolution amiable conflits',
+          honorairesEstimes: '800-2 000€ HT'
+        },
+        'consultation': {
+          label: 'Consultation juridique',
+          type: 'non_tarife',
+          description: 'Conseil détachable',
+          honorairesEstimes: '150-500€ HT/heure'
+        },
+        'pacte_tontine': {
+          label: 'Pacte tontinier',
+          type: 'non_tarife',
+          description: 'Clause d\'accroissement concubins',
+          honorairesEstimes: '600-1 200€ HT'
         }
       }
     },
@@ -744,11 +753,11 @@ function PretaxeContent() {
     const majoration = emolumentsBruts * (tauxMajoration / 100);
     const emolumentsAvantRemise = emolumentsBruts + majoration;
 
-    // ✅ REMISE CORRIGÉE : 20% au-delà de 100 000€
+    // ✅ REMISE OPTIONNELLE : 20% au-delà de 100 000€ (seulement si cochée)
     let remise20 = 0;
     let emolumentsNets = emolumentsAvantRemise;
     
-    if (montant > 100000) {
+    if (appliquerRemise && montant > 100000) {
       let emolumentsAuDela100k = 0;
       
       tranches.forEach(tranche => {
@@ -897,7 +906,7 @@ Conforme Décret n°2020-179 du 27/02/2020
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory, appliquerRemise]);
 
   const tauxTVA = getTauxTVA(selectedDepartement);
   const totalEmoluments = emolumentsDetail.nets;
@@ -1323,14 +1332,32 @@ Conforme Décret n°2020-179 du 27/02/2020
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                       <div className="flex items-start">
                         <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm text-blue-900">
-                            Calcul selon tranches réglementaires. Remise de 20% au-delà de 100 000€.
+                            Calcul selon tranches réglementaires.
                           </p>
                           {getMajorationDOMTOM(selectedDepartement) > 0 && (
                             <p className="text-sm text-blue-900 mt-2 font-medium">
                               ⚠️ Majoration DOM-TOM de {getMajorationDOMTOM(selectedDepartement)}% appliquée
                             </p>
+                          )}
+                          {montantActe && parseFloat(montantActe.replace(/\s/g, '')) > 100000 && (
+                            <div className="mt-3">
+                              <label className="flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={appliquerRemise}
+                                  onChange={(e) => setAppliquerRemise(e.target.checked)}
+                                  className="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded"
+                                />
+                                <span className="text-sm font-medium text-blue-900">
+                                  Appliquer la remise de 20% au-delà de 100 000€
+                                </span>
+                              </label>
+                              <p className="text-xs text-blue-700 mt-1 ml-6">
+                                Article A444-174 - Remise optionnelle rarement pratiquée
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>
