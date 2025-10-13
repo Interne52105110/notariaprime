@@ -372,14 +372,35 @@ function ContactContent() {
         </div>
       </section>
 
-      {/* Map placeholder */}
+      {/* Map */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl overflow-hidden h-96 flex items-center justify-center border-2 border-gray-300">
-            <div className="text-center">
-              <MapPin className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-600 font-semibold">Pont-l'Abbé, Bretagne</p>
-              <p className="text-gray-500 text-sm">29120, France</p>
+          <div className="rounded-3xl overflow-hidden border-2 border-gray-300 shadow-xl">
+            <iframe
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-4.2259%2C47.8605%2C-4.2059%2C47.8705&layer=mapnik&marker=47.8655%2C-4.2159"
+              width="100%"
+              height="400"
+              style={{ border: 0 }}
+              loading="lazy"
+              title="Carte de Pont-l'Abbé"
+            />
+            <div className="bg-white p-6 border-t-2 border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">NOTARIA PRIME</p>
+                  <p className="text-sm text-gray-600">1 Impasse de Menez Bijigou</p>
+                  <p className="text-sm text-gray-600">29120 Pont-l'Abbé, France</p>
+                </div>
+                <a
+                  href="https://www.openstreetmap.org/?mlat=47.8655&mlon=-4.2159#map=15/47.8655/-4.2159"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Ouvrir dans Maps
+                </a>
+              </div>
             </div>
           </div>
         </div>

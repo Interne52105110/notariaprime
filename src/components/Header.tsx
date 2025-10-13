@@ -1,9 +1,8 @@
 "use client";
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { 
-  Calculator, Menu, X, ArrowRight, Github
+  Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt
 } from 'lucide-react';
 
 export default function Header() {
@@ -40,7 +39,7 @@ export default function Header() {
           <div className="flex items-center justify-between h-20">
             {/* Logo et navigation */}
             <div className="flex items-center gap-12">
-              <Link href="/" className="flex items-center gap-3 group">
+              <a href="/" className="flex items-center gap-3 group">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <Calculator className="w-5 h-5 text-white" />
@@ -51,23 +50,25 @@ export default function Header() {
                   <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
                   <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
                 </div>
-              </Link>
+              </a>
 
               {/* Menu desktop */}
               {isDesktop && (
                 <nav className="flex items-center gap-8">
-                  <Link href="/#solutions" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Solutions
-                  </Link>
-                  <Link href="/features" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Fonctionnalités
-                  </Link>
-                  <Link href="/pretaxe" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Calculateur
-                  </Link>
-                  <Link href="/roadmap" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Roadmap
-                  </Link>
+                  <a 
+                    href="/pretaxe" 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    Frais de Notaire
+                  </a>
+                  <a 
+                    href="/plusvalue" 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Plus-Value Immobilière
+                  </a>
                 </nav>
               )}
             </div>
@@ -85,10 +86,10 @@ export default function Header() {
                     <Github className="w-4 h-4" />
                     GitHub
                   </a>
-                  <Link href="/pretaxe" className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
+                  <a href="/pretaxe" className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
                     Calculer
                     <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  </a>
                 </>
               )}
               {!isDesktop && (
@@ -107,36 +108,24 @@ export default function Header() {
 
       {/* Menu mobile */}
       {mobileMenuOpen && !isDesktop && (
-        <div className="fixed inset-0 z-40 bg-white pt-20">
+        <div className="fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
           <nav className="flex flex-col p-6 space-y-4">
-            <Link 
-              href="/#solutions" 
-              className="text-lg font-medium text-gray-900 py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Solutions
-            </Link>
-            <Link 
-              href="/features" 
-              className="text-lg font-medium text-gray-900 py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Fonctionnalités
-            </Link>
-            <Link 
+            <a 
               href="/pretaxe" 
-              className="text-lg font-medium text-gray-900 py-2"
+              className="flex items-center gap-3 py-3 text-lg font-medium text-gray-900"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Calculateur
-            </Link>
-            <Link 
-              href="/roadmap" 
-              className="text-lg font-medium text-gray-900 py-2"
+              <Receipt className="w-5 h-5 text-blue-600" />
+              Frais de Notaire
+            </a>
+            <a 
+              href="/plusvalue" 
+              className="flex items-center gap-3 py-3 text-lg font-medium text-gray-900"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Roadmap
-            </Link>
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+              Plus-Value Immobilière
+            </a>
             <hr className="my-4" />
             <a 
               href="https://github.com/Interne52105110/notariaprime" 
@@ -147,14 +136,14 @@ export default function Header() {
               <Github className="w-5 h-5" />
               GitHub
             </a>
-            <Link 
+            <a 
               href="/pretaxe" 
-              className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium"
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium mt-4"
               onClick={() => setMobileMenuOpen(false)}
             >
               Commencer maintenant
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </nav>
         </div>
       )}

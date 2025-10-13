@@ -1929,12 +1929,15 @@ function PretaxeContent() {
                   <span className="text-gray-600 font-medium">Taxes et droits</span>
                   <span className="font-semibold text-lg">{totalTaxes.toFixed(2)} €</span>
                 </div>
-                <div className="flex justify-between items-center pt-6 border-t-2 border-gray-300">
-                  <span className="text-2xl font-bold text-gray-900">TOTAL GÉNÉRAL</span>
-                  <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
-                  </span>
-                </div>
+<div className="flex justify-between items-center pt-6 border-t-2 border-gray-300">
+  <span className="text-2xl font-bold text-gray-900">TOTAL GÉNÉRAL</span>
+  <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+    {totalGeneral.toLocaleString('fr-FR', { 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2 
+    })} €
+  </span>
+</div>
               </div>
 
               <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
