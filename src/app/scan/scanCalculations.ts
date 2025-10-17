@@ -361,11 +361,10 @@ export function calculerFraisCompletsScan(
   const acteKey = mapTypeActeVersConfig(typeActe);
   const acteConfig = actesConfig[acteKey];
   
-  if (!acteConfig || acteConfig.type === 'non_tarife') {
-    console.warn('⚠️ Acte non tarifé ou configuration manquante');
-    return null;
-  }
-  
+if (!acteConfig) {
+  console.warn('⚠️ Configuration manquante pour cet acte');
+  return null;
+}
   const departement = donnees.departement || '75';
   
   // 🔧 CORRECTION : Forcer "ancien" par défaut car la détection neuf/ancien est imparfaite
