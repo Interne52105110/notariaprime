@@ -5,7 +5,7 @@ const path = require('path');
 const OUTPUT_FILE = 'project-export.txt';
 const PROJECT_NAME = 'NotariaPrime';
 
-// Dossiers et fichiers à ignorer
+// Dossiers à ignorer
 const IGNORE_DIRS = [
   'node_modules',
   '.next',
@@ -18,6 +18,7 @@ const IGNORE_DIRS = [
   '.turbo'
 ];
 
+// Fichiers à ignorer (VERSION CONSOLIDÉE)
 const IGNORE_FILES = [
   '.DS_Store',
   'Thumbs.db',
@@ -28,7 +29,19 @@ const IGNORE_FILES = [
   'package-lock.json',
   'yarn.lock',
   'pnpm-lock.yaml',
-  '*.map'
+  '*.map',
+  'export-project.js',        // Script lui-même
+  'eslint.config.mjs',         // Config ESLint
+  'postcss.config.mjs',        // Config PostCSS
+  'next.config.ts',            // Config Next.js
+  'next-env.d.ts',             // Types Next.js
+  'README.md'                  // Doc générique
+];
+
+// Fichiers de config à exclure
+const SKIP_CONFIG_FILES = [
+  'tailwind.config.js',
+  'tsconfig.json'
 ];
 
 // Extensions de fichiers à inclure
@@ -43,17 +56,7 @@ const INCLUDE_EXTENSIONS = [
 
 // Fichiers spécifiques à toujours inclure
 const ALWAYS_INCLUDE = [
-  'package.json',
-  'tsconfig.json',
-  'next.config.js',
-  'next.config.mjs',
-  'tailwind.config.js',
-  'tailwind.config.ts',
-  'postcss.config.js',
-  'postcss.config.mjs',
-  '.eslintrc.json',
-  '.prettierrc',
-  'README.md'
+  'package.json'
 ];
 
 let output = '';
@@ -82,7 +85,7 @@ function shouldIgnore(filePath, isDirectory = false) {
   return false;
 }
 
-// Fonction pour vérifier si un fichier doit être inclus
+// Fonction pour vérifier si un fichier doit être inclus (VERSION CORRIGÉE)
 function shouldInclude(filePath) {
   const basename = path.basename(filePath);
   const ext = path.extname(filePath);
@@ -90,6 +93,16 @@ function shouldInclude(filePath) {
   // Toujours inclure certains fichiers
   if (ALWAYS_INCLUDE.includes(basename)) {
     return true;
+  }
+  
+  // Exclure les fichiers de config
+  if (SKIP_CONFIG_FILES.includes(basename)) {
+    return false;
+  }
+  
+  // Exclure utils.ts
+  if (filePath.includes('src/lib/utils.ts') || filePath.includes('src\\lib\\utils.ts')) {
+    return false;
   }
   
   // Vérifier l'extension

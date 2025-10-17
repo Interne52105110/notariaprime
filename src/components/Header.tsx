@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt
+  Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt, Gift
 } from 'lucide-react';
 
 export default function Header() {
@@ -56,6 +56,13 @@ export default function Header() {
               {isDesktop && (
                 <nav className="flex items-center gap-8">
                   <a 
+                    href="/donation" 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    <Gift className="w-4 h-4" />
+                    Donation / Succession
+                  </a>
+                  <a 
                     href="/pretaxe" 
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
                   >
@@ -67,7 +74,7 @@ export default function Header() {
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
                   >
                     <TrendingUp className="w-4 h-4" />
-                    Plus-Value Immobilière
+                    Plus-Value
                   </a>
                 </nav>
               )}
@@ -110,6 +117,14 @@ export default function Header() {
       {mobileMenuOpen && !isDesktop && (
         <div className="fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
           <nav className="flex flex-col p-6 space-y-4">
+            <a 
+              href="/donation" 
+              className="flex items-center gap-3 py-3 text-lg font-medium text-gray-900"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Gift className="w-5 h-5 text-rose-600" />
+              Donation / Succession
+            </a>
             <a 
               href="/pretaxe" 
               className="flex items-center gap-3 py-3 text-lg font-medium text-gray-900"

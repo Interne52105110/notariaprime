@@ -1,0 +1,297 @@
+╔══════════════════════════════════════════════════════════╗
+║  NOTARIAPRIME - EXPORT ULTRA OPTIMISÉ              ║
+║  Date: 14/10/2025 21:59:25                       ║
+╚══════════════════════════════════════════════════════════╝
+
+🎯 7 fichiers critiques | Extraction intelligente
+📦 3 calculateurs + config + navigation
+
+============================================================
+📄 package.json
+📏 1.0 KB | 41 lignes
+────────────────────────────────────────────────────────────
+
+{
+  "name": "notariaprime",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-separator": "^1.1.7",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.15",
+    "jspdf": "^3.0.3",
+    "lucide-react": "^0.544.0",
+    "mammoth": "^1.11.0",
+    "next": "15.5.3",
+    "next-themes": "^0.4.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "recharts": "^3.2.1",
+    "tailwind-merge": "^3.3.1",
+    "tesseract.js": "^6.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5"
+  }
+}
+
+... (2 caractères omis)
+
+
+============================================================
+📄 src\app\page.tsx
+📏 26.1 KB | 587 lignes
+────────────────────────────────────────────────────────────
+
+// 📦 IMPORTS
+import React, { useState, useEffect, memo, useCallback } from 'react';
+import MainLayout from '@/components/MainLayout';
+import { 
+
+// 🔄 STATES
+import React, { useState, useEffect, memo, useCallback } from 'react';
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+
+// ⚙️ FONCTIONS
+const StatsCard = memo(({ stat }: { stat: Stat }) => (
+const FeatureCard = memo(({ feature }: { feature: Feature }) => (
+const SolutionCard = memo(({ solution, index, onHover }: { 
+  const isAvailable = solution.status === 'Disponible';
+  const handleClick = () => {
+function HomepageContent() {
+    const updateDeviceType = () => {
+  const stats: Stat[] = [
+
+
+... (23610 caractères omis)
+
+
+============================================================
+📄 src\app\pretaxe\page.tsx
+📏 85.5 KB | 1975 lignes
+────────────────────────────────────────────────────────────
+
+// 🧮 LOGIQUE DE CALCUL (extrait)
+
+  const calculerUsufruit = (age: string | number): number => {
+    const ageNum = parseInt(String(age));
+    if (ageNum < 21) return 90;
+    if (ageNum < 31) return 80;
+    if (ageNum < 41) return 70;
+    if (ageNum < 51) return 60;
+    if (ageNum < 61) return 50;
+    if (ageNum < 71) return 40;
+    if (ageNum < 81) return 30;
+    if (ageNum < 91) return 20;
+    return 10;
+  };
+
+  const calculerEmoluments = (montant: number, tranches: TrancheTarif[]) => {
+    let emolumentsBruts = 0;
+    
+    tranches.forEach(tranche => {
+      if (montant > tranche.min) {
+        const montantDansTranche = Math.min(montant - tranche.min, tranche.max - tranche.min);
+        emolumentsBruts += montantDansTranche * (tranche.taux / 100);
+      }
+
+  const calculerTaxes = () => {
+    if (!montantActe || taxes.typeBien === 'neuf') return;
+    
+    const montant = parseFloat(montantActe.replace(/\s/g, ''));
+    if (isNaN(montant)) return;
+    
+    const tauxDepartemental = departements[selectedDepartement]?.taux || 4.50;
+    const tauxCommunal = 1.20;
+    
+    const taxeDepartementale = montant * (tauxDepartemental / 100);
+    const taxeCommunale = montant * (tauxCommunal / 100);
+    const totalDroits = taxeDepartementale + taxeCommunale;
+    const fraisAssiette = totalDroits * 0.0237;
+    
+    setTaxes(prev => ({
+      ...prev,
+      departementale: taxeDepartementale,
+      communale: taxeCommunale,
+      fraisAssiette: fraisAssiette
+    }));
+
+... (82199 caractères omis)
+
+
+============================================================
+📄 src\app\plusvalue\page.tsx
+📏 78.1 KB | 1638 lignes
+────────────────────────────────────────────────────────────
+
+// 🧮 LOGIQUE DE CALCUL (extrait)
+
+  const calculerDureeDetention = (dateDebut: string, dateFin: string) => {
+    const debut = new Date(dateDebut);
+    const fin = new Date(dateFin);
+    const diffMs = fin.getTime() - debut.getTime();
+    const jours = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const annees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    return { annees, jours };
+
+  const calculerAbattementIR = (duree: number) => {
+    if (duree < 6) return 0;
+    if (duree < 22) return Math.min((duree - 5) * 6, 96);
+    return 100;
+  };
+
+  const calculerAbattementPS = (duree: number) => {
+    if (duree < 6) return 0;
+    if (duree < 22) return Math.min((duree - 5) * 1.65, 26.4);
+    if (duree < 23) return 26.4;
+    if (duree < 30) return 26.4 + Math.floor(duree - 22) * 9;
+    return 100;
+  };
+
+... (74583 caractères omis)
+
+
+============================================================
+📄 src\app\scan\page.tsx
+📏 108.8 KB | 2455 lignes
+────────────────────────────────────────────────────────────
+
+// 🧮 LOGIQUE DE CALCUL (extrait)
+
+  const calculerUsufruit = (age: number): number => {
+    if (age < 21) return 90;
+    if (age < 31) return 80;
+    if (age < 41) return 70;
+    if (age < 51) return 60;
+    if (age < 61) return 50;
+    if (age < 71) return 40;
+    if (age < 81) return 30;
+    if (age < 91) return 20;
+    return 10;
+  };
+
+  const calculerEmolumentsDetailles = (
+    montant: number,
+    tranches: TrancheTarif[]
+  ): CalculDetailleEmoluments => {
+    const tranchesCalculees: {
+      montant: number;
+      taux: number;
+      emolument: number;
+    }[] = [];
+
+  const calculerDroitsMutation = (
+    montant: number,
+    typeBien: string,
+    departement: string,
+    config: ConfigActe
+  ): CalculDroitsMutation | undefined => {
+    if (!config.droitsMutation) return undefined;
+    
+    // Pas de droits pour le neuf (sauf TVA)
+    if (typeBien === 'neuf') return undefined;
+    
+    const tauxDept = departements[departement]?.taux || config.droitsMutation.tauxDepartemental;
+    const tauxComm = config.droitsMutation.tauxCommunal;
+    const tauxEtat = config.droitsMutation.tauxEtat;
+    
+    const taxeDepartementale = montant * (tauxDept / 100);
+    const taxeCommunale = montant * (tauxComm / 100);
+    const taxeEtat = montant * (tauxEtat / 100);
+    const totalDroits = taxeDepartementale + taxeCommunale + taxeEtat;
+    
+    const fraisAssiette = config.droitsMutation.fraisAssiette 
+      ? totalDroits * 0.0237 
+      : undefined;
+    
+    return {
+      tauxDepartemental: tauxDept,
+      tauxCommunal: tauxComm,
+      tauxEtat,
+      taxeDepartementale,
+      taxeCommunale,
+      taxeEtat,
+      totalDroits,
+      fraisAssiette
+    };
+
+... (99996 caractères omis)
+
+
+============================================================
+📄 src\components\Header.tsx
+📏 6.6 KB | 167 lignes
+────────────────────────────────────────────────────────────
+
+// 🏗️ STRUCTURE
+      setIsMobile(window.innerWidth < 768);
+    return () => {
+  return (
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-12">
+              <a href="/" className="flex items-center gap-3 group">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Calculator className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
+                  <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
+                </div>
+              </a>
+                <nav className="flex items-center gap-8">
+                  <a 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                    <Receipt className="w-4 h-4" />
+                  </a>
+                  <a 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                    <TrendingUp className="w-4 h-4" />
+                  </a>
+                  <a 
+
+... (4778 caractères omis)
+
+
+============================================================
+📄 src\config\actesConfig.ts
+📏 26.1 KB | 1050 lignes
+────────────────────────────────────────────────────────────
+
+// 🏗️ STRUCTURE
+export const actesConfig: Record<string, ConfigActe> = {
+
+... (23657 caractères omis)
+
+
+╔══════════════════════════════════════════════════════════╗
+║  RÉSUMÉ                                            ║
+╠══════════════════════════════════════════════════════════╣
+║  Fichiers traités: 7                               ║
+║  Taille export: 8.8 KB                            ║
+║  Réduction: ~90% vs export complet                 ║
+╚══════════════════════════════════════════════════════════╝

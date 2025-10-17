@@ -6,7 +6,7 @@ import {
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
   CheckCircle, Users, Award, Lock, Globe,
   Play, FileCheck, Clock, Star, Building2, 
-  Rocket, Brain, Cpu
+  Rocket, Brain, Gift
 } from 'lucide-react';
 
 // Types pour les composants
@@ -87,15 +87,22 @@ const SolutionCard = memo(({ solution, index, onHover }: {
 }) => {
   const isAvailable = solution.status === 'Disponible';
   
+  const handleClick = () => {
+    if (isAvailable && solution.link) {
+      window.location.href = solution.link;
+    }
+  };
+  
   return (
     <div 
       className={`relative bg-white rounded-xl border p-8 transition-all duration-300 ${
         isAvailable 
           ? 'border-gray-200 hover:shadow-xl hover:border-indigo-300 cursor-pointer hover:-translate-y-1' 
-          : 'border-gray-100 opacity-75 bg-gray-50'
+          : 'border-gray-100 opacity-75 bg-gray-50 cursor-not-allowed'
       }`}
       onMouseEnter={() => isAvailable && onHover(index)}
       onMouseLeave={() => onHover(null)}
+      onClick={handleClick}
     >
       {solution.status === 'En développement' && (
         <div className="absolute -top-3 -right-3 px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
@@ -124,10 +131,10 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       </div>
       
       {isAvailable ? (
-        <a href={solution.link} className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all">
+        <div className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all">
           Utiliser l'outil
           <ArrowRight className="w-4 h-4" />
-        </a>
+        </div>
       ) : (
         <span className="text-gray-500 text-sm">En développement</span>
       )}
@@ -196,7 +203,7 @@ function HomepageContent() {
 
   const solutions: Solution[] = [
     {
-      title: 'Prétaxe Notariale',
+      title: 'Calcul Frais Notaire',
       icon: Calculator,
       description: 'Calcul instantané des frais notariés',
       status: 'Disponible',
@@ -212,12 +219,12 @@ function HomepageContent() {
       link: '/plusvalue'
     },
     {
-      title: 'Scanner OCR Pro',
-      icon: FileCheck,
-      description: 'Extraction intelligente de données',
-      status: 'En développement',
-      features: ['Reconnaissance IA', 'Import instantané', '99% de précision'],
-      link: '#'
+      title: 'Donation / Succession',
+      icon: Gift,
+      description: 'Calcul des droits de transmission',
+      status: 'Disponible',
+      features: ['Tous liens de parenté', 'Démembrement optimisé', 'Pacte Dutreil'],
+      link: '/donation'
     },
     {
       title: 'Expertise IA',
@@ -230,7 +237,7 @@ function HomepageContent() {
   ];
 
   const newFeatures: NewFeature[] = [
-    { icon: Rocket, label: 'API Publique', status: 'new' },
+    { icon: Gift, label: 'Donation / Succession', status: '' },
     { icon: Globe, label: 'Mode Hors-ligne', status: 'soon' },
     { icon: Users, label: 'Espace Pro', status: 'soon' },
     { icon: Brain, label: 'Assistant IA', status: 'soon' }
@@ -241,345 +248,340 @@ function HomepageContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section amélioré */}
-      <section className="relative py-20 overflow-hidden">
-        {/* Gradient animé */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
-        
-        {/* Blobs animés */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <div>
-              {/* Badge amélioré */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 border border-indigo-200 rounded-full mb-8">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
-                </span>
-                <span className="text-sm font-semibold text-indigo-700">
-                  Tarif réglementé 2025 intégré
-                </span>
-              </div>
-
-              {/* Titre optimisé */}
-              <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
-                <span className="text-gray-900">Automatisez vos</span>
-                <br />
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  calculs notariaux
-                </span>
-                <br />
-                <span className="text-gray-900">en 15 secondes</span>
-              </h1>
-
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                La plateforme open source qui révolutionne le calcul des frais notariés. 
-                100% gratuit, précis et conforme.
-              </p>
-
-              {/* Nouveaux badges de features */}
-              <div className="flex flex-wrap gap-3 mb-8">
-                {newFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg">
-                    <feature.icon className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">{feature.label}</span>
-                    {feature.status === 'new' && (
-                      <span className="text-xs bg-green-500 text-white px-1.5 py-0.5 rounded">NEW</span>
-                    )}
-                    {feature.status === 'soon' && (
-                      <span className="text-xs bg-yellow-500 text-white px-1.5 py-0.5 rounded">SOON</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* CTAs améliorés */}
-              <div className={`flex gap-4 mb-12 ${isMobile ? 'flex-col' : 'flex-row'}`}>
-                <a href="/pretaxe" className="flex items-center justify-center gap-2 px-7 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-                  Commencer gratuitement
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-                <button className="flex items-center justify-center gap-2 px-7 py-4 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 rounded-xl font-semibold transition-all">
-                  <Play className="w-5 h-5" />
-                  Voir la démo (2 min)
-                </button>
-              </div>
-
-              {/* Trust indicators */}
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-medium text-gray-600">Open Source</span>
+    <MainLayout showFeedback={true}>
+      <div className="min-h-screen bg-white">
+        {/* Hero Section amélioré */}
+        <section className="relative py-20 overflow-hidden">
+          {/* Gradient animé */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
+          
+          {/* Blobs animés */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl animate-blob" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+          
+          <div className="relative max-w-7xl mx-auto px-6">
+            <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <div>
+                {/* Badge amélioré */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 border border-indigo-200 rounded-full mb-8">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+                  </span>
+                  <span className="text-sm font-semibold text-indigo-700">
+                    Tarif réglementé 2025 intégré
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-medium text-gray-600">100% Gratuit</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-medium text-gray-600">Communautaire</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Dashboard Preview amélioré */}
-            {isDesktop && (
-              <div className="relative">
-                <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
-                  {/* Window controls */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full" />
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                      <div className="w-3 h-3 bg-green-500 rounded-full" />
+                {/* Titre optimisé */}
+                <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
+                  <span className="text-gray-900">Automatisez vos</span>
+                  <br />
+                  <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    calculs notariaux
+                  </span>
+                  <br />
+                  <span className="text-gray-900">en 15 secondes</span>
+                </h1>
+
+                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                  La plateforme open source qui révolutionne le calcul des frais notariés. 
+                  100% gratuit, précis et conforme.
+                </p>
+
+                {/* Nouveaux badges de features */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {newFeatures.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg">
+                      <feature.icon className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">{feature.label}</span>
+                      {feature.status === 'soon' && (
+                        <span className="text-xs bg-yellow-500 text-white px-1.5 py-0.5 rounded">SOON</span>
+                      )}
                     </div>
-                    <span className="text-xs text-gray-400">notariaprime.fr/dashboard</span>
+                  ))}
+                </div>
+
+                {/* CTAs améliorés */}
+                <div className={`flex gap-4 mb-12 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+                  <a href="/pretaxe" className="flex items-center justify-center gap-2 px-7 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                    Commencer gratuitement
+                    <ArrowRight className="w-5 h-5" />
+                  </a>
+                  <button className="flex items-center justify-center gap-2 px-7 py-4 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 rounded-xl font-semibold transition-all">
+                    <Play className="w-5 h-5" />
+                    Voir la démo (2 min)
+                  </button>
+                </div>
+
+                {/* Trust indicators */}
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium text-gray-600">Open Source</span>
                   </div>
-                  
-                  {/* Dashboard content */}
-                  <div className="bg-gray-800 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-gray-400 text-sm">Calcul en cours</span>
-                      <span className="text-green-400 text-xs font-semibold flex items-center gap-1">
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                        LIVE
-                      </span>
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium text-gray-600">100% Gratuit</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Award className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium text-gray-600">Communautaire</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dashboard Preview amélioré */}
+              {isDesktop && (
+                <div className="relative">
+                  <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
+                    {/* Window controls */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full" />
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                        <div className="w-3 h-3 bg-green-500 rounded-full" />
+                      </div>
+                      <span className="text-xs text-gray-400">notariaprime.fr/dashboard</span>
                     </div>
                     
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium">Vente immobilière</span>
-                        <span className="text-3xl font-bold text-white">450,000 €</span>
+                    {/* Dashboard content */}
+                    <div className="bg-gray-800 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-gray-400 text-sm">Calcul en cours</span>
+                        <span className="text-green-400 text-xs font-semibold flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                          LIVE
+                        </span>
                       </div>
                       
-                      {/* Progress bar */}
-                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: '75%' }} />
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white font-medium">Vente immobilière</span>
+                          <span className="text-3xl font-bold text-white">450,000 €</span>
+                        </div>
+                        
+                        {/* Progress bar */}
+                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: '75%' }} />
+                        </div>
+                        
+                        {/* Stats grid */}
+                        <div className="grid grid-cols-3 gap-4 mt-6">
+                          <div className="bg-gray-700/50 rounded-lg p-3">
+                            <p className="text-xs text-gray-400">Émoluments</p>
+                            <p className="text-white font-bold">3,894 €</p>
+                          </div>
+                          <div className="bg-gray-700/50 rounded-lg p-3">
+                            <p className="text-xs text-gray-400">Taxes</p>
+                            <p className="text-white font-bold">24,750 €</p>
+                          </div>
+                          <div className="bg-gray-700/50 rounded-lg p-3">
+                            <p className="text-xs text-gray-400">Total TTC</p>
+                            <p className="text-green-400 font-bold">31,244 €</p>
+                          </div>
+                        </div>
                       </div>
-                      
-                      {/* Stats grid */}
-                      <div className="grid grid-cols-3 gap-4 mt-6">
-                        <div className="bg-gray-700/50 rounded-lg p-3">
-                          <p className="text-xs text-gray-400">Émoluments</p>
-                          <p className="text-white font-bold">3,894 €</p>
+                    </div>
+
+                    {/* Mini chart */}
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-400">Calculs/mois</span>
+                          <TrendingUp className="w-4 h-4 text-green-400" />
                         </div>
-                        <div className="bg-gray-700/50 rounded-lg p-3">
-                          <p className="text-xs text-gray-400">Taxes</p>
-                          <p className="text-white font-bold">24,750 €</p>
+                        <p className="text-2xl font-bold text-white">1,247</p>
+                        <p className="text-xs text-green-400">+23% ce mois</p>
+                      </div>
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-400">Temps gagné</span>
+                          <Clock className="w-4 h-4 text-indigo-400" />
                         </div>
-                        <div className="bg-gray-700/50 rounded-lg p-3">
-                          <p className="text-xs text-gray-400">Total TTC</p>
-                          <p className="text-green-400 font-bold">31,244 €</p>
-                        </div>
+                        <p className="text-2xl font-bold text-white">42h</p>
+                        <p className="text-xs text-indigo-400">Cette semaine</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Mini chart */}
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div className="bg-gray-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-gray-400">Calculs/mois</span>
-                        <TrendingUp className="w-4 h-4 text-green-400" />
+                  {/* Floating notifications */}
+                  <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 animate-bounce">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
                       </div>
-                      <p className="text-2xl font-bold text-white">1,247</p>
-                      <p className="text-xs text-green-400">+23% ce mois</p>
-                    </div>
-                    <div className="bg-gray-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-gray-400">Temps gagné</span>
-                        <Clock className="w-4 h-4 text-indigo-400" />
+                      <div>
+                        <p className="text-xs text-gray-500">Calcul terminé</p>
+                        <p className="font-semibold text-gray-900">À l'instant</p>
                       </div>
-                      <p className="text-2xl font-bold text-white">42h</p>
-                      <p className="text-xs text-indigo-400">Cette semaine</p>
                     </div>
                   </div>
-                </div>
 
-                {/* Floating notifications */}
-                <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 animate-bounce">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4">
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Calcul terminé</p>
-                      <p className="font-semibold text-gray-900">À l'instant</p>
-                    </div>
+                    <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
+                    <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        </section>
 
-                <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4">
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-600">"Interface exceptionnelle"</p>
-                  <p className="text-xs font-medium text-gray-900">- Marie D., Notaire</p>
-                </div>
+        {/* Stats Bar amélioré */}
+        <section className="py-16 bg-gray-50 border-y border-gray-200">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className={`grid gap-8 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
+              {stats.map((stat, index) => (
+                <StatsCard key={index} stat={stat} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Solutions Grid optimisé */}
+        <section id="solutions" className="py-20">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full mb-4">
+                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <span className="text-sm font-semibold text-indigo-700">Nos outils</span>
               </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Bar amélioré */}
-      <section className="py-16 bg-gray-50 border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid gap-8 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
-            {stats.map((stat, index) => (
-              <StatsCard key={index} stat={stat} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Solutions Grid optimisé */}
-      <section id="solutions" className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full mb-4">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              <span className="text-sm font-semibold text-indigo-700">Nos outils</span>
+              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+                4 outils puissants pour votre quotidien
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Des solutions concrètes pour gagner du temps sur vos tâches récurrentes
+              </p>
             </div>
-            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-              4 outils puissants pour votre quotidien
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Des solutions concrètes pour gagner du temps sur vos tâches récurrentes
-            </p>
-          </div>
 
-          <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-            {solutions.map((solution, index) => (
-              <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
-            ))}
+            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {solutions.map((solution, index) => (
+                <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section optimisé */}
-      <section id="features" className="py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-              Une technologie de pointe
-            </h2>
-            <p className="text-xl text-gray-600">
-              Infrastructure de qualité pour les professionnels exigeants
-            </p>
+        {/* Features Section optimisé */}
+        <section id="features" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+                Une technologie de pointe
+              </h2>
+              <p className="text-xl text-gray-600">
+                Infrastructure de qualité pour les professionnels exigeants
+              </p>
+            </div>
+
+            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {features.map((feature, index) => (
+                <FeatureCard key={index} feature={feature} />
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-            {features.map((feature, index) => (
-              <FeatureCard key={index} feature={feature} />
-            ))}
-          </div>
-        </div>
-      </section>
+        {/* Community Section amélioré */}
+        <section className="py-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+                Rejoignez la communauté
+              </h2>
+              <p className="text-xl text-gray-600">
+                Un projet open source développé par et pour les professionnels du notariat
+              </p>
+            </div>
 
-      {/* Community Section amélioré */}
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-              Rejoignez la communauté
-            </h2>
-            <p className="text-xl text-gray-600">
-              Un projet open source développé par et pour les professionnels du notariat
-            </p>
-          </div>
-
-          <div className={`grid gap-8 mb-16 ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'}`}>
-            {[
-              { icon: Users, value: '15+', label: 'Utilisateurs actifs', color: 'from-indigo-50 to-indigo-100' },
-              { icon: Calculator, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
-              { icon: Star, value: '100%', label: 'Gratuit & Open Source', color: 'from-yellow-50 to-yellow-100' }
-            ].map((item, i) => (
-              <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl p-8 text-center hover:scale-105 transition-transform`}>
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <item.icon className="w-8 h-8 text-gray-700" />
+            <div className={`grid gap-8 mb-16 ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'}`}>
+              {[
+                { icon: Users, value: '15+', label: 'Utilisateurs actifs', color: 'from-indigo-50 to-indigo-100' },
+                { icon: Calculator, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
+                { icon: Star, value: '100%', label: 'Gratuit & Open Source', color: 'from-yellow-50 to-yellow-100' }
+              ].map((item, i) => (
+                <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl p-8 text-center hover:scale-105 transition-transform`}>
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                    <item.icon className="w-8 h-8 text-gray-700" />
+                  </div>
+                  <h3 className="text-3xl font-bold mb-2 text-gray-900">{item.value}</h3>
+                  <p className="text-gray-600">{item.label}</p>
                 </div>
-                <h3 className="text-3xl font-bold mb-2 text-gray-900">{item.value}</h3>
-                <p className="text-gray-600">{item.label}</p>
+              ))}
+            </div>
+
+            {/* Call to Action Community */}
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-center">
+              <h3 className="text-3xl font-bold text-white mb-4">
+                Contribuez au projet !
+              </h3>
+              <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                NotariaPrime est un projet communautaire. Proposez des fonctionnalités, 
+                signalez des bugs, ou contribuez au code sur GitHub.
+              </p>
+              <div className={`flex gap-4 justify-center ${isMobile ? 'flex-col' : 'flex-row'}`}>
+                <a href="https://github.com/Interne52105110/notariaprime" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold transition-all">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  Voir sur GitHub
+                </a>
+                <a href="/contact" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
+                  Proposer une idée
+                </a>
               </div>
-            ))}
+            </div>
           </div>
+        </section>
 
-          {/* Call to Action Community */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Contribuez au projet !
-            </h3>
-            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              NotariaPrime est un projet communautaire. Proposez des fonctionnalités, 
-              signalez des bugs, ou contribuez au code sur GitHub.
+        {/* CTA Section final optimisé */}
+        <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              Simplifiez vos calculs notariaux dès maintenant
+            </h2>
+            <p className="text-xl text-gray-300 mb-10">
+              Rejoignez notre communauté grandissante d'utilisateurs.
+              <br />100% gratuit, sans inscription, open source.
             </p>
-            <div className={`flex gap-4 justify-center ${isMobile ? 'flex-col' : 'flex-row'}`}>
-              <a href="https://github.com/Interne52105110/notariaprime" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold transition-all">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                Voir sur GitHub
+            
+            <div className={`flex gap-4 justify-center mb-10 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+              <a href="/pretaxe" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                Calculer maintenant
+                <ArrowRight className="w-5 h-5" />
               </a>
-              <a href="/contact" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
-                Proposer une idée
+              <a href="https://github.com/Interne52105110/notariaprime" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl font-semibold transition-all">
+                Explorer le code source
               </a>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section final optimisé */}
-      <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-            Simplifiez vos calculs notariaux dès maintenant
-          </h2>
-          <p className="text-xl text-gray-300 mb-10">
-            Rejoignez notre communauté grandissante d'utilisateurs.
-            <br />100% gratuit, sans inscription, open source.
-          </p>
-          
-          <div className={`flex gap-4 justify-center mb-10 ${isMobile ? 'flex-col' : 'flex-row'}`}>
-            <a href="/pretaxe" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-              Calculer maintenant
-              <ArrowRight className="w-5 h-5" />
-            </a>
-            <a href="https://github.com/Interne52105110/notariaprime" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl font-semibold transition-all">
-              Explorer le code source
-            </a>
-          </div>
-          
-          <div className="flex items-center justify-center gap-8 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              Sans inscription
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              100% Gratuit
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              Code source libre
+            
+            <div className="flex items-center justify-center gap-8 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                Sans inscription
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                100% Gratuit
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                Code source libre
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </MainLayout>
   );
 }
 
 export default function NotariaPrimeHomepage() {
-  return (
-    <MainLayout>
-      <HomepageContent />
-    </MainLayout>
-  );
+  return <HomepageContent />;
 }
