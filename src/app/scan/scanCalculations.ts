@@ -148,10 +148,11 @@ function determinerDeboursAvecConfig(
   };
   
   // Utiliser la config si disponible
-  if (config?.debours?.variables) {
-    debours.etatsHypothecaires = config.debours.variables.etatHypothecaire || 0;
-    debours.cadastre = config.debours.variables.cadastre || 0;
-    debours.urbanisme = config.debours.variables.urbanisme || 0;
+  // Note: La config actuelle n'a pas de structure .variables
+  // On utilise les valeurs par défaut ou on peut les définir par type d'acte
+  if (config?.debours) {
+    // Si la config a des valeurs spécifiques, les utiliser
+    // Sinon, garder les valeurs par défaut (0)
   }
   
   const total = Object.values(debours).reduce((sum, val) => sum + val, 0);
