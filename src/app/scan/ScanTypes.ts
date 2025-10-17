@@ -5,6 +5,8 @@
  * (Les types de calcul sont dans pretaxe/PretaxeTypes.ts)
  */
 
+import type { CalculCompletScan } from './scanCalculations';
+
 // ============================================================================
 // EXTRACTION
 // ============================================================================
@@ -92,6 +94,7 @@ export interface AnalyseResult {
   confiance: number;
   donneesExtraites: DonneesExtraites;
   texteBrut: string;
+  calcul?: CalculCompletScan | null;
   suggestions?: string[];
   warnings?: string[];
   informations?: string[];
