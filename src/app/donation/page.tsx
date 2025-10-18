@@ -1139,32 +1139,34 @@ function DonationCalculatorContent() {
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Nature de la donation *
-                      </label>
-                      <select
-                        value={donataire.typeDon}
-                        onChange={(e) => {
-                          const newDonataires = [...donataires];
-                          newDonataires[index].typeDon = e.target.value as any;
-                          setDonataires(newDonataires);
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
-                      >
-                        <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
-                        <option value="argent">Somme d'argent → Abattement +31 865€ si donateur &lt; 80 ans</option>
-                        <option value="argent-residence">Somme d'argent résidence principale → Abattement +131 865€ (2025-2026)</option>
-                      </select>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
-                        {donataire.typeDon === 'argent-residence' && '🏠 Exonération résidence + don familial (art. 790 A bis + 790 G)'}
-                        {donataire.typeDon === 'bien' && '📋 Abattement général uniquement (art. 779)'}
-                      </p>
-                    </div>
+                    {activeTab === 'donation' && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nature de la donation *
+                        </label>
+                        <select
+                          value={donataire.typeDon}
+                          onChange={(e) => {
+                            const newDonataires = [...donataires];
+                            newDonataires[index].typeDon = e.target.value as any;
+                            setDonataires(newDonataires);
+                          }}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        >
+                          <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
+                          <option value="argent">Somme d'argent → Abattement +31 865€ si donateur &lt; 80 ans</option>
+                          <option value="argent-residence">Somme d'argent résidence principale → Abattement +131 865€ (2025-2026)</option>
+                        </select>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
+                          {donataire.typeDon === 'argent-residence' && '🏠 Exonération résidence + don familial (art. 790 A bis + 790 G)'}
+                          {donataire.typeDon === 'bien' && '📋 Abattement général uniquement (art. 779)'}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {(donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') && (
+                  {activeTab === 'donation' && (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') && (
                     <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Âge du donateur (pour don familial de somme d'argent)
