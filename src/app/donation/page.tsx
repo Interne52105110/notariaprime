@@ -6,7 +6,8 @@ import {
   Calculator, TrendingDown, Users, Gift, Heart, PieChart,
   AlertCircle, Info, CheckCircle, Download, Save, History,
   Lightbulb, BarChart3, Target, Calendar, Euro, FileText,
-  ArrowRight, Plus, Minus, X, Building
+  ArrowRight, Plus, Minus, X, Building, HelpCircle, ChevronDown, 
+  ChevronUp, BookOpen
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -17,6 +18,8 @@ interface Donataire {
   lien: 'enfant' | 'petit-enfant' | 'arriere-petit-enfant' | 'conjoint' | 'partenaire-pacs' | 'frere-soeur' | 'neveu-niece' | 'autre';
   montant: string;
   handicap: boolean;
+  typeDon: 'bien' | 'argent' | 'argent-residence';
+  ageDonateur: string;
 }
 
 interface Demembrement {
@@ -148,9 +151,194 @@ function calculerValeurUsufruit(age: number): number {
   return 10;
 }
 
+// Composant FAQ
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<string | null>(null);
+
+  const faqData = [
+    {
+      category: "Abattements et barèmes",
+      questions: [
+        {
+          q: "Quels sont les abattements fiscaux en 2025 pour les donations ?",
+          r: "**Il existe 3 types d'abattements CUMULABLES selon la nature de la donation :**\n\n**1️⃣ ABATTEMENT GÉNÉRAL (art. 779 CGI) - tous les 15 ans :**\n• Enfant : 100 000 €\n• Petit-enfant : 31 865 €\n• Arrière-petit-enfant : 5 310 €\n• Conjoint/PACS : 80 724 € (exonération totale)\n• Frère/Sœur : 15 932 €\n• Neveu/Nièce : 7 967 €\n• Autre : 1 594 €\n\n**2️⃣ DON DE SOMME D'ARGENT (art. 790 G CGI) - tous les 15 ans :**\n• 31 865 € supplémentaires pour dons en ESPÈCES\n• Conditions : donateur < 80 ans + donataire majeur\n• Déclaration obligatoire sous 1 mois\n\n**3️⃣ EXONÉRATION RÉSIDENCE PRINCIPALE 2025-2026 (art. 790 A bis CGI) :**\n• 100 000 € pour achat logement neuf/VEFA ou rénovation énergétique\n\n**💰 CUMUL TOTAL possible pour un enfant majeur :**\n100k (général) + 31 865€ (don argent) + 100k (résidence) = **231 865 €** sans impôt !",
+          source: "Articles 779, 790 G et 790 A bis du CGI"
+        },
+        {
+          q: "Comment fonctionne le renouvellement de l'abattement tous les 15 ans ?",
+          r: "Les abattements se renouvellent tous les **15 ans**. Si vous donnez 80 000 € à votre enfant en 2025, vous pourrez redonner jusqu'à 100 000 € en franchise d'impôt à partir de 2040.\n\nSi l'abattement n'est pas utilisé en totalité lors d'une première donation, le solde reste disponible pendant 15 ans.",
+          source: "Article 784 du CGI - Règle du rapport fiscal"
+        },
+        {
+          q: "Quel est le barème des droits de donation en ligne directe ?",
+          r: "**Barème progressif (après abattement) :**\n\n• Jusqu'à 8 072 € → 5%\n• De 8 072 à 12 109 € → 10%\n• De 12 109 à 15 932 € → 15%\n• De 15 932 à 552 324 € → 20%\n• De 552 324 à 902 838 € → 30%\n• De 902 838 à 1 805 677 € → 40%\n• Au-delà de 1 805 677 € → 45%",
+          source: "Articles 777 et suivants du CGI"
+        }
+      ]
+    },
+    {
+      category: "Nouveautés 2025",
+      questions: [
+        {
+          q: "Quelle est la nouvelle exonération pour l'achat d'une résidence principale en 2025 ?",
+          r: "**Dispositif temporaire (15 février 2025 - 31 décembre 2026) :**\n\nExonération jusqu'à **100 000 € par donateur** et **300 000 € par bénéficiaire** pour :\n• Acquisition d'un logement neuf ou VEFA (résidence principale)\n• Travaux de rénovation énergétique éligibles à MaPrimeRénov'\n\n**Conditions strictes :**\n• Don de SOMME D'ARGENT uniquement\n• Utilisation des fonds sous **6 mois**\n• Conservation du bien pendant **5 ans**\n• Déclaration obligatoire (formulaire 2735)\n• Justificatifs à conserver\n\n**🎯 CUMUL TOTAL avec TOUS les autres abattements !**\n\nUn parent peut donner à son enfant majeur **231 865 €** sans impôt :\n• 100 000 € : abattement général (art. 779)\n• 31 865 € : don familial argent si parent < 80 ans (art. 790 G)\n• 100 000 € : exonération résidence principale (art. 790 A bis)",
+          source: "Article 790 A bis du CGI - Loi n°2025-127 du 14 février 2025, art. 71"
+        },
+        {
+          q: "Quelle est la différence entre l'abattement général et le don de somme d'argent ?",
+          r: "**Ce sont 2 dispositifs DIFFÉRENTS et CUMULABLES :**\n\n**📋 ABATTEMENT GÉNÉRAL (art. 779 CGI) :**\n• Pour TOUS types de biens (argent, immeuble, actions, etc.)\n• 100 000 € parent-enfant\n• Pas de condition d'âge\n• Tous les 15 ans\n\n**💵 DON FAMILIAL DE SOMME D'ARGENT (art. 790 G CGI) :**\n• UNIQUEMENT pour sommes d'argent (chèque, virement, espèces)\n• 31 865 € supplémentaires\n• Conditions strictes : donateur < 80 ans ET donataire majeur\n• Déclaration obligatoire sous 1 mois\n• Tous les 15 ans\n\n**Exemple concret :**\nVous donnez 131 865 € en cash à votre fils majeur :\n• 100 000 € sur l'abattement général\n• 31 865 € sur le don familial argent\n• = 0 € d'impôt !",
+          source: "Articles 779 et 790 G du CGI"
+        },
+        {
+          q: "Cette exonération temporaire se cumule-t-elle avec l'abattement classique ?",
+          r: "**OUI ! Les 3 dispositifs se CUMULENT INTÉGRALEMENT :**\n\n**Pour un enfant majeur recevant de l'argent de ses parents < 80 ans :**\n\n1️⃣ **Abattement général** : 100 000 € (art. 779)\n2️⃣ **Don familial argent** : + 31 865 € (art. 790 G)\n3️⃣ **Exo résidence principale** : + 100 000 € (art. 790 A bis)\n\n**= 231 865 € transmis sans impôt PAR PARENT** tous les 15 ans !\n\n**💰 Avec les 2 parents + 4 grands-parents :**\n• 2 parents × 231 865 € = 463 730 €\n• 4 grands-parents × 63 730 € = 254 920 €\n\n**TOTAL : 718 650 € en franchise d'impôt !**\n\n⚠️ **Attention :** L'exonération résidence principale nécessite :\n• Utilisation sous 6 mois pour achat/travaux\n• Conservation 5 ans\n• Don d'argent uniquement (pas d'immeuble direct)",
+          source: "Articles 779, 790 G et 790 A bis du CGI cumulés"
+        }
+      ]
+    },
+    {
+      category: "Démembrement de propriété",
+      questions: [
+        {
+          q: "Comment fonctionne le démembrement de propriété ?",
+          r: "Le démembrement divise la propriété en deux :\n\n**Usufruit** : droit d'utiliser le bien et d'en percevoir les revenus\n**Nue-propriété** : propriété du bien sans pouvoir l'utiliser\n\n**Avantage fiscal majeur** : la valeur taxable est réduite selon l'âge du donateur au moment de la donation.",
+          source: "Article 669 du CGI - Barème fiscal de l'usufruit"
+        },
+        {
+          q: "Quel est le barème fiscal de l'usufruit selon l'âge ?",
+          r: "**Valeur fiscale de l'usufruit :**\n\n• Moins de 21 ans → 90%\n• 21 à 30 ans → 80%\n• 31 à 40 ans → 70%\n• 41 à 50 ans → 60%\n• 51 à 60 ans → 50%\n• 61 à 70 ans → 40%\n• 71 à 80 ans → 30%\n• 81 à 90 ans → 20%\n• Plus de 90 ans → 10%\n\nLa **nue-propriété** = 100% - valeur de l'usufruit",
+          source: "Article 669 du CGI"
+        }
+      ]
+    },
+    {
+      category: "Pacte Dutreil",
+      questions: [
+        {
+          q: "Qu'est-ce que le Pacte Dutreil et comment en bénéficier ?",
+          r: "Le Pacte Dutreil permet une **exonération de 75%** de la valeur d'une entreprise transmise par donation ou succession.\n\n**Conditions obligatoires :**\n\n1. **Engagement collectif** : conservation des titres pendant 2 ans minimum (avant transmission)\n2. **Engagement individuel** : conservation pendant 4 ans après transmission\n3. **Activité éligible** : industrielle, commerciale, artisanale, agricole, libérale ou holding animatrice\n4. **Fonction de direction** : exercée pendant toute la durée des engagements + 3 ans\n\n⚠️ Toute rupture d'engagement = perte de l'exonération",
+          source: "Article 787 B du CGI"
+        },
+        {
+          q: "Peut-on cumuler Pacte Dutreil et démembrement ?",
+          r: "**Oui, c'est possible et très avantageux !**\n\nExemple pour une entreprise de 1 000 000 € (donateur 65 ans) :\n\n1. Réduction Dutreil : -75% = **250 000 €**\n2. Donation nue-propriété (60%) : 250 000 × 60% = **150 000 €**\n3. Abattement enfant : -100 000 €\n4. **Base imposable finale : 50 000 €**\n\n**Économie fiscale massive** par rapport à une donation classique (environ 400 000 € d'impôt évité)",
+          source: "Article 787 B du CGI + Article 669 du CGI"
+        }
+      ]
+    },
+    {
+      category: "Optimisation fiscale",
+      questions: [
+        {
+          q: "Peut-on donner à ses petits-enfants pour optimiser la transmission ?",
+          r: "**Stratégie multi-générationnelle très efficace :**\n\nUn enfant peut recevoir **sans droits** :\n• 200 000 € de ses parents (100k × 2)\n• 127 460 € de ses 4 grands-parents (31 865 × 4)\n\n**Total tous les 15 ans : 327 460 € en franchise d'impôt**\n\nCette technique permet de **sauter une génération** et réduire massivement la fiscalité globale.",
+          source: "Articles 779 et 790 B du CGI"
+        },
+        {
+          q: "Faut-il donner jeune ou attendre pour optimiser la fiscalité ?",
+          r: "**Donner tôt présente plusieurs avantages :**\n\n✅ **Renouvellement multiple** des abattements (tous les 15 ans)\n✅ **Protection de la hausse** : les biens sont gelés à leur valeur au jour du don\n✅ **Anticipation** : évite les droits de succession élevés\n\n**Pour le démembrement** : plus vous êtes jeune, plus l'usufruit a de valeur (donc plus d'économie)\n\n**Exemple** : donner à 55 ans (usufruit 50%) vs 75 ans (usufruit 30%) = 20% d'économie supplémentaire",
+          source: "Article 669 et 790 du CGI"
+        }
+      ]
+    }
+  ];
+
+  const toggleQuestion = (categoryIndex: number, questionIndex: number) => {
+    const newIndex = `${categoryIndex}-${questionIndex}`;
+    setOpenIndex(openIndex === newIndex ? null : newIndex);
+  };
+
+  return (
+    <div className="space-y-6">
+      {faqData.map((category, categoryIndex) => (
+        <div key={categoryIndex} className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-rose-50 to-pink-50 border-b-2 border-rose-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <h3 className="text-xl font-bold text-gray-900">{category.category}</h3>
+              <span className="ml-auto bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-sm font-semibold">
+                {category.questions.length} questions
+              </span>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {category.questions.map((item, questionIndex) => {
+              const isOpen = openIndex === `${categoryIndex}-${questionIndex}`;
+              return (
+                <div key={questionIndex} className="transition-all">
+                  <button
+                    onClick={() => toggleQuestion(categoryIndex, questionIndex)}
+                    className="w-full px-6 py-5 flex items-start gap-4 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      {isOpen ? (
+                        <ChevronUp className="w-5 h-5 text-rose-600" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                        {item.q}
+                      </h4>
+                      {!isOpen && (
+                        <p className="text-sm text-gray-500">
+                          Cliquez pour voir la réponse détaillée
+                        </p>
+                      )}
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-6 pb-6 pl-16">
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-100">
+                        <div className="prose prose-sm max-w-none">
+                          {item.r.split('\n').map((line, i) => {
+                            if (line.trim() === '') return <br key={i} />;
+                            
+                            const parts = line.split(/(\*\*.*?\*\*)/g);
+                            return (
+                              <p key={i} className="mb-2 text-gray-800 leading-relaxed">
+                                {parts.map((part, j) => {
+                                  if (part.startsWith('**') && part.endsWith('**')) {
+                                    return <strong key={j} className="text-gray-900">{part.slice(2, -2)}</strong>;
+                                  }
+                                  return <span key={j}>{part}</span>;
+                                })}
+                              </p>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t-2 border-blue-200">
+                          <div className="flex items-start gap-2">
+                            <BookOpen className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-xs font-semibold text-blue-900 mb-1">
+                                Référence légale :
+                              </p>
+                              <p className="text-xs text-blue-800 font-medium">
+                                {item.source}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function DonationCalculatorContent() {
   const [donataires, setDonataires] = useState<Donataire[]>([
-    { id: 1, nom: 'Bénéficiaire 1', lien: 'enfant', montant: '', handicap: false }
+    { id: 1, nom: 'Bénéficiaire 1', lien: 'enfant', montant: '', handicap: false, typeDon: 'bien', ageDonateur: '' }
   ]);
 
   const [demembrement, setDemembrement] = useState<Demembrement>({
@@ -181,7 +369,9 @@ function DonationCalculatorContent() {
       nom: `Bénéficiaire ${newId}`, 
       lien: 'enfant', 
       montant: '', 
-      handicap: false 
+      handicap: false,
+      typeDon: 'bien',
+      ageDonateur: ''
     }]);
   };
 
@@ -225,8 +415,32 @@ function DonationCalculatorContent() {
       }
     }
 
-    // Donation antérieure dans les 15 ans
+    // Abattement de base
     let abattementDisponible = BAREME_SUCCESSION[donataire.lien].abattement;
+    
+    // Don familial de somme d'argent (art. 790 G) - 31 865 €
+    let donFamilialArgent = 0;
+    if (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') {
+      const ageDonateur = parseInt(donataire.ageDonateur);
+      const donataireMajeur = ['enfant', 'petit-enfant', 'arriere-petit-enfant', 'neveu-niece'].includes(donataire.lien);
+      
+      if (ageDonateur && ageDonateur < 80 && donataireMajeur) {
+        donFamilialArgent = 31865;
+        abattementDisponible += donFamilialArgent;
+      }
+    }
+    
+    // Exonération résidence principale 2025-2026 (art. 790 A bis) - 100 000 €
+    let exonerationResidence = 0;
+    if (donataire.typeDon === 'argent-residence') {
+      const donataireMajeur = ['enfant', 'petit-enfant', 'arriere-petit-enfant', 'neveu-niece'].includes(donataire.lien);
+      if (donataireMajeur) {
+        exonerationResidence = 100000;
+        abattementDisponible += exonerationResidence;
+      }
+    }
+
+    // Donation antérieure dans les 15 ans
     if (donationAnterieure && dateDerniereDonation) {
       const dateAnt = new Date(dateDerniereDonation);
       const maintenant = new Date();
@@ -234,7 +448,10 @@ function DonationCalculatorContent() {
       
       if (diffAnnees < 15) {
         const montantAnt = parseFloat(donationAnterieure.replace(/\s/g, ''));
-        abattementDisponible = Math.max(0, abattementDisponible - montantAnt);
+        // On réduit d'abord l'abattement général, pas les exonérations spécifiques
+        const abattementBase = BAREME_SUCCESSION[donataire.lien].abattement;
+        const reductionAbattement = Math.min(montantAnt, abattementBase);
+        abattementDisponible -= reductionAbattement;
       }
     }
 
@@ -924,6 +1141,59 @@ function DonationCalculatorContent() {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Nature de la donation *
+                      </label>
+                      <select
+                        value={donataire.typeDon}
+                        onChange={(e) => {
+                          const newDonataires = [...donataires];
+                          newDonataires[index].typeDon = e.target.value as any;
+                          setDonataires(newDonataires);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      >
+                        <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
+                        <option value="argent">Somme d'argent → Abattement +31 865€ si donateur &lt; 80 ans</option>
+                        <option value="argent-residence">Somme d'argent résidence principale → Abattement +131 865€ (2025-2026)</option>
+                      </select>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
+                        {donataire.typeDon === 'argent-residence' && '🏠 Exonération résidence + don familial (art. 790 A bis + 790 G)'}
+                        {donataire.typeDon === 'bien' && '📋 Abattement général uniquement (art. 779)'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {(donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') && (
+                    <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Âge du donateur (pour don familial de somme d'argent)
+                      </label>
+                      <input
+                        type="number"
+                        value={donataire.ageDonateur}
+                        onChange={(e) => {
+                          const newDonataires = [...donataires];
+                          newDonataires[index].ageDonateur = e.target.value;
+                          setDonataires(newDonataires);
+                        }}
+                        placeholder="65"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-blue-700 mt-2">
+                        ⚠️ Le donateur doit avoir <strong>moins de 80 ans</strong> pour bénéficier du don familial de somme d'argent (+31 865€)
+                      </p>
+                      {donataire.typeDon === 'argent-residence' && (
+                        <p className="text-xs text-green-700 mt-2">
+                          ✅ <strong>Exonération résidence principale 2025-2026 :</strong> +100 000€ si affecté à l'achat d'un logement neuf ou travaux de rénovation énergétique (utilisation sous 6 mois, conservation 5 ans)
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Montant de la donation *
                       </label>
                       <div className="relative">
@@ -1402,7 +1672,7 @@ function DonationCalculatorContent() {
 
             {/* Comparaison scénarios */}
             {showOptimisation && scenariosComparaison.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
                 <div className="flex items-center gap-3 mb-6">
                   <BarChart3 className="w-8 h-8 text-purple-600" />
                   <h2 className="text-2xl font-bold text-gray-900">Comparaison des scénarios</h2>
@@ -1445,6 +1715,83 @@ function DonationCalculatorContent() {
             )}
           </>
         )}
+
+        {/* Section FAQ */}
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 mb-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl mb-4">
+              <HelpCircle className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              Questions Fréquentes
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Toutes les réponses à vos questions sur la transmission de patrimoine
+            </p>
+          </div>
+
+          <FAQSection />
+        </div>
+
+        {/* Disclaimer Légal */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-8 shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-amber-900 mb-3">
+                ⚖️ Avertissement Légal Important
+              </h3>
+              <div className="space-y-3 text-sm text-amber-900">
+                <p className="leading-relaxed">
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d'évoluer.
+                </p>
+                
+                <p className="leading-relaxed">
+                  Les règles fiscales en matière de donations et successions sont <strong>complexes et varient selon chaque situation personnelle</strong> (composition familiale, nature des biens, montants transmis, historique des donations, situation matrimoniale, etc.).
+                </p>
+
+                <div className="bg-white rounded-lg p-4 border-2 border-amber-300 mt-4">
+                  <p className="font-bold text-amber-900 mb-2">
+                    ⚠️ Consultation professionnelle obligatoire :
+                  </p>
+                  <ul className="space-y-1 ml-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Notaire</strong> : pour tout acte de donation, donation-partage, démembrement de propriété ou succession</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Avocat fiscaliste</strong> : pour l'optimisation fiscale complexe (Pacte Dutreil, holdings, structures patrimoniales)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Expert-comptable</strong> : pour les transmissions d'entreprise et aspects comptables</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Conseiller en gestion de patrimoine (CGP)</strong> : pour une stratégie patrimoniale globale</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <p className="leading-relaxed font-semibold text-amber-900">
+                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d'utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l'optimisation adaptée à votre situation.
+                </p>
+
+                <div className="bg-amber-100 rounded-lg p-3 mt-4 border border-amber-400">
+                  <p className="text-xs text-amber-900 leading-relaxed">
+                    <strong>📚 Sources officielles :</strong> Code Général des Impôts (CGI), Bulletin Officiel des Finances Publiques (BOFiP), 
+                    Service-Public.fr, Légifrance.gouv.fr, Impots.gouv.fr
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
