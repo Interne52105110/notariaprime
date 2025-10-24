@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
   Calculator, TrendingUp, ArrowRight, Sparkles,
-  CheckCircle, FileCheck, Building2, Clock, Zap,
-  Shield, Brain, Target
+  CheckCircle, FileCheck, Building2, Zap,
+  Shield, Brain, Target, Gift, Home, HeartHandshake,
+  Briefcase, PiggyBank, Award, Building, Scale, Globe, Users, Rocket
 } from 'lucide-react';
 
 function FonctionnalitesContent() {
@@ -23,6 +24,360 @@ function FonctionnalitesContent() {
     return () => window.removeEventListener('resize', updateDeviceType);
   }, []);
 
+  const availableTools = [
+    {
+      id: 'pretaxe',
+      title: 'Calcul de prétaxe notariale',
+      status: 'Disponible',
+      icon: Calculator,
+      gradient: 'from-indigo-50 to-purple-50',
+      borderColor: 'border-indigo-200',
+      description: 'Le calculateur de frais de notaire le plus précis et rapide. Conforme au décret n°2016-230 et aux tarifs réglementés 2025. Application automatique du barème dégressif avec OCR intégré.',
+      link: '/pretaxe',
+      features: [
+        {
+          title: 'Calcul par tranches automatique',
+          icon: Target,
+          desc: 'Barème officiel : 3,870% jusqu\'à 6 500€ • 1,596% de 6 500€ à 17 000€ • 1,064% de 17 000€ à 60 000€ • 0,799% au-delà. Application instantanée sur votre montant.'
+        },
+        {
+          title: 'Frais annexes inclus',
+          icon: Calculator,
+          desc: 'Intégration automatique : droits de mutation (5,80% en moyenne), contribution de sécurité immobilière (0,10%), émoluments de formalités, débours estimés. Tout est calculé.'
+        },
+        {
+          title: 'Scanner OCR intégré',
+          icon: FileCheck,
+          desc: 'Scannez vos documents et extrayez automatiquement les données. Import instantané dans le calculateur pour un gain de temps maximal.'
+        }
+      ],
+      supportedTypes: ['Vente immobilière', 'VEFA', 'Donation', 'Partage successoral', 'SCI', 'Bail emphytéotique'],
+      example: {
+        input: '250 000,00 €',
+        outputs: [
+          { label: 'Tranche 1 (0-6 500€) × 3,870%', value: '251,55 €' },
+          { label: 'Tranche 2 (6 500-17 000€) × 1,596%', value: '167,58 €' },
+          { label: 'Tranche 3 (17 000-60 000€) × 1,064%', value: '457,52 €' },
+          { label: 'Tranche 4 (>60 000€) × 0,799%', value: '1 518,10 €' }
+        ],
+        total: '2 394,75 € HT'
+      }
+    },
+    {
+      id: 'plusvalue',
+      title: 'Plus-Value Immobilière',
+      status: 'Disponible',
+      icon: TrendingUp,
+      gradient: 'from-green-50 to-emerald-50',
+      borderColor: 'border-green-200',
+      description: 'Simulation complète des plus-values immobilières avec abattements pour durée de détention. Optimisation fiscale par l\'intégration des travaux. Conforme aux règles fiscales 2025.',
+      link: '/plusvalue',
+      features: [
+        {
+          title: 'Abattements automatiques',
+          icon: Scale,
+          desc: 'Calcul précis des abattements pour durée de détention : 6% par an de la 6e à la 21e année, puis 4% la 22e année pour l\'IR. Exonération totale après 22 ans pour l\'IR et 30 ans pour les prélèvements sociaux.'
+        },
+        {
+          title: 'Optimisation travaux',
+          icon: Building2,
+          desc: 'Intégration des travaux d\'amélioration, d\'agrandissement et de construction. Forfait 15% si détention > 5 ans. Comparaison automatique forfait vs justificatifs pour optimisation maximale.'
+        },
+        {
+          title: 'Cas particuliers',
+          icon: CheckCircle,
+          desc: 'Gestion résidence principale (exonération totale), première cession (exonération sous conditions), invalidité, retraite modeste. Tous les cas d\'exonération sont pris en compte.'
+        }
+      ],
+      supportedTypes: ['Résidence principale', 'Résidence secondaire', 'Bien locatif', 'Terrain à bâtir'],
+      example: {
+        input: 'Achat 200 000€ • Vente 350 000€ • Détention 15 ans',
+        outputs: [
+          { label: 'Plus-value brute', value: '150 000 €' },
+          { label: 'Abattement IR (15 ans)', value: '90 000 €' },
+          { label: 'Plus-value nette IR', value: '60 000 €' },
+          { label: 'Impôt sur le revenu (19%)', value: '11 400 €' }
+        ],
+        total: 'Imposition totale : 20 850 €'
+      }
+    },
+    {
+      id: 'sci',
+      title: 'Simulateur SCI',
+      status: 'Disponible',
+      icon: Building,
+      gradient: 'from-amber-50 to-orange-50',
+      borderColor: 'border-amber-200',
+      description: 'Comparaison SCI à l\'IR vs à l\'IS avec optimisation fiscale. Transmission familiale et répartition capital/compte courant optimisée.',
+      link: '/sci',
+      features: [
+        {
+          title: 'Comparaison IR vs IS',
+          icon: Scale,
+          desc: 'Analyse détaillée de la fiscalité selon le régime choisi. Calcul des dividendes, charges sociales et imposition globale pour vous aider à choisir le meilleur régime.'
+        },
+        {
+          title: 'Transmission familiale',
+          icon: Gift,
+          desc: 'Simulation de transmission de parts sociales aux enfants. Calcul des droits de donation avec abattements et optimisation du démembrement de propriété.'
+        },
+        {
+          title: 'Optimisation financière',
+          icon: Calculator,
+          desc: 'Répartition optimale entre capital et compte courant d\'associés. Simulation remontée de trésorerie et optimisation fiscale des distributions.'
+        }
+      ],
+      supportedTypes: ['SCI à l\'IR', 'SCI à l\'IS', 'SCI familiale', 'SCI de location'],
+      example: {
+        input: 'Revenus locatifs 50 000€ • TMI 30%',
+        outputs: [
+          { label: 'IR : Imposition directe', value: '15 000 €' },
+          { label: 'IS : Impôt société (25%)', value: '12 500 €' },
+          { label: 'IS : Dividendes (30%)', value: '11 250 €' },
+          { label: 'Différence annuelle', value: '3 750 €' }
+        ],
+        total: 'Économie potentielle : 3 750 €/an'
+      }
+    },
+    {
+      id: 'donation',
+      title: 'Donation / Succession',
+      status: 'Disponible',
+      icon: Gift,
+      gradient: 'from-rose-50 to-pink-50',
+      borderColor: 'border-rose-200',
+      description: 'Calcul des droits de donation selon lien de parenté avec optimisation fiscale. Démembrement, réserve d\'usufruit et Pacte Dutreil inclus.',
+      link: '/donation',
+      features: [
+        {
+          title: 'Droits selon parenté',
+          icon: Users,
+          desc: 'Calcul précis selon le lien de parenté : ligne directe (enfants, petits-enfants), conjoint, partenaire PACS, frères/sœurs, neveux/nièces. Abattements automatiques appliqués.'
+        },
+        {
+          title: 'Démembrement optimisé',
+          icon: Scale,
+          desc: 'Simulation donation en nue-propriété avec réserve d\'usufruit. Calcul selon l\'âge du donateur pour optimisation fiscale maximale. Tables fiscales officielles.'
+        },
+        {
+          title: 'Pacte Dutreil',
+          icon: Award,
+          desc: 'Exonération de 75% pour transmission d\'entreprise. Simulation des conditions d\'engagement collectif et individuel de conservation. Optimisation succession d\'entreprise.'
+        }
+      ],
+      supportedTypes: ['Donation simple', 'Donation-partage', 'Don manuel', 'Donation avec réserve d\'usufruit'],
+      example: {
+        input: 'Donation 200 000€ à 2 enfants',
+        outputs: [
+          { label: 'Base taxable par enfant', value: '100 000 €' },
+          { label: 'Abattement parent-enfant', value: '100 000 €' },
+          { label: 'Base imposable', value: '0 €' },
+          { label: 'Droits de donation', value: '0 €' }
+        ],
+        total: 'Optimisation : 0€ de droits'
+      }
+    }
+  ];
+
+  const upcomingTools = [
+    {
+      id: 'ifi',
+      title: 'Calculateur IFI',
+      quarter: 'T1 2026',
+      icon: Home,
+      category: 'Immobilier & Fiscalité',
+      description: 'Calcul de l\'Impôt sur la Fortune Immobilière. Déductions dettes/travaux, optimisation démembrement, simulation par tranche.',
+      features: [
+        'Calcul patrimoine imposable',
+        'Déductions dettes/travaux',
+        'Optimisation démembrement',
+        'Simulation par tranche'
+      ]
+    },
+    {
+      id: 'viager',
+      title: 'Simulateur Viager',
+      quarter: 'T1 2026',
+      icon: HeartHandshake,
+      category: 'Immobilier & Fiscalité',
+      description: 'Calcul du bouquet et de la rente viagère selon tables officielles de mortalité. DPE et décote intégrés.',
+      features: [
+        'Calcul bouquet et rente',
+        'Tables mortalité officielles',
+        'Optimisation fiscale',
+        'DPE et décote'
+      ]
+    },
+    {
+      id: 'revenus-fonciers',
+      title: 'Calculateur Revenus Fonciers',
+      quarter: 'T1 2026',
+      icon: Building2,
+      category: 'Gestion Patrimoniale',
+      description: 'Optimisation fiscale des revenus locatifs. Micro-foncier vs régime réel, déficit foncier, projection 10 ans.',
+      features: [
+        'Micro-foncier vs régime réel',
+        'Optimisation charges déductibles',
+        'Simulation déficit foncier',
+        'Projection sur 10 ans'
+      ]
+    },
+    {
+      id: 'lmnp',
+      title: 'Simulateur LMNP/LMP',
+      quarter: 'T1 2026',
+      icon: Briefcase,
+      category: 'Gestion Patrimoniale',
+      description: 'Optimisation fiscale de la location meublée. Micro-BIC vs réel, amortissements, comparaison LMNP vs SCI.',
+      features: [
+        'Comparaison micro-BIC vs réel',
+        'Calcul des amortissements',
+        'Optimisation fiscale',
+        'Comparaison LMNP vs SCI'
+      ]
+    },
+    {
+      id: 'pret-immo',
+      title: 'Calculateur Prêt Immobilier',
+      quarter: 'T1 2026',
+      icon: Calculator,
+      category: 'Gestion Patrimoniale',
+      description: 'Comparaison et optimisation de prêts. TAEG réel, remboursement anticipé, lissage, assurance emprunteur.',
+      features: [
+        'Comparaison offres bancaires',
+        'Calcul TAEG réel',
+        'Simulation remboursement anticipé',
+        'Lissage + assurance'
+      ]
+    },
+    {
+      id: 'investissement',
+      title: 'Optimiseur Investissement Locatif',
+      quarter: 'T1 2026',
+      icon: TrendingUp,
+      category: 'Gestion Patrimoniale',
+      description: 'Analyse de rentabilité complète. Calcul TRI, cash-flow, simulation Pinel/Denormandie/Malraux.',
+      features: [
+        'Rentabilité brute/nette/TRI',
+        'Cash-flow mensuel',
+        'Simulation Pinel/Denormandie/Malraux',
+        'Comparaison scénarios'
+      ]
+    },
+    {
+      id: 'plusvalue-pro',
+      title: 'Plus-Value Professionnelle',
+      quarter: 'T1 2026',
+      icon: Award,
+      category: 'Professionnel',
+      description: 'Calcul des plus-values sur cession d\'entreprise. Exonération départ retraite, Article 151 septies, apport-cession.',
+      features: [
+        'Cession fonds de commerce',
+        'Exonération départ retraite',
+        'Article 151 septies (PME)',
+        'Apport-cession'
+      ]
+    },
+    {
+      id: 'statut',
+      title: 'Simulateur Statut Juridique',
+      quarter: 'T1 2026',
+      icon: Briefcase,
+      category: 'Professionnel',
+      description: 'Comparaison SASU/EURL/SAS/SARL. Optimisation rémunération/dividendes, charges sociales, IS vs IR.',
+      features: [
+        'Comparaison SASU/EURL/SAS/SARL',
+        'Optimisation rémunération/dividendes',
+        'Charges sociales détaillées',
+        'IS vs IR'
+      ]
+    },
+    {
+      id: 'holding',
+      title: 'Calculateur Holding',
+      quarter: 'T1 2026',
+      icon: Building,
+      category: 'Professionnel',
+      description: 'Optimisation de structure holding. Remontée dividendes, niche fiscale intégration, rachat parts.',
+      features: [
+        'Optimisation remontée dividendes',
+        'Niche fiscale intégration',
+        'Simulation rachat parts',
+        'Transmission optimisée'
+      ]
+    },
+    {
+      id: 'retraite',
+      title: 'Simulateur Retraite',
+      quarter: 'T1 2026',
+      icon: PiggyBank,
+      category: 'Retraite & Transmission',
+      description: 'Estimation retraite tous régimes. Rachat trimestres, cumul emploi-retraite, réversion.',
+      features: [
+        'Estimation tous régimes',
+        'Rachat trimestres',
+        'Cumul emploi-retraite',
+        'Réversion'
+      ]
+    },
+    {
+      id: 'assurance-vie',
+      title: 'Calculateur Assurance-Vie',
+      quarter: 'T1 2026',
+      icon: Shield,
+      category: 'Retraite & Transmission',
+      description: 'Optimisation fiscale assurance-vie. Fiscalité rachat, transmission avant/après 70 ans, clause bénéficiaire.',
+      features: [
+        'Fiscalité rachat (avant/après 8 ans)',
+        'Transmission (avant/après 70 ans)',
+        'Comparaison contrats',
+        'Optimisation clause bénéficiaire'
+      ]
+    },
+    {
+      id: 'api',
+      title: 'API Publique',
+      quarter: 'T1 2026',
+      icon: Zap,
+      category: 'Infrastructure',
+      description: 'API REST pour intégrer NotariaPrime. Documentation OpenAPI, rate limiting, authentification.',
+      features: [
+        'Endpoints tous calculateurs',
+        'Documentation OpenAPI',
+        'Rate limiting généreux',
+        'Authentification par clé'
+      ]
+    },
+    {
+      id: 'pwa',
+      title: 'Mode Hors-ligne',
+      quarter: 'T1 2026',
+      icon: Globe,
+      category: 'Infrastructure',
+      description: 'Application web progressive. Installation, calculs locaux, synchronisation optionnelle.',
+      features: [
+        'Installation sur appareil',
+        'Calculs 100% locaux',
+        'Synchronisation optionnelle',
+        'Notifications push'
+      ]
+    },
+    {
+      id: 'espace-pro',
+      title: 'Espace Professionnel',
+      quarter: 'T1 2026',
+      icon: Users,
+      category: 'Infrastructure',
+      description: 'Fonctionnalités avancées pour études. Multi-utilisateurs, historique, templates, tableau de bord.',
+      features: [
+        'Gestion multi-utilisateurs',
+        'Historique illimité',
+        'Templates personnalisés',
+        'Tableau de bord analytique'
+      ]
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -34,7 +389,7 @@ function FonctionnalitesContent() {
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 border border-indigo-200 rounded-full mb-8">
             <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-semibold text-indigo-700">4 outils professionnels</span>
+            <span className="text-sm font-semibold text-indigo-700">18 calculateurs professionnels</span>
           </div>
 
           <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
@@ -46,8 +401,9 @@ function FonctionnalitesContent() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
-            Conçus avec et pour les professionnels du notariat. Conformes aux réglementations 2025, 
-            ultra-rapides et d'une précision irréprochable.
+            Suite complète d'outils conçus avec et pour les professionnels du notariat. 
+            4 disponibles depuis T3 2025, 14 prévus pour T1 2026. 
+            Conformes aux réglementations, ultra-rapides et d'une précision irréprochable.
           </p>
 
           <div className="flex items-center gap-6 mb-12">
@@ -67,388 +423,137 @@ function FonctionnalitesContent() {
         </div>
       </section>
 
-      {/* Prétaxe Notariale - Disponible */}
-      <section className="py-20 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 border border-green-200 rounded-full mb-6">
-                <span className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-sm font-semibold text-green-700">DISPONIBLE</span>
-              </div>
-
-              <h2 className="text-4xl font-bold mb-4 text-gray-900">Calcul de prétaxe notariale</h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Le calculateur de frais de notaire le plus précis et rapide. Conforme au décret n°2016-230 
-                et aux tarifs réglementés 2025. Application automatique du barème dégressif.
-              </p>
-
-              <div className="space-y-6 mb-8">
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-indigo-600" />
-                    Calcul par tranches automatique
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    <strong>Barème officiel :</strong> 3,870% jusqu'à 6 500€ • 1,596% de 6 500€ à 17 000€ 
-                    • 1,064% de 17 000€ à 60 000€ • 0,799% au-delà. Application instantanée sur votre montant.
-                  </p>
+      {/* Outils Disponibles - Détaillés */}
+      {availableTools.map((tool, idx) => (
+        <section key={tool.id} className={`py-20 ${idx % 2 === 1 ? 'bg-gray-50' : ''} border-t border-gray-200`}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 border border-green-200 rounded-full mb-6">
+                  <span className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="text-sm font-semibold text-green-700">{tool.status.toUpperCase()}</span>
                 </div>
 
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <Calculator className="w-5 h-5 text-indigo-600" />
-                    Frais annexes inclus
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Intégration automatique : droits de mutation (5,80% en moyenne), contribution de sécurité 
-                    immobilière (0,10%), émoluments de formalités, débours estimés. Tout est calculé.
-                  </p>
-                </div>
+                <h2 className="text-4xl font-bold mb-4 text-gray-900">{tool.title}</h2>
+                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                  {tool.description}
+                </p>
 
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <FileCheck className="w-5 h-5 text-indigo-600" />
-                    Export professionnel
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Génération PDF avec détail ligne par ligne : base de calcul, taux appliqué, montant HT, 
-                    TVA 20%, total TTC. Présentation professionnelle prête pour vos clients.
-                  </p>
-                </div>
+                <div className="space-y-6 mb-8">
+                  {tool.features.map((feature, i) => (
+                    <div key={i} className="bg-gray-50 rounded-xl p-6">
+                      <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <feature.icon className="w-5 h-5 text-indigo-600" />
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm leading-relaxed">
+                        {feature.desc}
+                      </p>
+                    </div>
+                  ))}
 
-                <div className="bg-indigo-50 rounded-xl p-6 border-2 border-indigo-200">
-                  <h3 className="font-bold text-gray-900 mb-2">Types d'actes supportés</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Vente immobilière', 'VEFA', 'Donation', 'Partage successoral', 'SCI', 'Bail emphytéotique'].map((type) => (
-                      <span key={type} className="px-3 py-1 bg-white border border-indigo-200 rounded-lg text-sm font-medium text-gray-700">
-                        {type}
-                      </span>
-                    ))}
+                  <div className={`bg-gradient-to-br ${tool.gradient} rounded-xl p-6 border-2 ${tool.borderColor}`}>
+                    <h3 className="font-bold text-gray-900 mb-2">Types supportés</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {tool.supportedTypes.map((type) => (
+                        <span key={type} className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700">
+                          {type}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                <a href={tool.link} className="inline-flex items-center gap-2 px-7 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                  Utiliser le calculateur
+                  <ArrowRight className="w-5 h-5" />
+                </a>
               </div>
 
-              <a href="/pretaxe" className="inline-flex items-center gap-2 px-7 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-                Utiliser le calculateur
-                <ArrowRight className="w-5 h-5" />
-              </a>
-            </div>
+              {/* Example Card */}
+              <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-sm font-semibold text-gray-500">EXEMPLE DE CALCUL</span>
+                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                    T3 2025
+                  </span>
+                </div>
 
-            {/* Example Card */}
-            <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-sm font-semibold text-gray-500">EXEMPLE DE CALCUL</span>
-                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                  CONFORME 2025
-                </span>
-              </div>
+                <div className="mb-6 pb-6 border-b-2 border-gray-100">
+                  <div className="text-sm text-gray-500 mb-1">Base de calcul</div>
+                  <div className="text-3xl font-bold text-gray-900">{tool.example.input}</div>
+                </div>
 
-              <div className="mb-6 pb-6 border-b-2 border-gray-100">
-                <div className="text-sm text-gray-500 mb-1">Prix de vente</div>
-                <div className="text-3xl font-bold text-gray-900">250 000,00 €</div>
-              </div>
+                <div className="space-y-3 mb-6">
+                  {tool.example.outputs.map((output, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{output.label}</span>
+                      <span className="font-semibold text-gray-900">{output.value}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="space-y-3 mb-6">
-                <div className="text-xs font-semibold text-gray-500 mb-3">ÉMOLUMENTS PROPORTIONNELS</div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tranche 1 (0-6 500€) × 3,870%</span>
-                  <span className="font-semibold text-gray-900">251,55 €</span>
+                <div className="pt-6 border-t-2 border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-gray-700">TOTAL</span>
+                    <span className="text-2xl font-bold text-indigo-600">{tool.example.total}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tranche 2 (6 500-17 000€) × 1,596%</span>
-                  <span className="font-semibold text-gray-900">167,58 €</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tranche 3 (17 000-60 000€) × 1,064%</span>
-                  <span className="font-semibold text-gray-900">457,52 €</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tranche 4 (&gt; 60 000€) × 0,799%</span>
-                  <span className="font-semibold text-gray-900">1 518,10 €</span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t-2 border-gray-100 mb-4">
-                <div className="flex justify-between mb-2">
-                  <span className="font-semibold text-gray-900">Émoluments HT</span>
-                  <span className="font-bold text-gray-900">2 394,75 €</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>TVA 20%</span>
-                  <span>478,95 €</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-4 pb-4 border-b border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Droits de mutation (5,80%)</span>
-                  <span className="font-semibold text-gray-900">14 500,00 €</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Contribution sécu. immo (0,10%)</span>
-                  <span className="font-semibold text-gray-900">250,00 €</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Frais divers et débours</span>
-                  <span className="font-semibold text-gray-900">450,00 €</span>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border-2 border-indigo-200">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-900">Total frais de notaire</span>
-                  <span className="text-2xl font-bold text-indigo-600">18 073,70 €</span>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">Soit 7,23% du prix de vente</div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ))}
 
-      {/* Plus-Value Immobilière */}
-      <section className="py-20 bg-gray-50 border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid gap-16 items-center ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Example Card first on desktop */}
-            <div className={`${isDesktop ? 'order-1' : 'order-2'} bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-xl`}>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-sm font-semibold text-gray-500">SCÉNARIO D'OPTIMISATION</span>
-                <TrendingUp className="w-5 h-5 text-green-500" />
-              </div>
-
-              <div className="space-y-4 mb-6">
-                <div className="text-xs font-semibold text-gray-500 mb-3">DONNÉES DE BASE</div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-gray-500">Acquisition (2010)</div>
-                    <div className="font-bold text-gray-900">180 000 €</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Vente (2025)</div>
-                    <div className="font-bold text-gray-900">320 000 €</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Travaux justifiés</div>
-                    <div className="font-bold text-gray-900">35 000 €</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Durée détention</div>
-                    <div className="font-bold text-gray-900">15 ans</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-green-50 rounded-xl p-4 mb-6 border-2 border-green-200">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-700">Plus-value brute</span>
-                  <span className="text-xl font-bold text-green-600">105 000 €</span>
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="text-xs font-semibold text-gray-500 mb-3">ABATTEMENTS APPLIQUÉS</div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Abattement IR (6% × 15 ans)</span>
-                  <span className="font-semibold text-green-600">-90%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Abattement PS (1,65% × 15 ans)</span>
-                  <span className="font-semibold text-green-600">-24,75%</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-4 pb-4 border-b border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Impôt sur le revenu (19%)</span>
-                  <span className="font-semibold text-gray-900">1 995 €</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Prélèvements sociaux (17,2%)</span>
-                  <span className="font-semibold text-gray-900">13 566 €</span>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-gray-900">Total fiscalité</span>
-                  <span className="text-2xl font-bold text-green-600">15 561 €</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-green-700">
-                  <Sparkles className="w-3 h-3" />
-                  <span className="font-semibold">Économie de 22 539 € grâce aux abattements</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={isDesktop ? 'order-2' : 'order-1'}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 border border-green-200 rounded-full mb-6">
-                <span className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-sm font-semibold text-green-700">DISPONIBLE</span>
-              </div>
-
-              <h2 className="text-4xl font-bold mb-4 text-gray-900">Calcul de plus-value immobilière</h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Simulez la fiscalité sur vos ventes et identifiez les leviers d'optimisation. 
-                Conforme aux articles 150 U et suivants du CGI. Mise à jour automatique des taux 2025.
-              </p>
-
-              <div className="space-y-6 mb-8">
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-green-600" />
-                    Abattements pour durée de détention
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Application automatique des abattements progressifs. <strong>Exonération totale d'IR après 22 ans</strong>, 
-                    de prélèvements sociaux après 30 ans. Calcul au jour près pour une précision maximale.
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-green-600" />
-                    Optimisation par les travaux
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    <strong>Deux méthodes :</strong> forfait 15% du prix d'acquisition sans justificatif, ou montant réel 
-                    avec factures. L'outil choisit automatiquement la méthode la plus favorable.
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    Simulation comparative
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Comparez plusieurs scénarios : vente immédiate vs attente d'exonération, impact de travaux 
-                    supplémentaires, démembrement de propriété pour optimiser la fiscalité.
-                  </p>
-                </div>
-
-                <div className="bg-green-50 rounded-xl p-6 border-2 border-green-200">
-                  <h3 className="font-bold text-gray-900 mb-2">Cas particuliers gérés</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Résidence principale', 'Première cession', 'Indivision', 'SCI familiale'].map((cas) => (
-                      <span key={cas} className="px-3 py-1 bg-white border border-green-200 rounded-lg text-sm font-medium text-gray-700">
-                        {cas}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <a href="/plusvalue" className="inline-flex items-center gap-2 px-7 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-                Utiliser le calculateur
-                <ArrowRight className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Outils en développement */}
-      <section className="py-20">
+      {/* Outils À Venir - Grid */}
+      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-200 rounded-full mb-6">
-              <Clock className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm font-semibold text-yellow-700">Prochainement disponibles</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-200 rounded-full mb-4">
+              <Rocket className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-700">À venir</span>
             </div>
             <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-              L'avenir de NotariaPrime
+              14 nouveaux calculateurs en préparation
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Deux nouveaux outils puissants en développement actif
+              IFI, viager, revenus fonciers, LMNP, retraite, API publique... 
+              Une suite complète qui couvre tous vos besoins professionnels. Sortie T1 2026.
             </p>
           </div>
 
-          <div className={`grid gap-8 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Scanner OCR */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border-2 border-purple-200 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <FileCheck className="w-7 h-7 text-white" />
+          <div className={`grid gap-6 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {upcomingTools.map((tool) => (
+              <div key={tool.id} className="bg-white rounded-2xl border-2 border-gray-200 p-8 hover:shadow-xl hover:border-indigo-300 transition-all">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                    <tool.icon className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <div className="text-right">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+                      PRÉVU
+                    </span>
+                    <div className="text-xs text-gray-500 mt-2">{tool.quarter}</div>
+                  </div>
                 </div>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">
-                  EN DÉVELOPPEMENT
-                </span>
-              </div>
 
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">Scanner OCR Pro</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Extraction automatique des données depuis vos documents notariés. 
-                Gagnez des heures sur la saisie manuelle avec une précision de 98,5%.
-              </p>
+                <h3 className="text-2xl font-bold mb-2 text-gray-900">{tool.title}</h3>
+                <p className="text-gray-600 mb-4 text-sm">{tool.description}</p>
+                
+                <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full mb-6">
+                  {tool.category}
+                </div>
 
-              <div className="bg-white rounded-xl p-5 mb-6 border border-purple-200">
-                <div className="text-xs font-semibold text-gray-500 mb-4">RECONNAISSANCE INTELLIGENTE</div>
-                <div className="space-y-3">
-                  {[
-                    { title: 'Actes de vente', desc: 'Prix, parties, références cadastrales' },
-                    { title: 'Factures de travaux', desc: 'Montants, dates, nature des travaux' },
-                    { title: 'Compromis de vente', desc: 'Conditions suspensives, clauses' }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-semibold text-gray-900 text-sm">{item.title}</div>
-                        <div className="text-xs text-gray-500">{item.desc}</div>
-                      </div>
+                <div className="space-y-2">
+                  {tool.features.map((feature, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
                     </div>
                   ))}
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Brain className="w-4 h-4 text-purple-600" />
-                <span>Vérification humaine recommandée pour validation finale</span>
-              </div>
-            </div>
-
-            {/* Expertise IA */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
-                  <Building2 className="w-7 h-7 text-white" />
-                </div>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">
-                  EN DÉVELOPPEMENT
-                </span>
-              </div>
-
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">Expertise IA</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Estimation immobilière basée sur l'IA et les données DVF. 
-                Analyse de 15M+ transactions sur 5 ans de données gouvernementales.
-              </p>
-
-              <div className="bg-white rounded-xl p-5 mb-6 border border-amber-200">
-                <div className="text-xs font-semibold text-gray-500 mb-4">ANALYSE MULTI-CRITÈRES</div>
-                <div className="space-y-3">
-                  {[
-                    { title: 'Comparables géolocalisés', desc: 'Rayon 500m à 2km selon densité' },
-                    { title: 'Pondération temporelle', desc: 'Priorité aux transactions récentes' },
-                    { title: 'Ajustements qualitatifs', desc: 'État, exposition, étage, prestations' }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-semibold text-gray-900 text-sm">{item.title}</div>
-                        <div className="text-xs text-gray-500">{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Brain className="w-4 h-4 text-amber-600" />
-                <span>Base DVF Gouv + cadastre • Mise à jour mensuelle</span>
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="mt-12 text-center">
@@ -477,7 +582,7 @@ function FonctionnalitesContent() {
               {
                 icon: Zap,
                 title: 'Performance',
-                desc: 'Résultats en moins de 500ms grâce à Next.js et au calcul côté client',
+                desc: 'Résultats en moins de 100ms grâce à Next.js et au calcul côté client',
                 badge: 'Edge computing'
               },
               {

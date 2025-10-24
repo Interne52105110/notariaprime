@@ -6,7 +6,7 @@ import {
   Calculator, TrendingUp, Euro, Calendar, FileText, Download, 
   AlertCircle, Info, CheckCircle, Clock,
   ArrowRight, Gift, Users, Lightbulb, BarChart3, Target,
-  PieChart
+  PieChart, HelpCircle, ChevronDown, ChevronUp, BookOpen
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -61,6 +61,194 @@ interface Scenario {
   dateVente: string;
   travaux?: number;
   results: Results;
+}
+
+// Composant FAQ pour la page Plus-Value
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<string | null>(null);
+
+  const faqData = [
+    {
+      category: "Calcul et abattements",
+      questions: [
+        {
+          q: "Comment se calcule la plus-value immobilière ?",
+          r: "**La plus-value brute se calcule selon la formule :**\n\n**Plus-value = Prix de vente corrigé - Prix d'acquisition corrigé**\n\n**Prix de vente corrigé :**\n• Prix de vente - frais de vente (diagnostics, agence si à votre charge)\n\n**Prix d'acquisition corrigé :**\n• Prix d'achat initial\n• + Frais d'acquisition (notaire) : forfait 7,5% OU montant réel\n• + Travaux : forfait 15% (si détention > 5 ans) OU montant réel justifié\n\n**⚠️ Important :** Les travaux déduits en revenus fonciers ne peuvent pas être pris en compte une seconde fois.",
+          source: "Articles 150 V à 150 VH du CGI"
+        },
+        {
+          q: "Quels sont les abattements pour durée de détention en 2025 ?",
+          r: "**Les abattements sont DIFFÉRENTS pour l'IR et les PS :**\n\n**🔹 IMPÔT SUR LE REVENU (19%) :**\n• < 6 ans : 0%\n• 6-21 ans : 6% par an (96% après 21 ans)\n• 22 ans : 4% supplémentaires\n• ✅ **Exonération totale après 22 ans**\n\n**🔹 PRÉLÈVEMENTS SOCIAUX (17,2%) :**\n• < 6 ans : 0%\n• 6-21 ans : 1,65% par an (26,4% après 21 ans)\n• 22 ans : 1,60%\n• 23-29 ans : 9% par an\n• ✅ **Exonération totale après 30 ans**\n\n**💡 Astuce :** Le calcul se fait au jour près. Une différence de quelques jours peut changer de tranche d'abattement !",
+          source: "Article 150 VC du CGI"
+        },
+        {
+          q: "Quel est le taux d'imposition de la plus-value immobilière ?",
+          r: "**📊 TAUX GLOBAL : 36,2%** (avant abattements)\n\n**Détail de la fiscalité :**\n• Impôt sur le revenu : **19%**\n• Prélèvements sociaux : **17,2%**\n  - CSG : 9,9%\n  - CRDS : 0,5%\n  - Prélèvement social : 4,5%\n  - Contribution additionnelle : 0,3%\n  - Prélèvement de solidarité : 2%\n\n**💰 TAXE ADDITIONNELLE** (si PV imposable > 50 000 €) :\n• De 50k à 60k : 2%\n• De 60k à 100k : 3%\n• De 100k à 110k : 4%\n• De 110k à 150k : 5%\n• Au-delà de 150k : 6%\n• Plafond : 10 600 €",
+          source: "Articles 150 U et 1609 nonies G du CGI"
+        }
+      ]
+    },
+    {
+      category: "Exonérations",
+      questions: [
+        {
+          q: "Dans quels cas puis-je être exonéré de plus-value ?",
+          r: "**🏠 EXONÉRATION TOTALE automatique :**\n• **Résidence principale** : exonération totale + dépendances (garage, cave dans 1 km)\n• **Détention > 30 ans** : exonération totale IR + PS\n• **Prix de vente ≤ 15 000 €** : exonération totale\n• **Première vente** hors résidence principale (retraités/invalides) : conditions strictes\n\n**💼 EXONÉRATIONS SPÉCIFIQUES :**\n• **Expropriation** : si réemploi dans 12 mois\n• **Départ en EHPAD/maison retraite** : sous conditions de revenus\n• **Bien en France vendu par non-résident UE/EEE** : conditions strictes\n• **Logements sociaux** : dans certaines communes\n\n**⚠️ Attention :** Pour la résidence principale, l'exonération s'applique jusqu'à la date de cession, même si vous avez déménagé (délai raisonnable).",
+          source: "Articles 150 U-II et 150 U-II bis du CGI"
+        },
+        {
+          q: "Comment transformer ma résidence secondaire en résidence principale ?",
+          r: "**⚠️ VIGILANCE : Le fisc contrôle de près !**\n\n**Conditions pour bénéficier de l'exonération :**\n• **Occupation effective** du logement comme résidence habituelle\n• Pas de durée minimum légale, mais **pratique : 1 an minimum**\n• Le logement doit être votre résidence **au jour de la vente**\n\n**🔍 Éléments vérifiés par l'administration fiscale :**\n• Domicile fiscal (impôts)\n• Lieu de travail\n• Scolarité des enfants\n• Consommations (eau, électricité, gaz)\n• Courrier reçu\n• Assurance habitation\n\n**💡 Conseil :** Changez tous vos documents officiels et conservez les preuves (factures, courriers, etc.)",
+          source: "Doctrine fiscale BOI-RFPI-PVI-10-40-10"
+        }
+      ]
+    },
+    {
+      category: "Cas particuliers",
+      questions: [
+        {
+          q: "Comment gérer les travaux dans le calcul de la plus-value ?",
+          r: "**Vous avez 3 OPTIONS :**\n\n**1️⃣ AUCUN TRAVAUX** :\n• Vous ne déduisez rien (mais conservez l'option forfait 15%)\n\n**2️⃣ FORFAIT 15%** (si détention > 5 ans) :\n• Forfait automatique = 15% du prix d'acquisition\n• **Aucun justificatif requis**\n• Applicable même sans travaux réalisés\n\n**3️⃣ MONTANT RÉEL** (avec justificatifs) :\n• Travaux d'**amélioration, agrandissement, construction**\n• Factures détaillées obligatoires (entreprise)\n• **⚠️ Exclus :** travaux d'entretien et de réparation\n• **⚠️ Exclus :** travaux déjà déduits des revenus fonciers\n\n**💡 Stratégie :** Comparez les deux options (forfait vs réel). Souvent, le forfait 15% est plus avantageux.",
+          source: "Article 150 VB du CGI"
+        },
+        {
+          q: "Que se passe-t-il en cas de donation ou succession ?",
+          r: "**🎁 EN CAS DE DONATION :**\n• Le **donataire hérite de la date d'acquisition** du donateur\n• La durée de détention continue sans interruption\n• Le prix d'acquisition de référence reste celui du donateur\n• **Optimisation fiscale** : le démembrement peut être intéressant\n\n**💀 EN CAS DE SUCCESSION :**\n• L'**héritier repart à zéro** pour la durée de détention\n• Nouvelle date d'acquisition = date du décès\n• Prix d'acquisition = valeur vénale au jour du décès\n• Permet de \"purger\" une plus-value latente\n\n**💡 Conseil patrimonial :** En présence d'une forte plus-value latente, il peut être préférable d'attendre la succession plutôt que de donner le bien.",
+          source: "Articles 150 VB-II et 150 VB-III du CGI"
+        },
+        {
+          q: "Comment fonctionne la plus-value en démembrement de propriété ?",
+          r: "**👴👶 PRINCIPE DU DÉMEMBREMENT :**\n\n**En cas de vente du bien démembré :**\n• Usufruitier et nu-propriétaire vendent ensemble\n• La plus-value est calculée sur la **valeur en pleine propriété**\n• Chacun est taxé sur **sa quote-part** (selon barème fiscal)\n\n**Barème de l'usufruit (art. 669 CGI) :**\n• Moins de 21 ans : 90%\n• 21-30 ans : 80%\n• 31-40 ans : 70%\n• 41-50 ans : 60%\n• 51-60 ans : 50%\n• 61-70 ans : 40%\n• 71-80 ans : 30%\n• 81-90 ans : 20%\n• Plus de 90 ans : 10%\n\n**⚠️ Important :** En cas d'extinction de l'usufruit par décès, pas d'imposition sur la réunion de l'usufruit.",
+          source: "Articles 669 et 1133 du CGI"
+        }
+      ]
+    },
+    {
+      category: "Stratégies d'optimisation",
+      questions: [
+        {
+          q: "Quelles sont les meilleures stratégies pour réduire la plus-value ?",
+          r: "**🎯 TOP 5 DES STRATÉGIES D'OPTIMISATION :**\n\n**1️⃣ ATTENDRE LES SEUILS D'ABATTEMENT**\n• 6 ans : premiers abattements\n• 22 ans : exonération IR totale\n• 30 ans : exonération totale\n\n**2️⃣ MAXIMISER LE PRIX D'ACQUISITION**\n• Frais notaire : préférer le forfait 7,5% si facture < 7,5%\n• Travaux : comparer forfait 15% vs réel\n• Conserver TOUTES les factures de travaux\n\n**3️⃣ VENDRE EN PLUSIEURS FOIS**\n• Si plusieurs biens : échelonner les ventes\n• Éviter la taxe additionnelle (seuil 50k€)\n\n**4️⃣ DÉMEMBREMENT**\n• Donation de la nue-propriété avant la vente\n• Réduction de la base imposable\n\n**5️⃣ SCI À L'IS**\n• Régime professionnel (non soumis à la PV des particuliers)\n• Amortissements possibles\n• ⚠️ Complexe : conseil professionnel indispensable",
+          source: "Stratégies fiscales courantes"
+        },
+        {
+          q: "Faut-il choisir le forfait ou les frais réels pour les travaux ?",
+          r: "**⚖️ COMPARAISON FORFAIT vs RÉEL :**\n\n**📋 FORFAIT 15% - Avantages :**\n• Aucun justificatif requis\n• Simple et rapide\n• Applicable même sans travaux réalisés\n• Souvent plus avantageux si peu de travaux\n\n**📋 FORFAIT 15% - Inconvénients :**\n• Plafonné à 15% du prix d'achat\n• Ne convient pas si gros travaux réalisés\n\n**📄 FRAIS RÉELS - Avantages :**\n• Montant déductible sans limite\n• Intéressant si travaux importants > 15%\n\n**📄 FRAIS RÉELS - Inconvénients :**\n• Factures détaillées obligatoires\n• Uniquement travaux d'amélioration/agrandissement\n• Exclusion des travaux déduits en foncier\n• Contrôle fiscal plus probable\n\n**💰 EXEMPLE CHIFFRÉ :**\nBien acheté 200 000€\n• Forfait = 30 000€ déductibles\n• Si travaux réels = 45 000€ → privilégier le réel\n• Si travaux réels = 20 000€ → privilégier le forfait",
+          source: "Article 150 VB du CGI"
+        }
+      ]
+    },
+    {
+      category: "Déclaration et paiement",
+      questions: [
+        {
+          q: "Comment déclarer et payer la plus-value immobilière ?",
+          r: "**📝 PROCÉDURE OBLIGATOIRE :**\n\n**1️⃣ DÉCLARATION :**\n• Formulaire **2048-IMM-SD** (si bien détenu en direct)\n• À remplir par le **notaire** lors de la signature de l'acte\n• Le notaire calcule et télédéclare automatiquement\n\n**2️⃣ PAIEMENT :**\n• **Prélèvement à la source** par le notaire\n• Déduit du prix de vente avant versement au vendeur\n• Versement à l'administration fiscale par le notaire\n\n**3️⃣ DÉCLARATION COMPLÉMENTAIRE :**\n• À reporter sur la déclaration de revenus (2042-C)\n• Case 3VZ (plus-values imposables)\n• **Uniquement à titre déclaratif** (déjà payé)\n\n**💡 Bon à savoir :** Si la plus-value est nulle ou négative, une déclaration doit quand même être déposée (formulaire 2048-IMM-M).",
+          source: "Articles 150 VG et 150 VH du CGI - Formulaire 2048-IMM"
+        },
+        {
+          q: "Que se passe-t-il en cas d'erreur de déclaration ?",
+          r: "**⚠️ EN CAS D'ERREUR OU OMISSION :**\n\n**Erreur en votre défaveur (trop payé) :**\n• **Réclamation possible** dans les 2 ans suivant le paiement\n• Formulaire de réclamation au Service des Impôts des Particuliers\n• Remboursement si justification apportée\n\n**Erreur en défaveur du fisc (sous-déclaration) :**\n• **Majoration de 10%** si déclaration spontanée\n• **Majoration de 40%** si contrôle (mauvaise foi)\n• **Majoration de 80%** si manœuvres frauduleuses\n• **Intérêts de retard** : 0,20% par mois\n\n**🔍 Contrôle fiscal :**\n• Prescription de **3 ans** (6 ans si pas de déclaration)\n• Documents à conserver : factures, actes, justificatifs\n\n**💡 En cas d'erreur :** Contactez rapidement votre notaire ou un fiscaliste pour régulariser.",
+          source: "Article L80 C du LPF et doctrine fiscale"
+        }
+      ]
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-4">
+      {faqData.map((category, catIndex) => (
+        <div key={catIndex} className="space-y-2">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-emerald-300 to-transparent"></div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full">
+              <BookOpen className="w-4 h-4 text-white" />
+              <h3 className="text-sm font-bold text-white">{category.category}</h3>
+              <span className="bg-white/30 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {category.questions.length}
+              </span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-emerald-300 via-transparent to-transparent"></div>
+          </div>
+          
+          {category.questions.map((item, qIndex) => {
+            const key = `${catIndex}-${qIndex}`;
+            const isOpen = openIndex === key;
+            
+            return (
+              <div 
+                key={key}
+                className="bg-white rounded-xl border-2 border-gray-200 hover:border-emerald-300 transition-all overflow-hidden shadow-sm hover:shadow-md"
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : key)}
+                  className="w-full px-6 py-4 flex items-start justify-between gap-4 text-left hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 transition-colors"
+                >
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center mt-0.5">
+                      <HelpCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="font-semibold text-gray-900 leading-relaxed">
+                      {item.q}
+                    </span>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {isOpen ? (
+                      <ChevronUp className="w-5 h-5 text-emerald-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                </button>
+                
+                {isOpen && (
+                  <div className="px-6 pb-6 pt-2">
+                    <div className="pl-9 space-y-4">
+                      <div 
+                        className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                        style={{ whiteSpace: 'pre-line' }}
+                      >
+                        {item.r.split('\n').map((line, i) => {
+                          if (line.startsWith('**') && line.endsWith('**')) {
+                            return (
+                              <p key={i} className="font-bold text-gray-900 mb-2">
+                                {line.replace(/\*\*/g, '')}
+                              </p>
+                            );
+                          }
+                          if (line.startsWith('•')) {
+                            return (
+                              <p key={i} className="ml-4 mb-1">
+                                <span className="text-emerald-500 mr-2">•</span>
+                                {line.substring(1).trim()}
+                              </p>
+                            );
+                          }
+                          if (line.trim() === '') {
+                            return <div key={i} className="h-2"></div>;
+                          }
+                          return <p key={i} className="mb-2">{line}</p>;
+                        })}
+                      </div>
+                      
+                      {item.source && (
+                        <div className="pt-3 border-t border-gray-200">
+                          <p className="text-xs text-gray-500 italic flex items-center gap-2">
+                            <Info className="w-3 h-3" />
+                            {item.source}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function PlusValueContent() {
@@ -1624,6 +1812,83 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
             )}
           </div>
         )}
+
+        {/* Section FAQ */}
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 mb-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl mb-4">
+              <HelpCircle className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              Questions Fréquentes
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Toutes les réponses à vos questions sur la plus-value immobilière
+            </p>
+          </div>
+
+          <FAQSection />
+        </div>
+
+        {/* Disclaimer Légal */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-8 shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-amber-900 mb-3">
+                ⚖️ Avertissement Légal Important
+              </h3>
+              <div className="space-y-3 text-sm text-amber-900">
+                <p className="leading-relaxed">
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d'évoluer.
+                </p>
+                
+                <p className="leading-relaxed">
+                  Les règles fiscales en matière de plus-values immobilières sont <strong>complexes et varient selon chaque situation personnelle</strong> (type de bien, durée de détention, travaux réalisés, situation familiale, etc.).
+                </p>
+
+                <div className="bg-white rounded-lg p-4 border-2 border-amber-300 mt-4">
+                  <p className="font-bold text-amber-900 mb-2">
+                    ⚠️ Consultation professionnelle obligatoire :
+                  </p>
+                  <ul className="space-y-1 ml-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Notaire</strong> : pour toute vente immobilière et calcul officiel de la plus-value</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Avocat fiscaliste</strong> : pour l'optimisation fiscale complexe et les cas particuliers</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Expert-comptable</strong> : pour les SCI et aspects comptables</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">•</span>
+                      <span><strong>Conseiller en gestion de patrimoine (CGP)</strong> : pour une stratégie patrimoniale globale</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <p className="leading-relaxed font-semibold text-amber-900">
+                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d'utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l'optimisation adaptée à votre situation.
+                </p>
+
+                <div className="bg-amber-100 rounded-lg p-3 mt-4 border border-amber-400">
+                  <p className="text-xs text-amber-900 leading-relaxed">
+                    <strong>📚 Sources officielles :</strong> Code Général des Impôts (CGI), Bulletin Officiel des Finances Publiques (BOFiP), 
+                    Service-Public.fr, Légifrance.gouv.fr, Impots.gouv.fr
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

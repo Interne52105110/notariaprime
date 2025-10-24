@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt, Gift
+  Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt, Gift, Building
 } from 'lucide-react';
 
 export default function Header() {
@@ -76,6 +76,14 @@ export default function Header() {
                     <TrendingUp className="w-4 h-4" />
                     Plus-Value
                   </a>
+                  {/* ✅ NOUVEAU - Lien SCI */}
+                  <a 
+                    href="/sci" 
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    <Building className="w-4 h-4" />
+                    Simulateur SCI
+                  </a>
                 </nav>
               )}
             </div>
@@ -140,6 +148,15 @@ export default function Header() {
             >
               <TrendingUp className="w-5 h-5 text-emerald-600" />
               Plus-Value Immobilière
+            </a>
+            {/* ✅ NOUVEAU - Lien SCI mobile */}
+            <a 
+              href="/sci" 
+              className="flex items-center gap-3 py-3 text-lg font-medium text-gray-900"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Building className="w-5 h-5 text-purple-600" />
+              Simulateur SCI
             </a>
             <hr className="my-4" />
             <a 

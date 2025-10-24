@@ -3,17 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
-  CheckCircle, Clock, Rocket, Sparkles, Target,
-  Calendar, TrendingUp, Zap, Brain, FileText, 
-  Building2, Users, Globe, Shield
+  CheckCircle, Rocket, Sparkles, Target,
+  Calendar, TrendingUp, Zap, FileText, 
+  Building2, Users, Globe, Shield, Calculator,
+  Gift, Home, HeartHandshake, Briefcase, PiggyBank,
+  Award, Building, Scale
 } from 'lucide-react';
 
 interface RoadmapItem {
   id: string;
   title: string;
   description: string;
-  status: 'completed' | 'in-progress' | 'planned';
+  status: 'completed' | 'planned';
   quarter: string;
+  category: string;
   icon: React.ComponentType<{ className?: string }>;
   features: string[];
 }
@@ -21,6 +24,7 @@ interface RoadmapItem {
 function RoadmapContent() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     const updateDeviceType = () => {
@@ -32,18 +36,20 @@ function RoadmapContent() {
   }, []);
 
   const roadmapItems: RoadmapItem[] = [
+    // 🟢 DISPONIBLES - T3 2025 (4)
     {
       id: '1',
       title: 'Calculateur de Prétaxe Notariale',
-      description: 'Calcul instantané des frais de notaire conforme au tarif réglementé 2025',
+      description: 'Calcul instantané des frais de notaire conforme au tarif réglementé 2025 avec OCR intégré',
       status: 'completed',
-      quarter: 'T1 2025',
-      icon: CheckCircle,
+      quarter: 'T3 2025',
+      category: 'Immobilier & Fiscalité',
+      icon: Calculator,
       features: [
         'Barème dégressif automatique',
         'Droits de mutation inclus',
         'Export PDF professionnel',
-        'Tous types d\'actes supportés'
+        'Scanner OCR intégré pour documents'
       ]
     },
     {
@@ -51,7 +57,8 @@ function RoadmapContent() {
       title: 'Calculateur de Plus-Value Immobilière',
       description: 'Simulation fiscale et optimisation des plus-values immobilières',
       status: 'completed',
-      quarter: 'T2 2025',
+      quarter: 'T3 2025',
+      category: 'Immobilier & Fiscalité',
       icon: TrendingUp,
       features: [
         'Abattements pour durée de détention',
@@ -62,38 +69,216 @@ function RoadmapContent() {
     },
     {
       id: '3',
-      title: 'Scanner OCR Pro',
-      description: 'Extraction automatique de données depuis vos documents notariés',
-      status: 'in-progress',
-      quarter: 'T4 2025',
-      icon: FileText,
+      title: 'Simulateur SCI',
+      description: 'Comparaison SCI à l\'IR vs à l\'IS avec optimisation fiscale',
+      status: 'completed',
+      quarter: 'T3 2025',
+      category: 'Immobilier & Fiscalité',
+      icon: Building,
       features: [
-        'Reconnaissance IA des actes de vente',
-        'Extraction des factures de travaux',
-        'Import instantané dans les calculateurs',
-        'Précision 98,5% sur documents standards'
+        'Comparaison SCI à l\'IR vs à l\'IS',
+        'Calcul fiscalité des dividendes',
+        'Simulation transmission familiale',
+        'Optimisation répartition capital/compte courant'
       ]
     },
     {
       id: '4',
-      title: 'Expertise IA',
-      description: 'Estimation immobilière basée sur l\'IA et les données DVF',
-      status: 'in-progress',
-      quarter: 'T4 2025',
-      icon: Building2,
+      title: 'Calculateur Donation / Succession',
+      description: 'Calcul des droits de donation selon lien de parenté avec optimisation fiscale',
+      status: 'completed',
+      quarter: 'T3 2025',
+      category: 'Immobilier & Fiscalité',
+      icon: Gift,
       features: [
-        'Analyse de 15M+ transactions DVF',
-        'Comparables géolocalisés',
-        'Pondération temporelle et qualitative',
-        'Rapport d\'expertise détaillé'
+        'Calcul droits selon lien de parenté',
+        'Optimisation démembrement (usufruit/nue-propriété)',
+        'Simulation donation avec réserve d\'usufruit',
+        'Pacte Dutreil pour entreprises'
+      ]
+    },
+
+    // 🔵 PRÉVUS T1 2026 - Immobilier & Fiscalité (2)
+    {
+      id: '5',
+      title: 'Calculateur IFI',
+      description: 'Calcul de l\'Impôt sur la Fortune Immobilière avec optimisations',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Immobilier & Fiscalité',
+      icon: Home,
+      features: [
+        'Calcul patrimoine imposable',
+        'Déductions dettes/travaux',
+        'Optimisation démembrement',
+        'Simulation par tranche'
       ]
     },
     {
-      id: '5',
+      id: '6',
+      title: 'Simulateur Viager',
+      description: 'Calcul du bouquet et de la rente viagère selon tables officielles',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Immobilier & Fiscalité',
+      icon: HeartHandshake,
+      features: [
+        'Calcul bouquet et rente',
+        'Tables de mortalité officielles',
+        'Optimisation fiscale',
+        'DPE et décote'
+      ]
+    },
+
+    // 🔵 PRÉVUS T1 2026 - Gestion Patrimoniale (4)
+    {
+      id: '7',
+      title: 'Calculateur Revenus Fonciers',
+      description: 'Optimisation fiscale des revenus locatifs',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Gestion Patrimoniale',
+      icon: Building2,
+      features: [
+        'Micro-foncier vs régime réel',
+        'Optimisation charges déductibles',
+        'Simulation déficit foncier',
+        'Projection sur 10 ans'
+      ]
+    },
+    {
+      id: '8',
+      title: 'Simulateur LMNP/LMP',
+      description: 'Optimisation fiscale de la location meublée',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Gestion Patrimoniale',
+      icon: Briefcase,
+      features: [
+        'Comparaison micro-BIC vs réel',
+        'Calcul des amortissements',
+        'Optimisation fiscale',
+        'Comparaison LMNP vs SCI'
+      ]
+    },
+    {
+      id: '9',
+      title: 'Calculateur Prêt Immobilier Avancé',
+      description: 'Comparaison et optimisation de prêts immobiliers',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Gestion Patrimoniale',
+      icon: Calculator,
+      features: [
+        'Comparaison offres bancaires',
+        'Calcul TAEG réel',
+        'Simulation remboursement anticipé',
+        'Lissage de prêts + assurance'
+      ]
+    },
+    {
+      id: '10',
+      title: 'Optimiseur Investissement Locatif',
+      description: 'Analyse de rentabilité et optimisation fiscale',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Gestion Patrimoniale',
+      icon: TrendingUp,
+      features: [
+        'Calcul rentabilité (brute/nette/TRI)',
+        'Cash-flow mensuel',
+        'Simulation Pinel, Denormandie, Malraux',
+        'Comparaison scénarios'
+      ]
+    },
+
+    // 🔵 PRÉVUS T1 2026 - Professionnel (3)
+    {
+      id: '11',
+      title: 'Calculateur Plus-Value Professionnelle',
+      description: 'Calcul des plus-values sur cession d\'entreprise',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Professionnel',
+      icon: Award,
+      features: [
+        'Cession fonds de commerce',
+        'Exonération départ retraite',
+        'Article 151 septies (PME)',
+        'Apport-cession'
+      ]
+    },
+    {
+      id: '12',
+      title: 'Simulateur Statut Juridique',
+      description: 'Comparaison des statuts juridiques d\'entreprise',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Professionnel',
+      icon: Briefcase,
+      features: [
+        'Comparaison SASU/EURL/SAS/SARL',
+        'Optimisation rémunération/dividendes',
+        'Charges sociales détaillées',
+        'IS vs IR'
+      ]
+    },
+    {
+      id: '13',
+      title: 'Calculateur Holding Patrimoniale',
+      description: 'Optimisation de structure holding',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Professionnel',
+      icon: Building,
+      features: [
+        'Optimisation remontée dividendes',
+        'Niche fiscale intégration',
+        'Simulation rachat parts',
+        'Transmission optimisée'
+      ]
+    },
+
+    // 🔵 PRÉVUS T1 2026 - Retraite & Transmission (2)
+    {
+      id: '14',
+      title: 'Simulateur Retraite Complète',
+      description: 'Estimation retraite tous régimes',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Retraite & Transmission',
+      icon: PiggyBank,
+      features: [
+        'Estimation tous régimes',
+        'Rachat trimestres',
+        'Cumul emploi-retraite',
+        'Réversion'
+      ]
+    },
+    {
+      id: '15',
+      title: 'Calculateur Assurance-Vie',
+      description: 'Optimisation fiscale de l\'assurance-vie',
+      status: 'planned',
+      quarter: 'T1 2026',
+      category: 'Retraite & Transmission',
+      icon: Shield,
+      features: [
+        'Fiscalité rachat (avant/après 8 ans)',
+        'Transmission (avant/après 70 ans)',
+        'Comparaison contrats',
+        'Optimisation clause bénéficiaire'
+      ]
+    },
+
+    // 🔵 PRÉVUS T1 2026 - Infrastructure (3)
+    {
+      id: '16',
       title: 'API Publique',
       description: 'API REST pour intégrer NotariaPrime dans vos outils',
       status: 'planned',
       quarter: 'T1 2026',
+      category: 'Infrastructure',
       icon: Zap,
       features: [
         'Endpoints pour tous les calculateurs',
@@ -103,11 +288,12 @@ function RoadmapContent() {
       ]
     },
     {
-      id: '6',
+      id: '17',
       title: 'Mode Hors-ligne (PWA)',
       description: 'Application web progressive fonctionnant sans connexion',
       status: 'planned',
       quarter: 'T1 2026',
+      category: 'Infrastructure',
       icon: Globe,
       features: [
         'Installation sur appareil',
@@ -117,11 +303,12 @@ function RoadmapContent() {
       ]
     },
     {
-      id: '7',
+      id: '18',
       title: 'Espace Professionnel',
       description: 'Fonctionnalités avancées pour les études notariales',
       status: 'planned',
-      quarter: 'T2 2026',
+      quarter: 'T1 2026',
+      category: 'Infrastructure',
       icon: Users,
       features: [
         'Gestion multi-utilisateurs',
@@ -129,26 +316,14 @@ function RoadmapContent() {
         'Templates personnalisés',
         'Tableau de bord analytique'
       ]
-    },
-    {
-      id: '8',
-      title: 'Assistant IA Conversationnel',
-      description: 'Chat IA pour répondre à vos questions juridiques',
-      status: 'planned',
-      quarter: 'T2 2026',
-      icon: Brain,
-      features: [
-        'Réponses basées sur le Code civil',
-        'Suggestions de calculs',
-        'Explication des résultats',
-        'Veille réglementaire automatique'
-      ]
     }
   ];
 
-  const filteredItems = selectedStatus === 'all' 
-    ? roadmapItems 
-    : roadmapItems.filter(item => item.status === selectedStatus);
+  const filteredItems = roadmapItems.filter(item => {
+    const statusMatch = selectedStatus === 'all' || item.status === selectedStatus;
+    const categoryMatch = selectedCategory === 'all' || item.category === selectedCategory;
+    return statusMatch && categoryMatch;
+  });
 
   const getStatusConfig = (status: string) => {
     const configs = {
@@ -158,14 +333,8 @@ function RoadmapContent() {
         icon: CheckCircle,
         iconColor: 'text-green-600'
       },
-      'in-progress': {
-        label: 'En développement',
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        icon: Clock,
-        iconColor: 'text-yellow-600'
-      },
       'planned': {
-        label: 'Prévu',
+        label: 'À venir',
         color: 'bg-blue-100 text-blue-800 border-blue-200',
         icon: Rocket,
         iconColor: 'text-blue-600'
@@ -176,8 +345,16 @@ function RoadmapContent() {
 
   const stats = [
     { label: 'Disponibles', value: roadmapItems.filter(i => i.status === 'completed').length, color: 'text-green-600' },
-    { label: 'En cours', value: roadmapItems.filter(i => i.status === 'in-progress').length, color: 'text-yellow-600' },
-    { label: 'À venir', value: roadmapItems.filter(i => i.status === 'planned').length, color: 'text-blue-600' }
+    { label: 'À venir', value: roadmapItems.filter(i => i.status === 'planned').length, color: 'text-blue-600' },
+    { label: 'Total', value: roadmapItems.length, color: 'text-indigo-600' }
+  ];
+
+  const categories = [
+    'Immobilier & Fiscalité',
+    'Gestion Patrimoniale',
+    'Professionnel',
+    'Retraite & Transmission',
+    'Infrastructure'
   ];
 
   return (
@@ -197,7 +374,7 @@ function RoadmapContent() {
           </div>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl">
-            Découvrez les fonctionnalités disponibles, en cours de développement et prévues pour NotariaPrime. 
+            Découvrez les 18 fonctionnalités : 4 disponibles depuis T3 2025, 14 prévues pour T1 2026. 
             Votre feedback guide notre feuille de route.
           </p>
 
@@ -215,15 +392,15 @@ function RoadmapContent() {
 
       {/* Filtres */}
       <section className="py-8 border-y border-gray-200 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6 space-y-4">
+          {/* Filtre par statut */}
           <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-gray-700">Filtrer par statut :</span>
-            <div className="flex gap-2">
+            <span className="text-sm font-semibold text-gray-700">Statut :</span>
+            <div className="flex gap-2 flex-wrap">
               {[
-                { value: 'all', label: 'Tout voir' },
+                { value: 'all', label: 'Tout' },
                 { value: 'completed', label: 'Disponibles' },
-                { value: 'in-progress', label: 'En cours' },
-                { value: 'planned', label: 'Prévus' }
+                { value: 'planned', label: 'À venir' }
               ].map((filter) => (
                 <button
                   key={filter.value}
@@ -235,6 +412,36 @@ function RoadmapContent() {
                   }`}
                 >
                   {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtre par catégorie */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-semibold text-gray-700">Catégorie :</span>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  selectedCategory === 'all'
+                    ? 'bg-indigo-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                Toutes
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-indigo-600 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {cat}
                 </button>
               ))}
             </div>
@@ -262,8 +469,7 @@ function RoadmapContent() {
                     {/* Icon timeline */}
                     <div className="flex-shrink-0">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        item.status === 'completed' ? 'bg-green-100' :
-                        item.status === 'in-progress' ? 'bg-yellow-100' : 'bg-blue-100'
+                        item.status === 'completed' ? 'bg-green-100' : 'bg-blue-100'
                       }`}>
                         <ItemIcon className={`w-6 h-6 ${statusConfig.iconColor}`} />
                       </div>
@@ -272,18 +478,21 @@ function RoadmapContent() {
                     {/* Content */}
                     <div className="flex-1 pb-8">
                       <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 hover:shadow-xl hover:border-indigo-300 transition-all">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <h3 className="text-2xl font-bold text-gray-900">{item.title}</h3>
                               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border-2 ${statusConfig.color}`}>
                                 <StatusIcon className="w-3.5 h-3.5" />
                                 {statusConfig.label}
                               </span>
+                              <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                                {item.category}
+                              </span>
                             </div>
                             <p className="text-gray-600 leading-relaxed">{item.description}</p>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0 ml-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
                             <Calendar className="w-4 h-4" />
                             <span className="font-medium">{item.quarter}</span>
                           </div>
