@@ -694,7 +694,7 @@ export default function ViagerCalculator() {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(grisTexte[0], grisTexte[1], grisTexte[2]);
       
-      const infoFinance = [
+      const infoFinance: [string, string, boolean?][] = [
         ['Bouquet (versement initial)', `${formatNumberForPDF(resultat.bouquet)} €`],
         ['Capital restant à financer', `${formatNumberForPDF(resultat.capitalRestant)} €`],
         ['Rente viagère mensuelle', `${formatNumberForPDF(resultat.renteViagere)} €`, true]
