@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="py-16 bg-white border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-5 gap-8 mb-12">
+        <div className="grid md:grid-cols-6 gap-8 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -36,6 +36,15 @@ export default function Footer() {
             <ul className="space-y-3 text-gray-600">
               <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
               <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4 text-gray-900">Prestations</h4>
+            <ul className="space-y-3 text-gray-600">
+              <li><a href="/prestations/comptabilite-notariale" className="hover:text-gray-900 transition">Comptabilité notariale</a></li>
+              <li><a href="/prestations/expertise-immobiliere" className="hover:text-gray-900 transition">Expertise immobilière</a></li>
+              <li><a href="/prestations/developpement-informatique" className="hover:text-gray-900 transition">Développement informatique</a></li>
             </ul>
           </div>
           
