@@ -248,6 +248,32 @@ function HomepageContent() {
         'Pacte Dutreil'
       ],
       link: '/donation'
+    },
+    {
+      title: 'Calcul IFI',
+      icon: Home,
+      description: 'Calcul de l\'Impôt sur la Fortune Immobilière avec optimisations',
+      status: 'Disponible',
+      features: [
+        'Patrimoine taxable',
+        'Abattement résidence principale',
+        'Passifs déductibles',
+        'Plafonnement ISF/IFI'
+      ],
+      link: '/ifi'
+    },
+    {
+      title: 'Simulateur Viager',
+      icon: HeartHandshake,
+      description: 'Calcul viager occupé/libre avec tables de mortalité officielles',
+      status: 'Disponible',
+      features: [
+        'Bouquet et rente',
+        'Tables INSEE officielles',
+        'Viager occupé/libre',
+        'Fiscalité optimisée'
+      ],
+      link: '/viager'
     }
   ];
 
@@ -257,8 +283,6 @@ function HomepageContent() {
   }, []);
 
   const newFeatures: NewFeature[] = [
-    { icon: Home, label: 'Calcul IFI', status: 'T1 2026' },
-    { icon: HeartHandshake, label: 'Simulateur Viager', status: 'T1 2026' },
     { icon: Building2, label: 'Revenus Fonciers', status: 'T1 2026' },
     { icon: Briefcase, label: 'LMNP/LMP', status: 'T1 2026' },
     { icon: Calculator, label: 'Prêt Immobilier', status: 'T1 2026' },
@@ -308,17 +332,17 @@ function HomepageContent() {
 
                 <div className={`flex gap-4 mb-8 ${isMobile ? 'flex-col' : 'flex-row'}`}>
                   <a 
-                    href="/pretaxe" 
+                    href="#solutions" 
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
                   >
-                    Calculer maintenant
+                    Essayer maintenant
                     <ArrowRight className="w-5 h-5" />
                   </a>
                   <a 
-                    href="/features" 
+                    href="/prestations" 
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 rounded-xl font-semibold transition-all"
                   >
-                    Voir tous les outils
+                    Nos prestations
                   </a>
                 </div>
 
@@ -463,7 +487,76 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Solutions Grid - 4 disponibles */}
+        {/* Section Success Story avec photo humaine */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className={`grid items-center gap-12 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Image */}
+              <div className="relative">
+                <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-50">
+                  {/* Image avec aspect ratio 4:3 et crop centré sur le visage */}
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img 
+                      src="/images/notaire.webp" 
+                      alt="Professionnelle satisfaite utilisant NotariaPrime" 
+                      className="w-full h-full object-cover object-[center_30%] scale-105 hover:scale-110 transition-transform duration-500"
+                    />
+                    {/* Vignette subtile */}
+                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
+                  </div>
+                  
+                  {/* Formes décoratives en overlay */}
+                  <div className="absolute top-6 left-6 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl" />
+                  <div className="absolute bottom-6 right-6 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl" />
+                </div>
+                
+                {/* Badge moderne en bas à droite */}
+                <div className="absolute -bottom-4 -right-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
+                  <div className="text-xs font-semibold uppercase tracking-wide mb-1">Gain de temps</div>
+                  <div className="text-4xl font-black">5min</div>
+                  <div className="text-xs mt-1 opacity-90">par calcul</div>
+                </div>
+              </div>
+
+              {/* Texte */}
+              <div>
+                <h2 className={`font-bold mb-6 text-gray-900 ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
+                  Votre expertise mérite mieux qu'une calculette
+                </h2>
+                <p className="text-xl text-gray-600 mb-6">
+                  Les professionnels du notariat utilisent NotariaPrime pour automatiser 
+                  leurs calculs répétitifs et se concentrer sur ce qui compte vraiment : 
+                  leurs clients.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Gagnez du temps</h3>
+                      <p className="text-gray-600">Plus de 5 minutes économisées sur chaque calcul complexe</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Fiabilité totale</h3>
+                      <p className="text-gray-600">Calculs conformes et vérifiés par des experts</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Star className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Satisfaction garantie</h3>
+                      <p className="text-gray-600">Rejoint par 500+ professionnels chaque mois</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Solutions Grid - 6 disponibles */}
         <section id="solutions" className="py-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -472,7 +565,7 @@ function HomepageContent() {
                 <span className="text-sm font-semibold text-green-700">Disponibles maintenant</span>
               </div>
               <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-                4 outils puissants pour votre quotidien
+                Des outils puissants pour votre quotidien
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Des solutions concrètes pour gagner du temps sur vos tâches récurrentes. 
@@ -480,7 +573,7 @@ function HomepageContent() {
               </p>
             </div>
 
-            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-3' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {solutions.map((solution, index) => (
                 <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
               ))}
@@ -497,15 +590,15 @@ function HomepageContent() {
                 <span className="text-sm font-semibold text-blue-700">À venir</span>
               </div>
               <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-                14 nouveaux calculateurs en préparation
+                12 nouveaux calculateurs en préparation
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                IFI, viager, revenus fonciers, LMNP, retraite... Une suite complète pour tous vos besoins. 
+                Revenus fonciers, LMNP, retraite, prêt immobilier... Une suite complète pour tous vos besoins. 
                 Sortie prévue T1 2026.
               </p>
             </div>
 
-            <div className={`grid gap-4 ${isDesktop ? 'grid-cols-7' : isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            <div className={`grid gap-4 ${isDesktop ? 'grid-cols-6' : isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
               {newFeatures.map((item, i) => (
                 <div 
                   key={i} 
