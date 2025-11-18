@@ -480,7 +480,7 @@ export default function CalculateurPret() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: ${formatEuros(value)}`}
+                    label={({ name, value }: { name: string; value: number }) => `${name}: ${formatEuros(value)}`}
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
