@@ -91,6 +91,7 @@ interface DataRepartition {
   name: string;
   value: number;
   color: string;
+  [key: string]: string | number; // Index signature pour Recharts
 }
 
 interface DataEvolution {
@@ -98,6 +99,7 @@ interface DataEvolution {
   capital: number;
   interets: number;
   capitalRestant: number;
+  [key: string]: string | number; // Index signature pour Recharts
 }
 
 // ============================================
