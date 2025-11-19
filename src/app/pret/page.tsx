@@ -1,12 +1,12 @@
 // ============================================
 // FILE: src/app/pret/page.tsx
 // DESCRIPTION: Calculateur de Prêt Immobilier - NotariaPrime
-// VERSION: 2.0 - Corrigée et améliorée
+// VERSION: 2.1 - Optimisée et corrigée
 // ============================================
 
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   Home, 
   TrendingUp, 
@@ -25,7 +25,7 @@ import {
   CreditCard,
   TrendingDown,
   Shield,
-  CheckCircle2  // ✅ AJOUT DE L'IMPORT MANQUANT
+  CheckCircle2
 } from 'lucide-react';
 import { 
   PieChart, 
@@ -87,6 +87,19 @@ interface ResultatPret {
   tableauAmortissement: Mensualite[];
 }
 
+interface DataRepartition {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface DataEvolution {
+  annee: string;
+  capital: number;
+  interets: number;
+  capitalRestant: number;
+}
+
 // ============================================
 // CONSTANTES - TAUX DE RÉFÉRENCE OCTOBRE 2025
 // ============================================
@@ -96,7 +109,7 @@ const TAUX_REFERENCE = {
   "15": { min: 2.90, moyen: 3.04, max: 3.20 },
   "20": { min: 2.95, moyen: 3.12, max: 3.30 },
   "25": { min: 3.00, moyen: 3.20, max: 3.40 }
-};
+} as const;
 
 const TAUX_VARIABLE_EURIBOR = 2.02; // Euribor 3M août 2025
 const MARGE_BANQUE_VARIABLE = 1.5; // Marge moyenne
@@ -106,7 +119,7 @@ const COLORS_CHART = {
   capital: '#10b981',
   interets: '#f59e0b',
   assurance: '#6366f1'
-};
+} as const;
 
 // ============================================
 // FONCTIONS UTILITAIRES
@@ -232,44 +245,52 @@ export default function CalculateurPret() {
 
   const [afficherTableau, setAfficherTableau] = useState(false);
 
-  // Suggérer le taux selon la durée
-  const suggereTaux = (duree: number) => {
+  // ✅ OPTIMISATION: useCallback pour éviter recréation fonction
+  const suggereTaux = useCallback((duree: number) => {
     const dureeStr = duree.toString() as keyof typeof TAUX_REFERENCE;
     const taux = TAUX_REFERENCE[dureeStr];
     if (taux) {
-      setFormData({ ...formData, duree, tauxAnnuel: taux.moyen.toString() });
+      setFormData(prev => ({ ...prev, duree, tauxAnnuel: taux.moyen.toString() }));
     } else {
-      setFormData({ ...formData, duree });
+      setFormData(prev => ({ ...prev, duree }));
     }
-  };
+  }, []);
 
+  // ✅ OPTIMISATION: useMemo pour calcul
   const resultat = useMemo(() => calculerPret(formData), [formData]);
 
-  // Données pour graphiques
-  const dataRepartition = [
+  // ✅ OPTIMISATION: useMemo pour données graphiques
+  const dataRepartition: DataRepartition[] = useMemo(() => [
     { name: 'Capital', value: resultat.montantEmprunte, color: COLORS_CHART.capital },
     { name: 'Intérêts', value: resultat.totalInterets, color: COLORS_CHART.interets },
     { name: 'Assurance', value: resultat.totalAssurance, color: COLORS_CHART.assurance }
-  ];
+  ], [resultat.montantEmprunte, resultat.totalInterets, resultat.totalAssurance]);
 
-  // Évolution annuelle (regroupement par année)
-  const dataEvolution = [];
-  for (let annee = 1; annee <= resultat.dureeAnnees; annee++) {
-    const debut = (annee - 1) * 12;
-    const fin = annee * 12;
-    const mensualitesAnnee = resultat.tableauAmortissement.slice(debut, fin);
-    
-    const capitalAnnee = mensualitesAnnee.reduce((sum, m) => sum + m.capital, 0);
-    const interetsAnnee = mensualitesAnnee.reduce((sum, m) => sum + m.interets, 0);
-    const capitalRestant = mensualitesAnnee[mensualitesAnnee.length - 1]?.capitalRestant || 0;
-    
-    dataEvolution.push({
-      annee: `An ${annee}`,
-      capital: Math.round(capitalAnnee),
-      interets: Math.round(interetsAnnee),
-      capitalRestant: Math.round(capitalRestant)
-    });
-  }
+  // ✅ OPTIMISATION: useMemo pour évolution annuelle
+  const dataEvolution: DataEvolution[] = useMemo(() => {
+    const data: DataEvolution[] = [];
+    for (let annee = 1; annee <= resultat.dureeAnnees; annee++) {
+      const debut = (annee - 1) * 12;
+      const fin = annee * 12;
+      const mensualitesAnnee = resultat.tableauAmortissement.slice(debut, fin);
+      
+      const capitalAnnee = mensualitesAnnee.reduce((sum, m) => sum + m.capital, 0);
+      const interetsAnnee = mensualitesAnnee.reduce((sum, m) => sum + m.interets, 0);
+      const capitalRestant = mensualitesAnnee[mensualitesAnnee.length - 1]?.capitalRestant || 0;
+      
+      data.push({
+        annee: `An ${annee}`,
+        capital: Math.round(capitalAnnee),
+        interets: Math.round(interetsAnnee),
+        capitalRestant: Math.round(capitalRestant)
+      });
+    }
+    return data;
+  }, [resultat.tableauAmortissement, resultat.dureeAnnees]);
+
+  // ✅ CORRECTION: Formatter pour Tooltip Recharts
+  const tooltipFormatter = useCallback((value: number) => formatEuros(value), []);
+  const yAxisFormatter = useCallback((value: number) => `${Math.round(value / 1000)}k€`, []);
 
   return (
     <MainLayout>
@@ -480,7 +501,7 @@ export default function CalculateurPret() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }: { name: string; value: number }) => `${name}: ${formatEuros(value)}`}
+                    label={(props: any) => `${props.name}: ${formatEuros(props.value as number)}`}
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
@@ -489,7 +510,7 @@ export default function CalculateurPret() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatEuros(value)} />
+                  <Tooltip formatter={tooltipFormatter} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -505,8 +526,8 @@ export default function CalculateurPret() {
                 <LineChart data={dataEvolution}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="annee" />
-                  <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k€`} />
-                  <Tooltip formatter={(value: number) => formatEuros(value)} />
+                  <YAxis tickFormatter={yAxisFormatter} />
+                  <Tooltip formatter={tooltipFormatter} />
                   <Legend />
                   <Line 
                     type="monotone" 
@@ -531,8 +552,8 @@ export default function CalculateurPret() {
               <BarChart data={dataEvolution}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="annee" />
-                <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k€`} />
-                <Tooltip formatter={(value: number) => formatEuros(value)} />
+                <YAxis tickFormatter={yAxisFormatter} />
+                <Tooltip formatter={tooltipFormatter} />
                 <Legend />
                 <Bar dataKey="capital" name="Capital remboursé" fill={COLORS_CHART.capital} stackId="a" />
                 <Bar dataKey="interets" name="Intérêts payés" fill={COLORS_CHART.interets} stackId="a" />
