@@ -111,7 +111,8 @@ export function calculerTaxes(
   const taxeDepartementale = montant * (tauxDepartemental / 100);
   const taxeCommunale = montant * (tauxCommunal / 100);
   const totalDroits = taxeDepartementale + taxeCommunale;
-  const fraisAssiette = totalDroits * 0.0237;
+  // Art. 1647-V CGI : prélèvement de 2,37% sur la seule taxe départementale
+  const fraisAssiette = taxeDepartementale * 0.0237;
   
   setTaxes(prev => ({
     ...prev,
