@@ -64,8 +64,7 @@ export const metadata: Metadata = {
   
   // Verification
   verification: {
-    // google: 'votre-code-google-search-console',
-    // yandex: 'votre-code-yandex',
+    google: 'LbY4NXudNFiALFA-XV8m4NF7ZtGFNVM4oMq5SLcztcU',
   },
 };
 
