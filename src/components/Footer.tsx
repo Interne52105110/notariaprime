@@ -23,18 +23,23 @@ export default function Footer() {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-gray-900">Produit</h4>
+            <h4 className="font-semibold mb-4 text-gray-900">Calculateurs</h4>
             <ul className="space-y-3 text-gray-600">
-              <li><a href="/features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
-              <li><a href="/pretaxe" className="hover:text-gray-900 transition">Calculateur</a></li>
-              <li><a href="/roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
+              <li><a href="/pretaxe" className="hover:text-gray-900 transition">Frais de Notaire</a></li>
+              <li><a href="/plusvalue" className="hover:text-gray-900 transition">Plus-Value Immobilière</a></li>
+              <li><a href="/sci" className="hover:text-gray-900 transition">Simulateur SCI</a></li>
+              <li><a href="/donation" className="hover:text-gray-900 transition">Donation / Succession</a></li>
+              <li><a href="/lmnp" className="hover:text-gray-900 transition">LMNP / LMP</a></li>
+              <li><a href="/revenus-fonciers" className="hover:text-gray-900 transition">Revenus Fonciers</a></li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
             <ul className="space-y-3 text-gray-600">
+              <li><a href="/features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
               <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
+              <li><a href="/roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
               <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
             </ul>
           </div>
@@ -61,7 +66,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-600">
-              © 2025 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
+              © 2025-2026 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
             </div>
             <div className="flex items-center gap-6 text-sm">
               <a href="/mentions-legales" className="text-gray-600 hover:text-gray-900 transition">

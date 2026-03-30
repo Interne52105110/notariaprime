@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import MainLayout from '@/components/MainLayout';
-import { 
+import {
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
   CheckCircle, Users, Award, Globe,
-  FileCheck, Clock, Star, Building2, 
+  FileCheck, Clock, Star, Building2,
   Rocket, Brain, Gift, HeartHandshake, Briefcase,
-  PiggyBank, Home, Building, Scale
+  PiggyBank, Home, Building, Scale, Receipt,
+  Hotel, BarChart3, Landmark
 } from 'lucide-react';
 
-// Types pour les composants
+// Types
 interface Stat {
   value: string;
   label: string;
@@ -32,6 +33,7 @@ interface Solution {
   status: string;
   features: string[];
   link: string;
+  isNew?: boolean;
 }
 
 interface NewFeature {
@@ -40,15 +42,15 @@ interface NewFeature {
   status: string;
 }
 
-// Composants mémorisés pour optimiser les performances
+// Composants mémorisés
 const StatsCard = memo(({ stat }: { stat: Stat }) => (
   <div className="text-center">
     <div className="flex items-center justify-center gap-2 mb-2">
       <p className="text-4xl font-bold text-gray-900">{stat.value}</p>
       {stat.trend && (
         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-          stat.trend === 'TOUJOURS' || stat.trend === 'OFFICIEL' 
-            ? 'bg-blue-100 text-blue-800' 
+          stat.trend === 'TOUJOURS' || stat.trend === 'OFFICIEL'
+            ? 'bg-blue-100 text-blue-800'
             : 'bg-green-100 text-green-800'
         }`}>
           {stat.trend}
@@ -66,10 +68,10 @@ const FeatureCard = memo(({ feature }: { feature: Feature }) => (
     <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
       <feature.icon className="w-6 h-6 text-indigo-600" />
     </div>
-    
+
     <h3 className="text-lg font-bold mb-2 text-gray-900">{feature.title}</h3>
     <p className="text-gray-600 text-sm mb-4">{feature.description}</p>
-    
+
     <div className="pt-4 border-t border-gray-100">
       <div className="flex items-baseline gap-2">
         <span className="text-2xl font-bold text-indigo-600">{feature.metric}</span>
@@ -81,24 +83,24 @@ const FeatureCard = memo(({ feature }: { feature: Feature }) => (
 
 FeatureCard.displayName = 'FeatureCard';
 
-const SolutionCard = memo(({ solution, index, onHover }: { 
-  solution: Solution; 
-  index: number; 
-  onHover: (index: number | null) => void; 
+const SolutionCard = memo(({ solution, index, onHover }: {
+  solution: Solution;
+  index: number;
+  onHover: (index: number | null) => void;
 }) => {
   const isAvailable = solution.status === 'Disponible';
-  
+
   const handleClick = () => {
     if (isAvailable && solution.link) {
       window.location.href = solution.link;
     }
   };
-  
+
   return (
-    <div 
+    <div
       className={`relative bg-white rounded-xl border p-8 transition-all duration-300 ${
-        isAvailable 
-          ? 'border-gray-200 hover:shadow-xl hover:border-indigo-300 cursor-pointer hover:-translate-y-1' 
+        isAvailable
+          ? 'border-gray-200 hover:shadow-xl hover:border-indigo-300 cursor-pointer hover:-translate-y-1'
           : 'border-gray-100 opacity-75 bg-gray-50 cursor-not-allowed'
       }`}
       onMouseEnter={() => isAvailable && onHover(index)}
@@ -106,16 +108,16 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       onClick={handleClick}
     >
       <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 ${
-        isAvailable 
-          ? 'bg-gradient-to-br from-indigo-500 to-purple-600' 
+        isAvailable
+          ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
           : 'bg-gray-300'
       }`}>
         <solution.icon className={`w-7 h-7 ${isAvailable ? 'text-white' : 'text-gray-500'}`} />
       </div>
-      
+
       <h3 className="text-xl font-bold mb-2 text-gray-900">{solution.title}</h3>
       <p className="text-gray-600 text-sm mb-4">{solution.description}</p>
-      
+
       <div className="space-y-2 mb-6">
         {solution.features.map((feature, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -124,10 +126,10 @@ const SolutionCard = memo(({ solution, index, onHover }: {
           </div>
         ))}
       </div>
-      
+
       {isAvailable ? (
         <div className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all">
-          Utiliser l'outil
+          Utiliser l&apos;outil
           <ArrowRight className="w-4 h-4" />
         </div>
       ) : (
@@ -139,11 +141,15 @@ const SolutionCard = memo(({ solution, index, onHover }: {
 
 SolutionCard.displayName = 'SolutionCard';
 
+// Catégories d'outils pour filtrage
+const CATEGORIES = ['Tous', 'Immobilier', 'Fiscalité', 'Patrimoine', 'Entreprise'] as const;
+type Category = typeof CATEGORIES[number];
+
 function HomepageContent() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<Category>('Tous');
 
-  // Gestion responsive optimisée
   useEffect(() => {
     const updateDeviceType = () => {
       setIsDesktop(window.innerWidth > 1024);
@@ -159,10 +165,10 @@ function HomepageContent() {
   }, []);
 
   const stats: Stat[] = [
-    { value: '18', label: 'Calculateurs pro', trend: 'COMPLET' },
+    { value: '15', label: 'Calculateurs professionnels', trend: 'COMPLET' },
     { value: '500+', label: 'Calculs par mois', trend: '+18%' },
     { value: '100%', label: 'Gratuit et open source', trend: 'TOUJOURS' },
-    { value: '2025', label: 'Tarifs à jour', trend: 'OFFICIEL' }
+    { value: '2026', label: 'Barèmes à jour', trend: 'OFFICIEL' }
   ];
 
   const features: Feature[] = [
@@ -182,7 +188,7 @@ function HomepageContent() {
     },
     {
       icon: Scale,
-      title: 'Conforme 2025',
+      title: 'Conforme 2026',
       description: 'Tous les barèmes et taux fiscaux officiels à jour',
       metric: '100%',
       metricLabel: 'Réglementaire'
@@ -196,105 +202,171 @@ function HomepageContent() {
     }
   ];
 
-  const solutions: Solution[] = [
+  type SolutionWithCategory = Solution & { category: Category };
+
+  const allSolutions: SolutionWithCategory[] = [
+    // Immobilier
     {
       title: 'Calculateur de Prétaxe',
       icon: Calculator,
       description: 'Calcul instantané des frais de notaire conforme au tarif réglementé',
       status: 'Disponible',
-      features: [
-        'Barème dégressif automatique',
-        'Droits de mutation inclus',
-        'Export PDF professionnel',
-        'OCR intégré (scan docs)'
-      ],
-      link: '/pretaxe'
+      features: ['Barème dégressif automatique', 'Droits de mutation inclus', 'Export PDF professionnel', 'OCR intégré (scan docs)'],
+      link: '/pretaxe',
+      category: 'Immobilier'
     },
     {
       title: 'Plus-Value Immobilière',
       icon: TrendingUp,
-      description: 'Simulation fiscale et optimisation des plus-values',
+      description: 'Simulation fiscale et optimisation des plus-values immobilières',
       status: 'Disponible',
-      features: [
-        'Abattements pour durée',
-        'Optimisation travaux',
-        'Simulations comparatives',
-        'Cas particuliers inclus'
-      ],
-      link: '/plusvalue'
-    },
-    {
-      title: 'Simulateur SCI',
-      icon: Building,
-      description: 'Comparaison SCI à l\'IR vs à l\'IS avec optimisation fiscale',
-      status: 'Disponible',
-      features: [
-        'IR vs IS détaillé',
-        'Fiscalité dividendes',
-        'Transmission familiale',
-        'Optimisation capital/CC'
-      ],
-      link: '/sci'
-    },
-    {
-      title: 'Donation / Succession',
-      icon: Gift,
-      description: 'Calcul des droits selon lien de parenté avec optimisations',
-      status: 'Disponible',
-      features: [
-        'Droits par parenté',
-        'Démembrement optimisé',
-        'Réserve d\'usufruit',
-        'Pacte Dutreil'
-      ],
-      link: '/donation'
-    },
-    {
-      title: 'Calcul IFI',
-      icon: Home,
-      description: 'Calcul de l\'Impôt sur la Fortune Immobilière avec optimisations',
-      status: 'Disponible',
-      features: [
-        'Patrimoine taxable',
-        'Abattement résidence principale',
-        'Passifs déductibles',
-        'Plafonnement ISF/IFI'
-      ],
-      link: '/ifi'
+      features: ['Abattements pour durée', 'Optimisation travaux', 'Simulations comparatives', 'Cas particuliers inclus'],
+      link: '/plusvalue',
+      category: 'Immobilier'
     },
     {
       title: 'Simulateur Viager',
       icon: HeartHandshake,
       description: 'Calcul viager occupé/libre avec tables de mortalité officielles',
       status: 'Disponible',
-      features: [
-        'Bouquet et rente',
-        'Tables INSEE officielles',
-        'Viager occupé/libre',
-        'Fiscalité optimisée'
-      ],
-      link: '/viager'
+      features: ['Bouquet et rente', 'Tables INSEE officielles', 'Viager occupé/libre', '5 méthodes de calcul'],
+      link: '/viager',
+      category: 'Immobilier'
+    },
+    {
+      title: 'Investissement Locatif',
+      icon: BarChart3,
+      description: 'Rentabilité, cash flow et comparaison des dispositifs fiscaux',
+      status: 'Disponible',
+      features: ['Rendement brut / net / net-net', 'Dispositifs Pinel, Denormandie', 'Projection sur 30 ans', 'Cash flow mensuel'],
+      link: '/investissement-locatif',
+      isNew: true,
+      category: 'Immobilier'
+    },
+    {
+      title: 'Prêt Immobilier',
+      icon: Landmark,
+      description: 'Simulateur de prêt avec tableau d\'amortissement complet',
+      status: 'Disponible',
+      features: ['Tableau d\'amortissement', 'Assurance emprunteur', 'Graphiques d\'évolution', 'Coût total du crédit'],
+      link: '/pret',
+      category: 'Immobilier'
+    },
+    // Fiscalité
+    {
+      title: 'Revenus Fonciers',
+      icon: Home,
+      description: 'Comparaison micro-foncier vs régime réel avec déficit foncier',
+      status: 'Disponible',
+      features: ['Micro-foncier vs réel', 'Déficit foncier calculé', 'Projection sur 10 ans', 'Optimisation fiscale'],
+      link: '/revenus-fonciers',
+      isNew: true,
+      category: 'Fiscalité'
+    },
+    {
+      title: 'LMNP / LMP',
+      icon: Hotel,
+      description: 'Statut LMNP ou LMP, micro-BIC vs réel avec amortissement',
+      status: 'Disponible',
+      features: ['Détection statut auto', 'Amortissement par composant', 'Micro-BIC vs réel', 'Plus-value à la revente'],
+      link: '/lmnp',
+      isNew: true,
+      category: 'Fiscalité'
+    },
+    {
+      title: 'Calcul IFI',
+      icon: Scale,
+      description: 'Calcul de l\'Impôt sur la Fortune Immobilière avec optimisations',
+      status: 'Disponible',
+      features: ['Patrimoine taxable', 'Abattement résidence principale', 'Passifs déductibles', 'Plafonnement IFI'],
+      link: '/ifi',
+      category: 'Fiscalité'
+    },
+    {
+      title: 'Plus-Value Professionnelle',
+      icon: Award,
+      description: 'Plus-values pro avec exonérations (151 septies, départ retraite...)',
+      status: 'Disponible',
+      features: ['PV court terme / long terme', 'Exonérations auto-détectées', 'Art. 151 septies / 238 quindecies', 'Départ retraite'],
+      link: '/plusvalue-pro',
+      isNew: true,
+      category: 'Fiscalité'
+    },
+    // Patrimoine
+    {
+      title: 'Simulateur SCI',
+      icon: Building,
+      description: 'Comparaison SCI à l\'IR vs à l\'IS avec optimisation fiscale',
+      status: 'Disponible',
+      features: ['IR vs IS détaillé', 'Fiscalité dividendes', 'Transmission familiale', 'Optimisation capital/CC'],
+      link: '/sci',
+      category: 'Patrimoine'
+    },
+    {
+      title: 'Donation / Succession',
+      icon: Gift,
+      description: 'Calcul des droits selon lien de parenté avec optimisations',
+      status: 'Disponible',
+      features: ['Droits par parenté', 'Démembrement optimisé', 'Réserve d\'usufruit', 'Pacte Dutreil'],
+      link: '/donation',
+      category: 'Patrimoine'
+    },
+    {
+      title: 'Holding Patrimoniale',
+      icon: Briefcase,
+      description: 'Détention directe vs holding IS : fiscalité et transmission comparées',
+      status: 'Disponible',
+      features: ['Directe vs Holding', 'Régime mère-fille', 'Transmission de parts', 'Projection long terme'],
+      link: '/holding',
+      isNew: true,
+      category: 'Patrimoine'
+    },
+    {
+      title: 'Assurance-Vie',
+      icon: Shield,
+      description: 'Fiscalité des rachats et succession : optimisez votre contrat',
+      status: 'Disponible',
+      features: ['Fiscalité rachat', 'Succession art. 990 I / 757 B', 'PFU vs barème IR', 'Projection capitalisation'],
+      link: '/assurance-vie',
+      isNew: true,
+      category: 'Patrimoine'
+    },
+    // Entreprise
+    {
+      title: 'Statut Juridique',
+      icon: Briefcase,
+      description: 'Comparez EI, SARL, SAS, SASU : charges, impôts, net disponible',
+      status: 'Disponible',
+      features: ['Tous les statuts comparés', 'Charges sociales détaillées', 'Mix rémunération/dividendes', 'Recommandation auto'],
+      link: '/statut-juridique',
+      isNew: true,
+      category: 'Entreprise'
+    },
+    {
+      title: 'Simulateur Retraite',
+      icon: PiggyBank,
+      description: 'Estimation de votre pension selon votre carrière et votre régime',
+      status: 'Disponible',
+      features: ['Pension de base + complémentaire', 'Décote / surcote', 'Scénarios de départ', 'Rachat de trimestres'],
+      link: '/retraite',
+      isNew: true,
+      category: 'Entreprise'
     }
   ];
+
+  const filteredSolutions = activeCategory === 'Tous'
+    ? allSolutions
+    : allSolutions.filter(s => s.category === activeCategory);
 
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const handleCardHover = useCallback((index: number | null) => {
     setHoveredCard(index);
   }, []);
 
-  const newFeatures: NewFeature[] = [
-    { icon: Building2, label: 'Revenus Fonciers', status: 'T1 2026' },
-    { icon: Briefcase, label: 'LMNP/LMP', status: 'T1 2026' },
-    { icon: Calculator, label: 'Prêt Immobilier', status: 'T1 2026' },
-    { icon: TrendingUp, label: 'Investissement Locatif', status: 'T1 2026' },
-    { icon: Award, label: 'Plus-Value Pro', status: 'T1 2026' },
-    { icon: Briefcase, label: 'Statut Juridique', status: 'T1 2026' },
-    { icon: Building, label: 'Holding Patrimoniale', status: 'T1 2026' },
-    { icon: PiggyBank, label: 'Simulateur Retraite', status: 'T1 2026' },
-    { icon: Shield, label: 'Assurance-Vie', status: 'T1 2026' },
-    { icon: Zap, label: 'API Publique', status: 'T1 2026' },
-    { icon: Globe, label: 'Mode Hors-ligne', status: 'T1 2026' },
-    { icon: Users, label: 'Espace Pro', status: 'T1 2026' }
+  const upcomingFeatures: NewFeature[] = [
+    { icon: Zap, label: 'API Publique', status: 'T2 2026' },
+    { icon: Globe, label: 'Mode Hors-ligne', status: 'T2 2026' },
+    { icon: Users, label: 'Espace Pro', status: 'T3 2026' }
   ];
 
   return (
@@ -308,11 +380,10 @@ function HomepageContent() {
 
           <div className="relative max-w-7xl mx-auto px-6">
             <div className={`grid items-center gap-12 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              {/* Texte */}
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-full mb-8">
                   <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-indigo-700">18 calculateurs professionnels</span>
+                  <span className="text-sm font-semibold text-indigo-700">15 calculateurs professionnels</span>
                 </div>
 
                 <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
@@ -325,21 +396,21 @@ function HomepageContent() {
                 </h1>
 
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                  Suite complète d'outils pour les professionnels du notariat. 
-                  Prétaxe, plus-value, donations, SCI, revenus fonciers et bien plus. 
+                  Suite complète d&apos;outils pour les professionnels du notariat et du patrimoine.
+                  Prétaxe, plus-value, SCI, LMNP, holding, retraite et bien plus.
                   Gratuit, rapide et confidentiel.
                 </p>
 
                 <div className={`flex gap-4 mb-8 ${isMobile ? 'flex-col' : 'flex-row'}`}>
-                  <a 
-                    href="#solutions" 
+                  <a
+                    href="#solutions"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
                   >
                     Essayer maintenant
                     <ArrowRight className="w-5 h-5" />
                   </a>
-                  <a 
-                    href="/prestations" 
+                  <a
+                    href="/prestations"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 rounded-xl font-semibold transition-all"
                   >
                     Nos prestations
@@ -365,12 +436,9 @@ function HomepageContent() {
               {/* Illustration */}
               {isDesktop && (
                 <div className="relative">
-                  {/* Background Glow */}
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 opacity-30 blur-3xl rounded-3xl" />
-                  
-                  {/* Calculator Mock - Design Premium */}
+
                   <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-200 p-8 backdrop-blur-xl">
-                    {/* Header avec animation */}
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -388,7 +456,6 @@ function HomepageContent() {
                       </div>
                     </div>
 
-                    {/* Input élégant */}
                     <div className="mb-8">
                       <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
@@ -402,11 +469,10 @@ function HomepageContent() {
                       </div>
                     </div>
 
-                    {/* Résultat spectaculaire */}
                     <div className="relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-10 rounded-2xl" />
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-200 to-pink-200 rounded-full blur-3xl opacity-30" />
-                      
+
                       <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6 border-2 border-indigo-200 shadow-xl">
                         <div className="flex items-start justify-between mb-4">
                           <div>
@@ -419,21 +485,20 @@ function HomepageContent() {
                           <div className="px-3 py-1 bg-green-100 border border-green-200 rounded-full">
                             <div className="flex items-center gap-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-xs font-semibold text-green-700">Conforme 2025</span>
+                              <span className="text-xs font-semibold text-green-700">Conforme 2026</span>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="text-5xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                           18 742,32 €
                         </div>
-                        
+
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                          <span>Calcul vérifié • Export PDF disponible</span>
+                          <span>Calcul vérifié - Export PDF disponible</span>
                         </div>
 
-                        {/* Barre de progression stylée */}
                         <div className="mt-4 pt-4 border-t border-indigo-200">
                           <div className="flex justify-between text-xs text-gray-600 mb-2">
                             <span>Détail du calcul</span>
@@ -450,7 +515,6 @@ function HomepageContent() {
                     </div>
                   </div>
 
-                  {/* Floating Badge - Speed - repositionné en bas à droite */}
                   <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-xl p-4">
                     <div className="flex items-center gap-2">
                       <Zap className="w-5 h-5" />
@@ -476,7 +540,7 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Stats Bar amélioré */}
+        {/* Stats Bar */}
         <section className="py-16 bg-gray-50 border-y border-gray-200">
           <div className="max-w-7xl mx-auto px-6">
             <div className={`grid gap-8 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
@@ -487,45 +551,39 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Section Success Story avec photo humaine */}
+        {/* Section Success Story */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className={`grid items-center gap-12 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              {/* Image */}
               <div className="relative">
                 <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-50">
-                  {/* Image avec aspect ratio 4:3 et crop centré sur le visage */}
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img 
-                      src="/images/notaire.webp" 
-                      alt="Professionnelle satisfaite utilisant NotariaPrime" 
+                    <img
+                      src="/images/notaire.webp"
+                      alt="Professionnelle satisfaite utilisant NotariaPrime"
                       className="w-full h-full object-cover object-[center_30%] scale-105 hover:scale-110 transition-transform duration-500"
                     />
-                    {/* Vignette subtile */}
                     <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
                   </div>
-                  
-                  {/* Formes décoratives en overlay */}
+
                   <div className="absolute top-6 left-6 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl" />
                   <div className="absolute bottom-6 right-6 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl" />
                 </div>
-                
-                {/* Badge moderne en bas à droite */}
+
                 <div className="absolute -bottom-4 -right-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
-                  <div className="text-xs font-semibold uppercase tracking-wide mb-1">Gain de temps</div>
-                  <div className="text-4xl font-black">5min</div>
-                  <div className="text-xs mt-1 opacity-90">par calcul</div>
+                  <div className="text-xs font-semibold uppercase tracking-wide mb-1">Outils disponibles</div>
+                  <div className="text-4xl font-black">15</div>
+                  <div className="text-xs mt-1 opacity-90">calculateurs pro</div>
                 </div>
               </div>
 
-              {/* Texte */}
               <div>
                 <h2 className={`font-bold mb-6 text-gray-900 ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
-                  Votre expertise mérite mieux qu'une calculette
+                  Votre expertise mérite mieux qu&apos;une calculette
                 </h2>
                 <p className="text-xl text-gray-600 mb-6">
-                  Les professionnels du notariat utilisent NotariaPrime pour automatiser 
-                  leurs calculs répétitifs et se concentrer sur ce qui compte vraiment : 
+                  Les professionnels du notariat et du patrimoine utilisent NotariaPrime pour automatiser
+                  leurs calculs répétitifs et se concentrer sur ce qui compte vraiment :
                   leurs clients.
                 </p>
                 <div className="space-y-4">
@@ -540,14 +598,14 @@ function HomepageContent() {
                     <Shield className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-1">Fiabilité totale</h3>
-                      <p className="text-gray-600">Calculs conformes et vérifiés par des experts</p>
+                      <p className="text-gray-600">Barèmes 2026 officiels, calculs vérifiés et conformes</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Star className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Satisfaction garantie</h3>
-                      <p className="text-gray-600">Rejoint par 500+ professionnels chaque mois</p>
+                      <h3 className="font-semibold text-gray-900 mb-1">Suite complète</h3>
+                      <p className="text-gray-600">15 calculateurs couvrant l&apos;immobilier, la fiscalité, le patrimoine et l&apos;entreprise</p>
                     </div>
                   </div>
                 </div>
@@ -556,53 +614,74 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Solutions Grid - 6 disponibles */}
+        {/* Solutions Grid - 15 outils avec filtre par catégorie */}
         <section id="solutions" className="py-20">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 border border-green-200 rounded-full mb-4">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-semibold text-green-700">Disponibles maintenant</span>
+                <span className="text-sm font-semibold text-green-700">15 outils disponibles</span>
               </div>
               <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
                 Des outils puissants pour votre quotidien
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Des solutions concrètes pour gagner du temps sur vos tâches récurrentes. 
-                Tous développés au T3 2025.
+                Immobilier, fiscalité, patrimoine, entreprise : une suite complète de calculateurs
+                professionnels, gratuits et conformes aux barèmes 2026.
               </p>
             </div>
 
+            {/* Category filter */}
+            <div className="flex flex-wrap justify-center gap-2 mb-10">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                    activeCategory === cat
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat}
+                  {cat !== 'Tous' && (
+                    <span className="ml-1.5 text-xs opacity-75">
+                      ({allSolutions.filter(s => s.category === cat).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             <div className={`grid gap-6 ${isDesktop ? 'grid-cols-3' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {solutions.map((solution, index) => (
+              {filteredSolutions.map((solution, index) => (
                 <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
               ))}
             </div>
           </div>
         </section>
 
-        {/* Nouveaux outils à venir - 14 outils */}
-        <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        {/* Prochainement - 3 features restantes */}
+        <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-200 rounded-full mb-4">
                 <Rocket className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">À venir</span>
+                <span className="text-sm font-semibold text-blue-700">Prochainement</span>
               </div>
-              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
-                12 nouveaux calculateurs en préparation
+              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+                Encore plus de fonctionnalités en préparation
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Revenus fonciers, LMNP, retraite, prêt immobilier... Une suite complète pour tous vos besoins. 
-                Sortie prévue T1 2026.
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                API publique, mode hors-ligne et espace professionnel arrivent bientôt.
               </p>
             </div>
 
-            <div className={`grid gap-4 ${isDesktop ? 'grid-cols-6' : isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
-              {newFeatures.map((item, i) => (
-                <div 
-                  key={i} 
-                  className="bg-white rounded-xl border-2 border-gray-200 p-5 text-center hover:shadow-lg hover:border-indigo-300 transition-all"
+            <div className={`grid gap-4 max-w-2xl mx-auto ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
+              {upcomingFeatures.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-5 text-center hover:border-indigo-300 transition-all"
                 >
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <item.icon className="w-6 h-6 text-blue-600" />
@@ -613,9 +692,9 @@ function HomepageContent() {
               ))}
             </div>
 
-            <div className="text-center mt-12">
-              <a 
-                href="/roadmap" 
+            <div className="text-center mt-8">
+              <a
+                href="/roadmap"
                 className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700"
               >
                 Voir la roadmap complète
@@ -625,7 +704,7 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Features Section optimisé */}
+        {/* Features Section */}
         <section id="features" className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -645,7 +724,7 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Community Section amélioré */}
+        {/* Community Section */}
         <section className="py-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -659,8 +738,8 @@ function HomepageContent() {
 
             <div className={`grid gap-8 mb-16 ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'}`}>
               {[
-                { icon: Users, value: '15+', label: 'Utilisateurs actifs', color: 'from-indigo-50 to-indigo-100' },
-                { icon: Calculator, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
+                { icon: Calculator, value: '15', label: 'Calculateurs disponibles', color: 'from-indigo-50 to-indigo-100' },
+                { icon: Users, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
                 { icon: Star, value: '100%', label: 'Gratuit & Open Source', color: 'from-yellow-50 to-yellow-100' }
               ].map((item, i) => (
                 <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl p-8 text-center hover:scale-105 transition-transform`}>
@@ -679,7 +758,7 @@ function HomepageContent() {
                 Contribuez au projet !
               </h3>
               <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-                NotariaPrime est un projet communautaire. Proposez des fonctionnalités, 
+                NotariaPrime est un projet communautaire. Proposez des fonctionnalités,
                 signalez des bugs, ou contribuez au code sur GitHub.
               </p>
               <div className={`flex gap-4 justify-center ${isMobile ? 'flex-col' : 'flex-row'}`}>
@@ -697,17 +776,17 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* CTA Section final optimisé */}
+        {/* CTA Section final */}
         <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
               Simplifiez vos calculs notariaux dès maintenant
             </h2>
             <p className="text-xl text-gray-300 mb-10">
-              Rejoignez notre communauté grandissante d'utilisateurs.
+              15 calculateurs professionnels à votre disposition.
               <br />100% gratuit, sans inscription, open source.
             </p>
-            
+
             <div className={`flex gap-4 justify-center mb-10 ${isMobile ? 'flex-col' : 'flex-row'}`}>
               <a href="/pretaxe" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
                 Calculer maintenant
@@ -717,7 +796,7 @@ function HomepageContent() {
                 Explorer le code source
               </a>
             </div>
-            
+
             <div className="flex items-center justify-center gap-8 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
