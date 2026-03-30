@@ -67,7 +67,7 @@ function ConfidentialiteContent() {
                   <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm text-gray-700">
                     <p><strong>Collectées :</strong> Adresse IP, type de navigateur, pages visitées, durée de visite</p>
                     <p><strong>Finalité :</strong> Analyse d'audience et amélioration du service</p>
-                    <p><strong>Outil :</strong> Analytics anonymisé (si applicable)</p>
+                    <p><strong>Outil :</strong> Google Analytics 4 (IP anonymisée, soumis à votre consentement)</p>
                     <p><strong>Conservation :</strong> 13 mois maximum</p>
                   </div>
                 </div>
@@ -239,18 +239,34 @@ function ConfidentialiteContent() {
             {/* Cookies */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Cookies et technologies similaires</h2>
-              <div className="space-y-4 text-gray-700">
+              <div className="space-y-6 text-gray-700">
                 <p>
-                  NotariaPrime utilise uniquement des <strong>cookies techniques essentiels</strong> au fonctionnement 
-                  du site (ex : préférences de langue, session).
+                  NotariaPrime utilise des <strong>cookies techniques essentiels</strong> au fonctionnement
+                  du site (ex : préférences, sauvegarde de simulations en localStorage).
                 </p>
+
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-3">Cookies de mesure d&apos;audience (Google Analytics)</h3>
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 space-y-2 text-sm">
+                    <p><strong>Outil :</strong> Google Analytics 4 (identifiant : G-YBC8WDQD0W)</p>
+                    <p><strong>Finalité :</strong> Mesurer la fréquentation du site (nombre de visiteurs, pages les plus consultées, durée des visites) afin d&apos;améliorer le service.</p>
+                    <p><strong>Données collectées :</strong> Adresse IP (anonymisée), pages visitées, type de navigateur, durée de session, source de trafic.</p>
+                    <p><strong>Destinataire :</strong> Google Ireland Ltd. Les données peuvent être transférées aux États-Unis, encadrées par les clauses contractuelles types de la Commission européenne.</p>
+                    <p><strong>Conservation :</strong> 14 mois maximum.</p>
+                    <p><strong>Base légale :</strong> Votre consentement (article 6.1.a du RGPD, article 82 de la loi Informatique et Libertés).</p>
+                    <p><strong>Consentement :</strong> Lors de votre première visite, une bannière vous demande votre accord. <strong>Aucun cookie de mesure n&apos;est déposé avant votre acceptation.</strong> Vous pouvez retirer votre consentement à tout moment en supprimant le cookie &laquo; notariaprime-cookie-consent &raquo; dans les paramètres de votre navigateur.</p>
+                  </div>
+                </div>
+
                 <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
                   <p className="font-semibold text-green-900 mb-2">
                     ✓ Aucun cookie de tracking publicitaire
                   </p>
                   <p className="text-sm text-green-700">
                     ✓ Aucun cookie de réseaux sociaux tiers<br />
-                    ✓ Pas de profilage utilisateur
+                    ✓ Pas de profilage utilisateur<br />
+                    ✓ IP anonymisée dans Google Analytics<br />
+                    ✓ Consentement requis avant tout dépôt de cookie non essentiel
                   </p>
                 </div>
               </div>
@@ -278,8 +294,8 @@ function ConfidentialiteContent() {
 
             {/* Date de mise à jour */}
             <div className="text-center text-sm text-gray-500 pt-8 border-t border-gray-200">
-              <p>Dernière mise à jour : 13 octobre 2025</p>
-              <p className="mt-2">Version 1.0</p>
+              <p>Dernière mise à jour : 30 mars 2026</p>
+              <p className="mt-2">Version 2.0 — Ajout Google Analytics et bannière de consentement</p>
             </div>
           </div>
         </div>
