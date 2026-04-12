@@ -80,13 +80,14 @@ export function calculerEmoluments(
     emolumentsNets = emolumentsAvantRemise - remise20;
   }
   
+  const round2 = (n: number) => Math.round(n * 100) / 100;
   return {
-    bruts: emolumentsBruts,
-    majoration: majoration,
-    avantRemise: emolumentsAvantRemise,
+    bruts: round2(emolumentsBruts),
+    majoration: round2(majoration),
+    avantRemise: round2(emolumentsAvantRemise),
     remise10: 0,
-    remise20: remise20,
-    nets: emolumentsNets
+    remise20: round2(remise20),
+    nets: round2(emolumentsNets)
   };
 }
 
@@ -100,7 +101,7 @@ export function calculerTaxes(
   typeBien: string,
   setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
 ) {
-  if (!montantActe || typeBien === 'neuf') return;
+  if (!montantActe || typeBien === 'neuf' || typeBien === 'aucune') return;
   
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
@@ -108,12 +109,12 @@ export function calculerTaxes(
   const tauxDepartemental = departements[selectedDepartement]?.taux || 4.50;
   const tauxCommunal = 1.20;
   
-  const taxeDepartementale = montant * (tauxDepartemental / 100);
-  const taxeCommunale = montant * (tauxCommunal / 100);
-  const totalDroits = taxeDepartementale + taxeCommunale;
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const taxeDepartementale = round2(montant * (tauxDepartemental / 100));
+  const taxeCommunale = round2(montant * (tauxCommunal / 100));
   // Art. 1647-V CGI : prélèvement de 2,37% sur la seule taxe départementale
-  const fraisAssiette = taxeDepartementale * 0.0237;
-  
+  const fraisAssiette = round2(taxeDepartementale * 0.0237);
+
   setTaxes(prev => ({
     ...prev,
     departementale: taxeDepartementale,
@@ -135,8 +136,8 @@ export function calculerCSI(
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
   
-  const csi = Math.max(montant * 0.001, 15);
-  
+  const csi = Math.round(Math.max(montant * 0.001, 15) * 100) / 100;
+
   setDebours(prev => ({
     ...prev,
     csi: csi
@@ -262,10 +263,25 @@ export function appliquerConfigParDefaut(
   
   // Appliquer le type de taxes
   if (config.taxes) {
-    setTaxes(prev => ({
-      ...prev,
-      typeBien: config.taxes?.type === 'tva' ? 'neuf' : 'ancien'
-    }));
+    if (config.taxes.type === 'dmto') {
+      setTaxes(prev => ({
+        ...prev,
+        typeBien: 'ancien'
+      }));
+    } else if (config.taxes.type === 'tva') {
+      setTaxes(prev => ({
+        ...prev,
+        typeBien: 'neuf'
+      }));
+    } else {
+      // 'aucune', 'donation', etc. : pas de DMTO
+      setTaxes({
+        typeBien: 'aucune',
+        departementale: 0,
+        communale: 0,
+        fraisAssiette: 0
+      });
+    }
   }
 }
 

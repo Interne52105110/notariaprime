@@ -617,21 +617,27 @@ function PretaxeContent() {
             setEmolumentsDetail(detail);
             setEmoluments(detail.nets);
             calculerCSI(montantActe, setDebours);
-            calculerTaxes(montantActe, selectedDepartement, taxes.typeBien, setTaxes);
+            // Ne calculer les DMTO que pour les actes soumis aux droits de mutation
+            const configActe = actesConfig[selectedActe];
+            if (configActe?.taxes?.type === 'dmto') {
+              calculerTaxes(montantActe, selectedDepartement, taxes.typeBien, setTaxes);
+            }
           }
         }
       }
     }
   }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory, appliquerRemise]);
 
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
   const tauxTVA = getTauxTVA(selectedDepartement);
-  const totalEmoluments = emolumentsDetail.nets;
-  const montantTVA = totalEmoluments * (tauxTVA / 100);
-  const totalEmolumentsTTC = totalEmoluments + montantTVA;
-  
-  const totalDebours = Object.values(debours).reduce((sum, val) => sum + val, 0);
-  
-  const totalFormalites = 
+  const totalEmoluments = round2(emolumentsDetail.nets);
+  const montantTVA = round2(totalEmoluments * (tauxTVA / 100));
+  const totalEmolumentsTTC = round2(totalEmoluments + montantTVA);
+
+  const totalDebours = round2(Object.values(debours).reduce((sum, val) => sum + val, 0));
+
+  const totalFormalites = round2(
     (formalites.publiciteFonciere.actif ? formalites.publiciteFonciere.montant : 0) +
     (formalites.cadastre.actif ? formalites.cadastre.montant : 0) +
     (formalites.casierJudiciaire.actif ? formalites.casierJudiciaire.montant : 0) +
@@ -641,20 +647,21 @@ function PretaxeContent() {
     (formalites.transmissionCSN.actif ? formalites.transmissionCSN.montant : 0) +
     (formalites.requisition.actif ? formalites.requisition.montant : 0) +
     formalites.teleactes +
-    formalites.lettresRecommandees;
-  
-  const totalFormalitesTTC = totalFormalites * (1 + tauxTVA / 100);
-  
+    formalites.lettresRecommandees
+  );
+
+  const totalFormalitesTTC = round2(totalFormalites * (1 + tauxTVA / 100));
+
   const fraisRole = documents.pagesActe * 2;
   const copiesExec = documents.copiesExecutoires * 4;
   const copiesAuth = documents.copiesAuthentiques * 40;
   const copiesHypo = documents.copiesHypothecaires * 4;
   const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo;
-  const totalDocumentsTTC = totalDocuments * (1 + tauxTVA / 100);
-  
-  const totalTaxes = taxes.departementale + taxes.communale + taxes.fraisAssiette;
-  
-  const totalGeneral = totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes;
+  const totalDocumentsTTC = round2(totalDocuments * (1 + tauxTVA / 100));
+
+  const totalTaxes = round2(taxes.departementale + taxes.communale + taxes.fraisAssiette);
+
+  const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes);
 
   const acteActuel = categoriesActes[selectedCategory]?.actes[selectedActe];
   const estActeNonTarife = acteActuel?.type === 'non_tarife';
@@ -680,7 +687,7 @@ function PretaxeContent() {
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
                   <p className="text-sm text-indigo-600 font-medium mb-1">Total général</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
+                    {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </p>
                 </div>
               </div>
