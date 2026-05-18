@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload, Cpu } from 'lucide-react';
+import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload, Cpu, ChevronDown, ChevronUp, Shield, FileText, Brain } from 'lucide-react';
 import { categoriesActes as defaultCategoriesActes } from './ocrMappings';
 import { checkOllama, extractWithOllama, type OllamaModel } from './ollamaExtract';
 
@@ -33,6 +33,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
   const [ollamaModels, setOllamaModels] = useState<OllamaModel[] | null>(null);
   const [useAI, setUseAI] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('');
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -237,11 +238,105 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           <ScanLine className="w-6 h-6 text-indigo-600" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Scanner un projet d'acte</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Importez un PDF, un fichier Word (.docx) ou une image (JPG/PNG/WebP) : montant,
-            département et type d'acte seront extraits automatiquement, en local dans le navigateur.
+          <div className="flex items-start justify-between gap-2 flex-wrap mb-1">
+            <h3 className="text-lg font-bold text-gray-900">Scanner un projet d'acte</h3>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
+              <Shield className="w-3.5 h-3.5" />
+              100 % local — aucune donnée envoyée
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 mb-3">
+            Importez un PDF, un fichier Word (.docx) ou une image (JPG/PNG/WebP). Le montant, le
+            département et le type d'acte seront extraits automatiquement.
           </p>
+
+          <button
+            onClick={() => setShowHelp((v) => !v)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:text-indigo-900 mb-4"
+          >
+            {showHelp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            Comment ça marche ? {ollamaModels && ollamaModels.length > 0 ? '(IA locale disponible)' : '(Activer l\'IA locale)'}
+          </button>
+
+          {showHelp && (
+            <div className="mb-5 bg-white border border-indigo-200 rounded-xl p-5 space-y-4 text-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4 h-4 text-indigo-700" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Mode par défaut — extraction par règles</p>
+                  <p className="text-gray-600 mt-0.5">
+                    Le texte est lu directement dans votre navigateur (tesseract.js pour les images,
+                    pdfjs pour les PDF, mammoth pour les .docx). Une heuristique repère le montant
+                    en euros, le code département via le code postal, et le type d'acte via des
+                    mots-clés. <strong>Aucune connexion réseau, aucun envoi de données.</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Brain className="w-4 h-4 text-emerald-700" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">Mode IA locale — optionnel, via Ollama</p>
+                  <p className="text-gray-600 mt-0.5 mb-2">
+                    Pour une extraction plus fine (paraphrases, montants en lettres, contexte
+                    complet), vous pouvez brancher un modèle de langage qui tourne <strong>sur votre
+                    propre machine</strong>. Idéal pour le secret professionnel notarial (art. 226-13 CP)
+                    et conforme RGPD : aucune donnée ne quitte le poste.
+                  </p>
+
+                  {ollamaModels && ollamaModels.length > 0 ? (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <p className="text-emerald-900 font-medium flex items-center gap-1.5">
+                        <CheckCircle className="w-4 h-4" />
+                        Ollama détecté ({ollamaModels.length} modèle{ollamaModels.length > 1 ? 's' : ''} disponible{ollamaModels.length > 1 ? 's' : ''})
+                      </p>
+                      <p className="text-emerald-800 text-xs mt-1">
+                        Cochez la case « IA locale » ci-dessous lors de l'import pour utiliser le
+                        modèle. L'extraction par règles reste appliquée en parallèle.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
+                      <p className="text-gray-900 font-medium">Pas encore installé. En 3 étapes :</p>
+                      <ol className="list-decimal list-inside text-gray-700 text-xs space-y-1 ml-1">
+                        <li>
+                          Téléchargez{' '}
+                          <a href="https://ollama.com/download" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-medium">
+                            Ollama
+                          </a>{' '}
+                          (Windows, macOS, Linux — open source, gratuit)
+                        </li>
+                        <li>
+                          Ouvrez un terminal et lancez :{' '}
+                          <code className="px-1.5 py-0.5 bg-gray-200 rounded font-mono text-[11px]">ollama pull llama3.1:8b</code>
+                          {' '}(≈ 5 Go, à faire une seule fois)
+                        </li>
+                        <li>
+                          Rechargez cette page : un nouveau bouton « IA locale » apparaîtra à côté
+                          de « Choisir un fichier ».
+                        </li>
+                      </ol>
+                      <p className="text-gray-500 text-[11px] italic">
+                        Ollama tourne en service local sur le port 11434. Aucune inscription, aucun
+                        compte, aucun envoi externe. Modèles compatibles : llama3.1, mistral, qwen2,
+                        gemma2, phi3…
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 text-xs text-gray-500">
+                <strong className="text-gray-700">Formats acceptés :</strong> PDF avec texte
+                sélectionnable, Word .docx, images JPG/PNG/WebP. Les anciens fichiers .doc (Word
+                97-2003) et les PDF entièrement scannés doivent être convertis ou exportés en image.
+              </div>
+            </div>
+          )}
 
           {!previewUrl && !isProcessing && (
             <>
@@ -285,17 +380,6 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                   </label>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Formats : PDF (texte sélectionnable), Word .docx, image JPG/PNG/WebP. Le .doc ancien Office n'est pas supporté.
-              </p>
-              {ollamaModels === null && (
-                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                  <Cpu className="w-3 h-3" />
-                  Pour activer l'extraction par IA locale : installez{' '}
-                  <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Ollama</a>
-                  {' '}puis lancez <code className="px-1 bg-gray-100 rounded text-[10px]">ollama pull llama3.1:8b</code>. Aucune donnée ne quitte votre machine.
-                </p>
-              )}
             </>
           )}
 
