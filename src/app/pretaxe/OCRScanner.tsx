@@ -59,15 +59,66 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
     // 1) Montant : on cherche un nombre suivi de €, EUR ou "euros"
     // Tolère espaces, points, virgules comme séparateurs.
     const montantRegex = /([0-9]{1,3}(?:[\s.,][0-9]{3})+|[0-9]{4,})(?:[.,][0-9]{1,2})?\s*(?:€|EUR|euros?)/gi;
-    const montants: number[] = [];
+    // Score contextuel : on regarde la fenêtre qui précède chaque montant.
+    const POSITIVE = [
+      /moyennant\s+le\s+prix\s+de/i,
+      /prix\s+(?:de\s+vente|principal|convenu|de\s+cession|d['']acquisition)/i,
+      /\bprix\s*[:=]/i,
+      /prix\s+FORMTEXT/i,
+      /au\s+prix\s+de/i,
+      /vente\s+(?:est\s+)?consentie/i,
+      /\bmontant\s+(?:principal|de\s+la\s+vente)/i,
+      /valeur\s+v[eé]nale/i,
+    ];
+    const NEGATIVE = [
+      /indemnit[eé]\s+d['']immobilisation/i,
+      /frais/i,
+      /hypoth[eè]que/i,
+      /pour\s+suret[eé]/i,
+      /garantie/i,
+      /plafond/i,
+      /pr[eê]t/i,
+      /emprunt/i,
+      /amende/i,
+      /plus[- ]?value/i,
+      /abattement/i,
+      /\btotal\b/i,
+      /ensemble/i,
+      /co[uû]t\s+(?:total|de\s+l['']op[eé]ration)/i,
+      /meubles?\b/i,
+      /\bn[eé]goc/i,
+      /\bsalaire/i,
+      /\bm[eè]tre\s+carr[eé]/i,
+    ];
+
+    interface Candidate { value: number; idx: number; score: number; }
+    const candidates: Candidate[] = [];
     let m: RegExpExecArray | null;
     while ((m = montantRegex.exec(text)) !== null) {
       const num = parseFloat(m[1].replace(/[\s.]/g, '').replace(',', '.'));
-      if (!isNaN(num) && num >= 1000) montants.push(num);
+      if (isNaN(num) || num < 1000) continue;
+      const ctx = text.slice(Math.max(0, m.index - 150), m.index);
+      let score = 0;
+      for (const re of POSITIVE) if (re.test(ctx)) score += 100;
+      for (const re of NEGATIVE) if (re.test(ctx)) score -= 60;
+      const docPosition = m.index / Math.max(text.length, 1);
+      score += (1 - docPosition) * 5;
+      const after = text.slice(m.index, m.index + 200);
+      if (/amende|d['']amende|par\s+m[eè]tre/i.test(after)) score -= 80;
+      candidates.push({ value: num, idx: m.index, score });
     }
-    if (montants.length > 0) {
-      // On prend le plus grand montant trouvé (souvent le prix de vente / valeur)
-      const max = Math.max(...montants);
+
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      const top = candidates[0];
+      let chosen = top.value;
+      // Si aucun mot-clé positif n'a tranché (score faible), on prend la
+      // valeur médiane plutôt que le max — moins de faux positifs.
+      if (top.score < 50) {
+        const sorted = [...candidates].map((c) => c.value).sort((a, b) => a - b);
+        chosen = sorted[Math.floor(sorted.length / 2)];
+      }
+      const max = chosen;
       result.montant = max.toLocaleString('fr-FR').replace(/ /g, ' ');
     }
 
