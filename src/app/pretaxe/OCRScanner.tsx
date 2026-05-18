@@ -82,29 +82,77 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
     setExtracted(null);
     setProgress(0);
 
-    if (!file.type.startsWith('image/')) {
-      setError('Format non supporté. Utilisez une image (JPG, PNG, WebP). Pour un PDF, exportez-le en image.');
+    const name = file.name.toLowerCase();
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf' || name.endsWith('.pdf');
+    const isDocx = name.endsWith('.docx') ||
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const isLegacyDoc = name.endsWith('.doc') && !isDocx;
+
+    if (isLegacyDoc) {
+      setError("Format .doc (Word 97-2003) non supporté côté navigateur. Convertissez le fichier en .docx, .pdf ou image.");
+      return;
+    }
+    if (!isImage && !isPdf && !isDocx) {
+      setError("Format non supporté. Utilisez une image (JPG/PNG/WebP), un PDF ou un fichier .docx.");
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    if (isImage) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl('non-image');
+    }
     setIsProcessing(true);
 
     try {
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('fra', 1, {
-        logger: (msg: { status: string; progress: number }) => {
-          if (msg.status === 'recognizing text') {
-            setProgress(Math.round(msg.progress * 100));
-          }
+      let text = '';
+
+      if (isDocx) {
+        setProgress(20);
+        const mammoth = (await import('mammoth')).default ?? (await import('mammoth'));
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        text = result.value || '';
+        setProgress(100);
+      } else if (isPdf) {
+        setProgress(10);
+        const pdfjs = await import('pdfjs-dist');
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        const parts: string[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          parts.push(
+            content.items
+              .map((it) => ('str' in it ? it.str : ''))
+              .join(' ')
+          );
+          setProgress(Math.round((i / pdf.numPages) * 100));
         }
-      });
+        text = parts.join('\n');
+        if (text.trim().length < 50) {
+          setError("PDF scanné détecté (peu de texte sélectionnable). Exportez chaque page en image pour passer par l'OCR.");
+          setIsProcessing(false);
+          return;
+        }
+      } else {
+        const { createWorker } = await import('tesseract.js');
+        const worker = await createWorker('fra', 1, {
+          logger: (msg: { status: string; progress: number }) => {
+            if (msg.status === 'recognizing text') {
+              setProgress(Math.round(msg.progress * 100));
+            }
+          }
+        });
+        const { data } = await worker.recognize(file);
+        await worker.terminate();
+        text = data.text || '';
+      }
 
-      const { data } = await worker.recognize(file);
-      await worker.terminate();
-
-      const text = data.text || '';
       const hit = parseExtractedText(text);
       setExtracted(hit);
 
@@ -116,15 +164,15 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         rawText: text
       });
     } catch (err) {
-      console.error('OCR error:', err);
-      setError("Erreur lors de l'analyse OCR. Vérifiez que l'image est nette et lisible.");
+      console.error('Extraction error:', err);
+      setError("Erreur lors de l'analyse du document. Vérifiez le fichier ou essayez un autre format.");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const reset = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl && previewUrl !== 'non-image') URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setExtracted(null);
     setError(null);
@@ -141,8 +189,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900 mb-1">Scanner un projet d'acte</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Importez une image (JPG/PNG) de l'acte ou du compromis : montant, département et type d'acte
-            seront extraits automatiquement.
+            Importez un PDF, un fichier Word (.docx) ou une image (JPG/PNG/WebP) : montant,
+            département et type d'acte seront extraits automatiquement, en local dans le navigateur.
           </p>
 
           {!previewUrl && !isProcessing && (
@@ -150,7 +198,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 className="hidden"
               />
@@ -159,8 +207,11 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
               >
                 <Upload className="w-4 h-4" />
-                Choisir une image
+                Choisir un fichier
               </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Formats : PDF (texte sélectionnable), Word .docx, image JPG/PNG/WebP. Le .doc ancien Office n'est pas supporté.
+              </p>
             </>
           )}
 
