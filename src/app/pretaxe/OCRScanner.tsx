@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload, Cpu } from 'lucide-react';
 import { categoriesActes as defaultCategoriesActes } from './ocrMappings';
+import { checkOllama, extractWithOllama, type OllamaModel } from './ollamaExtract';
 
 interface OCRScannerProps {
   onExtract: (data: {
@@ -25,9 +26,29 @@ type ExtractedHit = {
 export default function OCRScanner({ onExtract }: OCRScannerProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState<string>('Analyse OCR');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [extracted, setExtracted] = useState<ExtractedHit | null>(null);
+  const [ollamaModels, setOllamaModels] = useState<OllamaModel[] | null>(null);
+  const [useAI, setUseAI] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+
+  useEffect(() => {
+    let cancelled = false;
+    checkOllama().then((models) => {
+      if (cancelled) return;
+      setOllamaModels(models);
+      if (models && models.length > 0) {
+        // Choisit le premier modèle compatible (llama, mistral, qwen, gemma)
+        const preferred = models.find((m) =>
+          /llama|mistral|qwen|gemma|phi/i.test(m.name)
+        ) ?? models[0];
+        setSelectedModel(preferred.name);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseExtractedText = (text: string): ExtractedHit => {
@@ -110,6 +131,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
       let text = '';
 
       if (isDocx) {
+        setProgressLabel('Lecture du DOCX');
         setProgress(20);
         const mammoth = (await import('mammoth')).default ?? (await import('mammoth'));
         const arrayBuffer = await file.arrayBuffer();
@@ -117,6 +139,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         text = result.value || '';
         setProgress(100);
       } else if (isPdf) {
+        setProgressLabel('Lecture du PDF');
         setProgress(10);
         const pdfjs = await import('pdfjs-dist');
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -140,6 +163,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           return;
         }
       } else {
+        setProgressLabel('Analyse OCR');
         const { createWorker } = await import('tesseract.js');
         const worker = await createWorker('fra', 1, {
           logger: (msg: { status: string; progress: number }) => {
@@ -153,7 +177,33 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         text = data.text || '';
       }
 
-      const hit = parseExtractedText(text);
+      let hit = parseExtractedText(text);
+
+      // Si l'IA locale est activée, on raffine l'extraction
+      if (useAI && selectedModel && ollamaModels && ollamaModels.length > 0) {
+        try {
+          setProgressLabel(`Analyse IA (${selectedModel})`);
+          setProgress(50);
+          const ai = await extractWithOllama(text, selectedModel);
+          setProgress(100);
+          // L'IA prime sur le regex quand elle a une réponse
+          if (ai.montant) hit.montant = ai.montant;
+          if (ai.departement) hit.departement = ai.departement;
+          if (ai.acteSuggestion) {
+            for (const [catKey, cat] of Object.entries(defaultCategoriesActes)) {
+              if (cat.actes[ai.acteSuggestion]) {
+                hit.categoryKey = catKey;
+                hit.acteKey = ai.acteSuggestion;
+                hit.acteLabel = cat.actes[ai.acteSuggestion][0];
+                break;
+              }
+            }
+          }
+        } catch (aiErr) {
+          console.warn('Ollama extraction failed, fallback regex:', aiErr);
+        }
+      }
+
       setExtracted(hit);
 
       onExtract({
@@ -202,16 +252,50 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 className="hidden"
               />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
-              >
-                <Upload className="w-4 h-4" />
-                Choisir un fichier
-              </button>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  <Upload className="w-4 h-4" />
+                  Choisir un fichier
+                </button>
+                {ollamaModels && ollamaModels.length > 0 && (
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-emerald-300 rounded-xl cursor-pointer hover:bg-emerald-50 transition-all">
+                    <input
+                      type="checkbox"
+                      checked={useAI}
+                      onChange={(e) => setUseAI(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <Cpu className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-emerald-900">IA locale (Ollama)</span>
+                    {useAI && (
+                      <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-1 px-2 py-1 text-xs border border-emerald-200 rounded bg-white"
+                      >
+                        {ollamaModels.map((m) => (
+                          <option key={m.name} value={m.name}>{m.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </label>
+                )}
+              </div>
               <p className="text-xs text-gray-500 mt-2">
                 Formats : PDF (texte sélectionnable), Word .docx, image JPG/PNG/WebP. Le .doc ancien Office n'est pas supporté.
               </p>
+              {ollamaModels === null && (
+                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <Cpu className="w-3 h-3" />
+                  Pour activer l'extraction par IA locale : installez{' '}
+                  <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Ollama</a>
+                  {' '}puis lancez <code className="px-1 bg-gray-100 rounded text-[10px]">ollama pull llama3.1:8b</code>. Aucune donnée ne quitte votre machine.
+                </p>
+              )}
             </>
           )}
 
@@ -219,7 +303,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
             <div className="flex items-center gap-3 py-2">
               <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Analyse OCR en cours… {progress}%</p>
+                <p className="text-sm font-medium text-gray-900">{progressLabel} en cours… {progress}%</p>
                 <div className="mt-1 h-1.5 w-full bg-indigo-100 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-600 transition-all" style={{ width: `${progress}%` }} />
                 </div>
