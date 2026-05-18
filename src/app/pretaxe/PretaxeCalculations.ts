@@ -99,14 +99,18 @@ export function calculerTaxes(
   montantActe: string,
   selectedDepartement: string,
   typeBien: string,
-  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
+  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>,
+  primoAccedant: boolean = false
 ) {
   if (!montantActe || typeBien === 'neuf' || typeBien === 'aucune') return;
-  
+
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
-  
-  const tauxDepartemental = departements[selectedDepartement]?.taux || 4.50;
+
+  // LF 2025 art. 116 : les primo-accédants en résidence principale échappent à la
+  // hausse votée par les départements et restent au taux plafond historique de 4.50%.
+  const tauxDepartementalBase = departements[selectedDepartement]?.taux || 4.50;
+  const tauxDepartemental = primoAccedant ? Math.min(tauxDepartementalBase, 4.50) : tauxDepartementalBase;
   const tauxCommunal = 1.20;
   
   const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -335,7 +339,7 @@ export function exporterPDF(
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Conforme tarif réglementé 2025/2026', pageWidth / 2, y, { align: 'center' });
+  doc.text('Conforme tarif réglementé 2026/2028 - Arrêté du 25 février 2026', pageWidth / 2, y, { align: 'center' });
   y += 15;
   
   doc.setFontSize(11);
@@ -486,7 +490,7 @@ export function exporterPDF(
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
-  doc.text('Calcul conforme au Décret n°2020-179 du 27 février 2020', pageWidth / 2, footerY, { align: 'center' });
+  doc.text('Décret n°2020-179 du 27 février 2020 • Arrêté du 25 février 2026 (en vigueur 01/03/2026 - 29/02/2028)', pageWidth / 2, footerY, { align: 'center' });
   if (appliquerRemise) {
     doc.text('Remise de 20% appliquée sur la tranche >100 000€', pageWidth / 2, footerY + 4, { align: 'center' });
   }

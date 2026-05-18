@@ -87,7 +87,7 @@ interface ScenarioDepart {
 }
 
 // ============================================
-// CONSTANTES 2025/2026
+// CONSTANTES 2026
 // ============================================
 
 const PASS_2025 = 46368;
@@ -811,7 +811,7 @@ export default function SimulateurRetraite() {
     if (y > 260) { doc.addPage(); y = 20; }
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
-    const disclaimer = 'Avertissement : cette estimation est fournie a titre indicatif et ne constitue pas un conseil. Les montants sont bases sur les regles 2025/2026. Consultez info-retraite.fr ou un professionnel pour une estimation personnalisee.';
+    const disclaimer = 'Avertissement : cette estimation est fournie a titre indicatif et ne constitue pas un conseil. Les montants sont bases sur les regles 2026. Consultez info-retraite.fr ou un professionnel pour une estimation personnalisee.';
     const lines = doc.splitTextToSize(disclaimer, 170);
     lines.forEach((line: string) => { doc.text(line, 20, y); y += 5; });
 
@@ -859,7 +859,7 @@ export default function SimulateurRetraite() {
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-indigo-700 bg-indigo-100 px-4 py-2 rounded-full w-fit mx-auto">
               <Info className="w-4 h-4" />
-              Bareme 2025/2026 - Reforme des retraites integree
+              Bareme 2026 - Reforme des retraites integree
             </div>
           </div>
 
@@ -1325,7 +1325,7 @@ export default function SimulateurRetraite() {
                       <div className="text-sm text-indigo-800">
                         <p className="font-semibold mb-1">A propos de cette estimation</p>
                         <p>
-                          Cette simulation est une estimation indicative basee sur les regles 2025/2026 et votre situation actuelle.
+                          Cette simulation est une estimation indicative basee sur les regles 2026 et votre situation actuelle.
                           Le montant reel pourra varier selon l&apos;evolution de votre carriere, les revalorisations et les eventuelles reformes.
                           Pour une estimation personnalisee, consultez votre releve de situation individuelle sur{' '}
                           <span className="font-bold">info-retraite.fr</span>.
@@ -1927,7 +1927,7 @@ export default function SimulateurRetraite() {
               <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-gray-500">
                 <span className="font-semibold">Avertissement :</span> Ce simulateur fournit une estimation indicative basee sur
-                les regles en vigueur en 2025/2026 et les informations saisies. Il ne se substitue pas a une consultation
+                les regles en vigueur en 2026 et les informations saisies. Il ne se substitue pas a une consultation
                 aupres de votre caisse de retraite. Les montants reels dependent de l&apos;ensemble de votre carriere,
                 des revalorisations futures et des eventuelles evolutions legislatives. Donnees PASS 2025 : {formatEuros(PASS_2025)}.
               </p>

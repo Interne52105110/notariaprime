@@ -854,7 +854,7 @@ function AssuranceVieContent() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-4">
             <Shield className="w-4 h-4" />
-            Simulateur fiscal 2025/2026
+            Simulateur fiscal 2026
           </div>
           <h1 className={`font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-4 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
             Simulateur Assurance-Vie
@@ -1867,7 +1867,7 @@ function AssuranceVieContent() {
             <div>
               <h3 className="text-lg font-bold text-amber-900 mb-2">Avertissement</h3>
               <p className="text-sm text-amber-800 leading-relaxed mb-3">
-                Ce simulateur fournit des estimations a titre indicatif, basees sur la legislation fiscale en vigueur (2025/2026).
+                Ce simulateur fournit des estimations a titre indicatif, basees sur la legislation fiscale en vigueur (2026).
                 Il ne constitue pas un conseil fiscal ou patrimonial personnalise.
               </p>
               <p className="text-sm text-amber-800 leading-relaxed mb-3">

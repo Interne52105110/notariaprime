@@ -112,6 +112,7 @@ export interface Taxes {
   departementale: number;
   communale: number;
   fraisAssiette: number;
+  primoAccedant?: boolean;
 }
 
 export interface Usufruit {

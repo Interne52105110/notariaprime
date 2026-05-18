@@ -17,7 +17,8 @@ import {
   Donateur,
   Donataire,
   HistoriqueCalcul,
-  Usufruit
+  Usufruit,
+  Taxes
 } from './PretaxeTypes';
 import {
   getTauxTVA,
@@ -35,6 +36,7 @@ import FormalitesTab from './FormalitesTab';
 import DocumentsTab from './DocumentsTab';
 import TaxesTab from './TaxesTab';
 import RecapitulatifTab from './RecapitulatifTab';
+import OCRScanner from './OCRScanner';
 
 // ============================================================================
 // CATÉGORIES D'ACTES
@@ -526,11 +528,12 @@ function PretaxeContent() {
     copiesHypothecaires: 0
   });
   
-  const [taxes, setTaxes] = useState({
+  const [taxes, setTaxes] = useState<Taxes>({
     typeBien: 'ancien',
     departementale: 0,
     communale: 0,
-    fraisAssiette: 0
+    fraisAssiette: 0,
+    primoAccedant: false
   });
 
   // États pour les donations multiples
@@ -620,13 +623,13 @@ function PretaxeContent() {
             // Ne calculer les DMTO que pour les actes soumis aux droits de mutation
             const configActe = actesConfig[selectedActe];
             if (configActe?.taxes?.type === 'dmto') {
-              calculerTaxes(montantActe, selectedDepartement, taxes.typeBien, setTaxes);
+              calculerTaxes(montantActe, selectedDepartement, taxes.typeBien, setTaxes, taxes.primoAccedant === true);
             }
           }
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, selectedCategory, appliquerRemise]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, selectedCategory, appliquerRemise]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -678,7 +681,7 @@ function PretaxeContent() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Calculateur de frais notariés</h1>
-                  <p className="text-indigo-600 font-medium">Conforme au tarif réglementé 2025/2026</p>
+                  <p className="text-indigo-600 font-medium">Conforme tarif réglementé 2026/2028 — Arrêté du 25 février 2026</p>
                 </div>
               </div>
             </div>
@@ -693,6 +696,23 @@ function PretaxeContent() {
               </div>
             )}
           </div>
+
+          <OCRScanner
+            onExtract={(data) => {
+              if (data.departement && departements[data.departement]) {
+                setSelectedDepartement(data.departement);
+              }
+              if (data.categoryKey && categoriesActes[data.categoryKey]) {
+                setSelectedCategory(data.categoryKey);
+                if (data.acteKey && categoriesActes[data.categoryKey].actes[data.acteKey]) {
+                  setSelectedActe(data.acteKey);
+                }
+              }
+              if (data.montant) {
+                setMontantActe(data.montant);
+              }
+            }}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>

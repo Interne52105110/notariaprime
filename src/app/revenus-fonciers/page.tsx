@@ -702,7 +702,7 @@ export default function RevenusFonciersPage() {
                     Simulateur Revenus Fonciers
                   </h1>
                   <p className="text-gray-600 font-medium mt-1">
-                    Micro-Foncier vs Regime Reel - Fiscalite 2025/2026
+                    Micro-Foncier vs Regime Reel - Fiscalite 2026
                   </p>
                 </div>
               </div>
@@ -1464,7 +1464,7 @@ export default function RevenusFonciersPage() {
                 <p>
                   Ce simulateur est fourni a titre informatif uniquement et ne constitue pas un conseil fiscal.
                   Les resultats sont des estimations basees sur les informations fournies et la legislation fiscale
-                  en vigueur pour les revenus fonciers 2025/2026.
+                  en vigueur pour les revenus fonciers 2026.
                 </p>
                 <p>
                   La fiscalite des revenus fonciers comporte de nombreuses subtilites (regimes speciaux, dispositifs

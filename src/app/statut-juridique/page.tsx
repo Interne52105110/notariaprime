@@ -1141,7 +1141,7 @@ export default function ComparateurStatutJuridique() {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-200">
                   <Info className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-indigo-700">Bareme 2025/2026</span>
+                  <span className="text-sm font-semibold text-indigo-700">Bareme 2026</span>
                 </div>
                 <button
                   onClick={() => setShowSaveModal(true)}
@@ -1964,7 +1964,7 @@ export default function ComparateurStatutJuridique() {
                 <p className="font-semibold text-lg">Avertissement legal</p>
                 <p>
                   Ce comparateur est fourni a titre informatif uniquement et ne constitue pas un conseil juridique,
-                  fiscal ou social. Les resultats sont des estimations basees sur les baremes 2025/2026 et des
+                  fiscal ou social. Les resultats sont des estimations basees sur les baremes 2026 et des
                   approximations des taux de cotisations sociales.
                 </p>
                 <p>

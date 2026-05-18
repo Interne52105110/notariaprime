@@ -19,7 +19,7 @@ const PAGE_META: Record<string, PageMeta> = {
   // ---------- Calculateurs ----------
   "/assurance-vie": {
     title: "Calculateur Assurance vie 2026 — fiscalité, succession, abattements",
-    description: "Simulez la fiscalité de votre contrat d'assurance vie : versements avant/après 70 ans, abattement 152 500 €, prélèvement 20%/31,25%, transmission. Gratuit, conforme 2025/2026.",
+    description: "Simulez la fiscalité de votre contrat d'assurance vie : versements avant/après 70 ans, abattement 152 500 €, prélèvement 20%/31,25%, transmission. Gratuit, conforme 2026/2028.",
     keywords: ["assurance vie", "fiscalité", "succession", "abattement 152500", "70 ans", "transmission"],
   },
   "/donation": {
@@ -96,7 +96,7 @@ const PAGE_META: Record<string, PageMeta> = {
   // ---------- Pages éditoriales ----------
   "/about": {
     title: "À propos — NotariaPrime, calculateur notarié open source",
-    description: "NotariaPrime est une plateforme open source de calcul des frais notariés et de simulation fiscale. 100% gratuit, conforme au tarif réglementé 2025/2026, mise à jour mensuelle.",
+    description: "NotariaPrime est une plateforme open source de calcul des frais notariés et de simulation fiscale. 100% gratuit, conforme au tarif réglementé 2026/2028, mise à jour mensuelle.",
   },
   "/features": {
     title: "Fonctionnalités — calculs notariés, fiscalité, export PDF",
@@ -120,7 +120,7 @@ const PAGE_META: Record<string, PageMeta> = {
   },
   "/documentation": {
     title: "Documentation — barèmes, formules, sources réglementaires",
-    description: "Documentation NotariaPrime : barèmes notariaux 2025/2026, DMTO par département, formules de calcul des plus-values, sources réglementaires (BOI, décrets, Code civil).",
+    description: "Documentation NotariaPrime : barèmes notariaux 2026/2028, DMTO par département, formules de calcul des plus-values, sources réglementaires (BOI, décrets, Code civil).",
   },
   "/contact": {
     title: "Contact — équipe NotariaPrime, support, demandes",

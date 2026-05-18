@@ -911,7 +911,7 @@ function PlusValueProContent() {
                   Calculateur Plus-Value Professionnelle
                 </h1>
                 <p className="text-indigo-600 font-medium mt-1">
-                  Regimes d'exoneration et simulation fiscale 2025/2026
+                  Regimes d'exoneration et simulation fiscale 2026
                 </p>
               </div>
             </div>

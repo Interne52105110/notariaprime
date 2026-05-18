@@ -40,7 +40,7 @@ function RoadmapContent() {
     {
       id: '1',
       title: 'Calculateur de Prétaxe Notariale',
-      description: 'Calcul instantané des frais de notaire conforme au tarif réglementé 2025 avec OCR intégré',
+      description: 'Calcul instantané des frais de notaire conforme à l\'arrêté du 25 février 2026 (tarif 2026/2028), avec OCR intégré',
       status: 'completed',
       quarter: 'T3 2025',
       category: 'Immobilier & Fiscalité',
@@ -103,7 +103,7 @@ function RoadmapContent() {
       id: '5',
       title: 'Calculateur IFI',
       description: 'Calcul de l\'Impôt sur la Fortune Immobilière avec optimisations',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Immobilier & Fiscalité',
       icon: Home,
@@ -118,7 +118,7 @@ function RoadmapContent() {
       id: '6',
       title: 'Simulateur Viager',
       description: 'Calcul du bouquet et de la rente viagère selon tables officielles',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Immobilier & Fiscalité',
       icon: HeartHandshake,
@@ -135,7 +135,7 @@ function RoadmapContent() {
       id: '7',
       title: 'Calculateur Revenus Fonciers',
       description: 'Optimisation fiscale des revenus locatifs',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Gestion Patrimoniale',
       icon: Building2,
@@ -150,7 +150,7 @@ function RoadmapContent() {
       id: '8',
       title: 'Simulateur LMNP/LMP',
       description: 'Optimisation fiscale de la location meublée',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Gestion Patrimoniale',
       icon: Briefcase,
@@ -165,7 +165,7 @@ function RoadmapContent() {
       id: '9',
       title: 'Calculateur Prêt Immobilier Avancé',
       description: 'Comparaison et optimisation de prêts immobiliers',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Gestion Patrimoniale',
       icon: Calculator,
@@ -180,7 +180,7 @@ function RoadmapContent() {
       id: '10',
       title: 'Optimiseur Investissement Locatif',
       description: 'Analyse de rentabilité et optimisation fiscale',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Gestion Patrimoniale',
       icon: TrendingUp,
@@ -197,7 +197,7 @@ function RoadmapContent() {
       id: '11',
       title: 'Calculateur Plus-Value Professionnelle',
       description: 'Calcul des plus-values sur cession d\'entreprise',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Professionnel',
       icon: Award,
@@ -212,7 +212,7 @@ function RoadmapContent() {
       id: '12',
       title: 'Simulateur Statut Juridique',
       description: 'Comparaison des statuts juridiques d\'entreprise',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Professionnel',
       icon: Briefcase,
@@ -227,7 +227,7 @@ function RoadmapContent() {
       id: '13',
       title: 'Calculateur Holding Patrimoniale',
       description: 'Optimisation de structure holding',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Professionnel',
       icon: Building,
@@ -244,7 +244,7 @@ function RoadmapContent() {
       id: '14',
       title: 'Simulateur Retraite Complète',
       description: 'Estimation retraite tous régimes',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Retraite & Transmission',
       icon: PiggyBank,
@@ -259,7 +259,7 @@ function RoadmapContent() {
       id: '15',
       title: 'Calculateur Assurance-Vie',
       description: 'Optimisation fiscale de l\'assurance-vie',
-      status: 'planned',
+      status: 'completed',
       quarter: 'T1 2026',
       category: 'Retraite & Transmission',
       icon: Shield,
@@ -274,46 +274,61 @@ function RoadmapContent() {
     // 🔵 PRÉVUS T1 2026 - Infrastructure (3)
     {
       id: '16',
-      title: 'API Publique',
-      description: 'API REST pour intégrer NotariaPrime dans vos outils',
-      status: 'planned',
-      quarter: 'T1 2026',
+      title: 'Mode Hors-ligne (PWA)',
+      description: 'Application web progressive installable, fonctionnant sans connexion',
+      status: 'completed',
+      quarter: 'T2 2026',
       category: 'Infrastructure',
-      icon: Zap,
+      icon: Globe,
       features: [
-        'Endpoints pour tous les calculateurs',
-        'Documentation OpenAPI',
-        'Rate limiting généreux',
-        'Authentification par clé API'
+        'Installation sur appareil (Android/iOS/Desktop)',
+        'Calculs 100% locaux côté client',
+        'Mise en cache des 15 calculateurs',
+        'Manifeste Web + Service Worker'
       ]
     },
     {
       id: '17',
-      title: 'Mode Hors-ligne (PWA)',
-      description: 'Application web progressive fonctionnant sans connexion',
-      status: 'planned',
-      quarter: 'T1 2026',
+      title: 'OCR — Scanner un projet d\'acte',
+      description: 'Importez une image et laissez l\'app pré-remplir le calculateur de prétaxe',
+      status: 'completed',
+      quarter: 'T2 2026',
       category: 'Infrastructure',
-      icon: Globe,
+      icon: Zap,
       features: [
-        'Installation sur appareil',
-        'Calculs 100% locaux',
-        'Synchronisation optionnelle',
-        'Notifications push'
+        'Reconnaissance OCR française (tesseract.js)',
+        'Extraction automatique du montant',
+        'Détection du département (code postal)',
+        'Détection du type d\'acte par mots-clés'
       ]
     },
     {
       id: '18',
-      title: 'Espace Professionnel',
-      description: 'Fonctionnalités avancées pour les études notariales',
+      title: 'API Publique REST',
+      description: 'API REST pour intégrer NotariaPrime dans vos outils tiers',
       status: 'planned',
-      quarter: 'T1 2026',
+      quarter: 'T4 2026',
+      category: 'Infrastructure',
+      icon: Zap,
+      features: [
+        'Endpoints pour les 15 calculateurs',
+        'Documentation OpenAPI',
+        'Authentification par clé API',
+        'Rate limiting généreux'
+      ]
+    },
+    {
+      id: '19',
+      title: 'Espace Professionnel',
+      description: 'Fonctionnalités avancées pour les études notariales et comptables taxateurs',
+      status: 'planned',
+      quarter: 'T1 2027',
       category: 'Infrastructure',
       icon: Users,
       features: [
-        'Gestion multi-utilisateurs',
+        'Gestion multi-utilisateurs (étude)',
         'Historique des calculs illimité',
-        'Templates personnalisés',
+        'Templates de pré-taxe personnalisés',
         'Tableau de bord analytique'
       ]
     }
@@ -374,7 +389,7 @@ function RoadmapContent() {
           </div>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl">
-            Découvrez les 18 fonctionnalités : 4 disponibles depuis T3 2025, 14 prévues pour T1 2026. 
+            17 fonctionnalités disponibles aujourd'hui (15 calculateurs + PWA + OCR), 2 en préparation.
             Votre feedback guide notre feuille de route.
           </p>
 

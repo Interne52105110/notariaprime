@@ -874,7 +874,7 @@ export default function SimulateurInvestissementLocatif() {
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-indigo-700 bg-indigo-100 px-4 py-2 rounded-full w-fit mx-auto">
               <Info className="w-4 h-4" />
-              Baremes fiscaux 2025/2026 &mdash; Pinel, Denormandie, Loc&apos;Avantages, Deficit Foncier, Malraux
+              Baremes fiscaux 2026 &mdash; Pinel, Denormandie, Loc&apos;Avantages, Deficit Foncier, Malraux
             </div>
             <div className="flex justify-center gap-2 mt-2">
               <button

@@ -364,9 +364,8 @@ function HomepageContent() {
   }, []);
 
   const upcomingFeatures: NewFeature[] = [
-    { icon: Zap, label: 'API Publique', status: 'T2 2026' },
-    { icon: Globe, label: 'Mode Hors-ligne', status: 'T2 2026' },
-    { icon: Users, label: 'Espace Pro', status: 'T3 2026' }
+    { icon: Zap, label: 'API Publique REST', status: 'T4 2026' },
+    { icon: Users, label: 'Espace Pro (multi-utilisateurs)', status: 'T1 2027' }
   ];
 
   return (
@@ -673,7 +672,7 @@ function HomepageContent() {
                 Encore plus de fonctionnalités en préparation
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                API publique, mode hors-ligne et espace professionnel arrivent bientôt.
+                Mode hors-ligne (PWA) et OCR sont disponibles. L'API publique REST et l'espace professionnel arrivent bientôt.
               </p>
             </div>
 

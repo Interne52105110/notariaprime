@@ -1741,7 +1741,7 @@ export default function SimulateurLMNP() {
                 <p>
                   Ce simulateur est fourni a titre informatif uniquement et ne constitue pas un conseil fiscal
                   ou juridique. Les resultats sont des estimations basees sur les informations fournies et la
-                  legislation fiscale 2025/2026 en vigueur.
+                  legislation fiscale 2026 en vigueur.
                 </p>
                 <p>
                   La fiscalite de la location meublee est complexe et comporte de nombreuses regles specifiques

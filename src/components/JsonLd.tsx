@@ -25,7 +25,7 @@ export function OrganizationJsonLd() {
         name: "NotariaPrime",
         url: BASE,
         logo: `${BASE}/images/og-image.png`,
-        description: "Plateforme open source de calculateurs notariés et fiscaux français, conforme au tarif réglementé 2025/2026.",
+        description: "Plateforme open source de calculateurs notariés et fiscaux français, conforme au tarif réglementé 2026/2028.",
         sameAs: [],
       }}
     />

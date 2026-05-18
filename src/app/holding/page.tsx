@@ -720,7 +720,7 @@ export default function HoldingPatrimoniale() {
               </div>
               <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-200">
                 <Landmark className="w-5 h-5 text-indigo-600" />
-                <span className="text-sm font-semibold text-indigo-700">Bareme 2025/2026</span>
+                <span className="text-sm font-semibold text-indigo-700">Bareme 2026</span>
               </div>
             </div>
             <p className="text-gray-500 text-sm max-w-3xl">
