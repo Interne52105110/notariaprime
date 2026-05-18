@@ -12,6 +12,7 @@ interface OCRScannerProps {
     departement?: string;
     categoryKey?: string;
     acteKey?: string;
+    valeurMobilier?: number;
     rawText?: string;
   }) => void;
 }
@@ -22,6 +23,7 @@ type ExtractedHit = {
   categoryKey?: string;
   acteKey?: string;
   acteLabel?: string;
+  valeurMobilier?: number;
 };
 
 export default function OCRScanner({ onExtract }: OCRScannerProps) {
@@ -119,6 +121,16 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         chosen = sorted[Math.floor(sorted.length / 2)];
       }
       const max = chosen;
+
+      // 1b) Valeur du mobilier (art. 1245 CGI — déduit de l'assiette DMTO)
+      const MEUBLES_RE = /(?:meubles?\s+(?:à|a)\s+concurrence\s+de|estimation\s+des\s+meubles?|valeur\s+des\s+meubles?|mobilier\s+(?:estim[eé]|d['']une\s+valeur)|biens?\s+meubles?\s+(?:pour|d['']une\s+valeur)|meubles?\s+meublants?)\s*(?:de\s+)?[^0-9€]{0,40}?([0-9]{1,3}(?:[\s.,][0-9]{3})+|[0-9]{3,})(?:[.,][0-9]{1,2})?\s*(?:€|EUR|euros?)/i;
+      const meublesMatch = text.match(MEUBLES_RE);
+      if (meublesMatch) {
+        const mobilier = parseFloat(meublesMatch[1].replace(/[\s.]/g, '').replace(',', '.'));
+        if (!isNaN(mobilier) && mobilier > 100 && mobilier < chosen) {
+          result.valeurMobilier = Math.round(mobilier);
+        }
+      }
       result.montant = max.toLocaleString('fr-FR').replace(/ /g, ' ');
     }
 
@@ -248,6 +260,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           // L'IA prime sur le regex quand elle a une réponse
           if (ai.montant) hit.montant = ai.montant;
           if (ai.departement) hit.departement = ai.departement;
+          if (ai.valeurMobilier != null) hit.valeurMobilier = ai.valeurMobilier;
           if (ai.acteSuggestion) {
             for (const [catKey, cat] of Object.entries(defaultCategoriesActes)) {
               if (cat.actes[ai.acteSuggestion]) {
@@ -270,6 +283,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         departement: hit.departement,
         categoryKey: hit.categoryKey,
         acteKey: hit.acteKey,
+        valeurMobilier: hit.valeurMobilier,
         rawText: text
       });
     } catch (err) {
@@ -487,6 +501,14 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                   <p className="font-bold text-gray-900">{extracted.acteLabel || '—'}</p>
                 </div>
               </div>
+              {extracted.valeurMobilier && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+                  <span className="font-semibold text-amber-900">Mobilier détecté : </span>
+                  <span className="text-amber-800">
+                    {extracted.valeurMobilier.toLocaleString('fr-FR')} € (déduit de l'assiette DMTO — art. 1245 CGI)
+                  </span>
+                </div>
+              )}
               {!extracted.montant && !extracted.departement && !extracted.acteKey && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
                   Aucune donnée reconnue. Saisissez les informations manuellement ou réessayez avec une image plus nette.

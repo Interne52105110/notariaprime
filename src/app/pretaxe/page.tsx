@@ -533,7 +533,8 @@ function PretaxeContent() {
     departementale: 0,
     communale: 0,
     fraisAssiette: 0,
-    primoAccedant: false
+    primoAccedant: false,
+    valeurMobilier: 0
   });
 
   // États pour les donations multiples
@@ -623,13 +624,20 @@ function PretaxeContent() {
             // Ne calculer les DMTO que pour les actes soumis aux droits de mutation
             const configActe = actesConfig[selectedActe];
             if (configActe?.taxes?.type === 'dmto') {
-              calculerTaxes(montantActe, selectedDepartement, taxes.typeBien, setTaxes, taxes.primoAccedant === true);
+              calculerTaxes(
+                montantActe,
+                selectedDepartement,
+                taxes.typeBien,
+                setTaxes,
+                taxes.primoAccedant === true,
+                Number(taxes.valeurMobilier) || 0
+              );
             }
           }
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, selectedCategory, appliquerRemise]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, selectedCategory, appliquerRemise]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -710,6 +718,9 @@ function PretaxeContent() {
               }
               if (data.montant) {
                 setMontantActe(data.montant);
+              }
+              if (data.valeurMobilier != null) {
+                setTaxes((prev) => ({ ...prev, valeurMobilier: data.valeurMobilier }));
               }
             }}
           />
@@ -1098,6 +1109,7 @@ function PretaxeContent() {
                     setTaxes={setTaxes}
                     totalTaxes={totalTaxes}
                     selectedDepartement={selectedDepartement}
+                    montantActe={montantActe}
                   />
                 )}
               </div>

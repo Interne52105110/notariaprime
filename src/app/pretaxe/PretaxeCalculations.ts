@@ -100,12 +100,19 @@ export function calculerTaxes(
   selectedDepartement: string,
   typeBien: string,
   setTaxes: React.Dispatch<React.SetStateAction<Taxes>>,
-  primoAccedant: boolean = false
+  primoAccedant: boolean = false,
+  valeurMobilier: number = 0
 ) {
   if (!montantActe || typeBien === 'neuf' || typeBien === 'aucune') return;
 
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
+
+  // Art. 1245 CGI : les meubles meublants justifiés par un inventaire
+  // détaillé sont exclus de l'assiette des DMTO. Tolérance ~5% du prix
+  // sans inventaire ; au-delà l'inventaire est requis.
+  const mobilier = Math.max(0, Math.min(valeurMobilier || 0, montant));
+  const assietteDMTO = montant - mobilier;
 
   // LF 2025 art. 116 : les primo-accédants en résidence principale échappent à la
   // hausse votée par les départements et restent au taux plafond historique de 4.50%.
@@ -114,8 +121,8 @@ export function calculerTaxes(
   const tauxCommunal = 1.20;
   
   const round2 = (n: number) => Math.round(n * 100) / 100;
-  const taxeDepartementale = round2(montant * (tauxDepartemental / 100));
-  const taxeCommunale = round2(montant * (tauxCommunal / 100));
+  const taxeDepartementale = round2(assietteDMTO * (tauxDepartemental / 100));
+  const taxeCommunale = round2(assietteDMTO * (tauxCommunal / 100));
   // Art. 1647-V CGI : prélèvement de 2,37% sur la seule taxe départementale
   const fraisAssiette = round2(taxeDepartementale * 0.0237);
 

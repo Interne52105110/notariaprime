@@ -19,6 +19,7 @@ export interface OllamaExtraction {
   montant?: string;
   departement?: string;
   acteSuggestion?: string;
+  valeurMobilier?: number;
   raw: string;
 }
 
@@ -37,9 +38,10 @@ const SYSTEM_PROMPT = `Tu es un assistant spécialisé dans l'extraction de donn
 À partir du texte d'un projet d'acte, extrais les informations clés au format JSON strict.
 
 Champs à extraire :
-- "montant" : le montant principal en euros (prix de vente, valeur, etc.) sous forme de nombre entier sans séparateur. Null si introuvable.
+- "montant" : le PRIX PRINCIPAL de la vente en euros (entier sans séparateur). Attention à ne pas confondre avec : indemnité d'immobilisation, frais, hypothèque, plus-value, plafond légal, valeur du mobilier. Null si introuvable.
 - "departement" : le code département français (ex : "75", "33", "2A", "971"). Null si introuvable.
 - "acteSuggestion" : un mot-clé décrivant le type d'acte parmi cette liste exacte : "vente_immeuble", "vente_terrain", "vefa", "echange", "licitation", "partage", "bail_construction", "donation", "donation_partage", "testament", "notoriete", "attestation_propriete", "declaration_succession", "pret_hypothecaire", "mainlevee_hypo_inf", "constitution_societe", "augmentation_capital", "cession_parts", "procuration", "contrat_mariage", "pacs", "divorce_consentement". Null si aucun ne correspond.
+- "valeurMobilier" : la valeur des meubles meublants vendus avec le bien (cuisine équipée, électroménager…), en euros entier. Apparaît souvent comme "meubles à concurrence de", "estimation des meubles". Null si l'acte ne mentionne pas de mobilier.
 
 Réponds UNIQUEMENT avec un objet JSON valide, sans markdown ni commentaire.`;
 
@@ -85,6 +87,9 @@ export async function extractWithOllama(
         ? String(parsed.departement).toUpperCase()
         : undefined,
       acteSuggestion: parsed.acteSuggestion ?? undefined,
+      valeurMobilier: parsed.valeurMobilier != null && !isNaN(Number(parsed.valeurMobilier))
+        ? Math.round(Number(parsed.valeurMobilier))
+        : undefined,
       raw
     };
   } catch {

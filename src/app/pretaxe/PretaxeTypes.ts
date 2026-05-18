@@ -113,6 +113,12 @@ export interface Taxes {
   communale: number;
   fraisAssiette: number;
   primoAccedant?: boolean;
+  /**
+   * Valeur du mobilier vendu avec le bien (€). Déduite de l'assiette
+   * des DMTO (art. 1245 CGI) mais conservée dans l'assiette des
+   * émoluments et de la CSI (publication porte sur le prix total).
+   */
+  valeurMobilier?: number;
 }
 
 export interface Usufruit {

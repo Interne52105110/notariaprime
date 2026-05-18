@@ -8,14 +8,21 @@ interface TaxesTabProps {
   setTaxes: React.Dispatch<React.SetStateAction<Taxes>>;
   totalTaxes: number;
   selectedDepartement: string;
+  montantActe: string;
 }
 
 export default function TaxesTab({
   taxes,
   setTaxes,
   totalTaxes,
-  selectedDepartement
+  selectedDepartement,
+  montantActe
 }: TaxesTabProps) {
+  const prix = parseFloat((montantActe || '').replace(/\s/g, '')) || 0;
+  const mobilier = Number(taxes.valeurMobilier) || 0;
+  const assietteDMTO = Math.max(0, prix - mobilier);
+  const ratioMobilier = prix > 0 ? (mobilier / prix) * 100 : 0;
+  const mobilierExcedeTolerance = ratioMobilier > 5;
   return (
     <div className="space-y-6">
       {taxes.typeBien === 'aucune' ? (
@@ -80,8 +87,51 @@ export default function TaxesTab({
                 </label>
               )}
 
+              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Valeur du mobilier vendu (€)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={mobilier || ''}
+                  onChange={(e) => setTaxes(prev => ({ ...prev, valeurMobilier: Number(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base"
+                />
+                <p className="text-xs text-amber-800 mt-2">
+                  <strong>Art. 1245 CGI</strong> — Les meubles meublants vendus avec le bien
+                  (cuisine équipée, électroménager, etc.) sont déduits de l'assiette des DMTO.
+                  Tolérance administrative : jusqu'à 5 % du prix sans justificatif. Au-delà, un
+                  inventaire détaillé et estimatif est requis.
+                </p>
+                {prix > 0 && mobilier > 0 && (
+                  <p className={`text-xs mt-2 font-medium ${mobilierExcedeTolerance ? 'text-red-700' : 'text-amber-900'}`}>
+                    Mobilier = {ratioMobilier.toFixed(1)} % du prix
+                    {mobilierExcedeTolerance && ' — inventaire détaillé requis !'}
+                  </p>
+                )}
+              </div>
+
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="space-y-3">
+                  {mobilier > 0 && (
+                    <div className="pb-3 border-b border-gray-200">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Prix total de la vente</span>
+                        <span>{prix.toLocaleString('fr-FR')} €</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>− Valeur mobilier (hors DMTO)</span>
+                        <span>− {mobilier.toLocaleString('fr-FR')} €</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold text-gray-900 mt-1">
+                        <span>= Assiette des DMTO</span>
+                        <span>{assietteDMTO.toLocaleString('fr-FR')} €</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">
                       Taxe départementale ({taxes.primoAccedant && (departements[selectedDepartement]?.taux ?? 0) > 4.50
@@ -98,6 +148,12 @@ export default function TaxesTab({
                     <span className="text-gray-600">Frais d'assiette (2,37%)</span>
                     <span className="font-medium">{taxes.fraisAssiette.toFixed(2)} €</span>
                   </div>
+                  {mobilier > 0 && (
+                    <p className="text-[11px] text-gray-500 italic pt-1">
+                      Les émoluments du notaire et la CSI restent calculés sur le prix total
+                      ({prix.toLocaleString('fr-FR')} €).
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
