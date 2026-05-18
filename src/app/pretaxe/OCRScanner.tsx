@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload, Cpu, ChevronDown, ChevronUp, Shield, FileText, Brain } from 'lucide-react';
 import { categoriesActes as defaultCategoriesActes } from './ocrMappings';
 import { checkOllama, extractWithOllama, type OllamaModel } from './ollamaExtract';
+import { extractTextFromLegacyDoc } from './legacyDocExtract';
 
 interface OCRScannerProps {
   onExtract: (data: {
@@ -111,12 +112,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
       file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const isLegacyDoc = name.endsWith('.doc') && !isDocx;
 
-    if (isLegacyDoc) {
-      setError("Format .doc (Word 97-2003) non supporté côté navigateur. Convertissez le fichier en .docx, .pdf ou image.");
-      return;
-    }
-    if (!isImage && !isPdf && !isDocx) {
-      setError("Format non supporté. Utilisez une image (JPG/PNG/WebP), un PDF ou un fichier .docx.");
+    if (!isImage && !isPdf && !isDocx && !isLegacyDoc) {
+      setError("Format non supporté. Utilisez une image (JPG/PNG/WebP), un PDF, ou un fichier Word (.doc/.docx).");
       return;
     }
 
@@ -139,6 +136,16 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         const result = await mammoth.extractRawText({ arrayBuffer });
         text = result.value || '';
         setProgress(100);
+      } else if (isLegacyDoc) {
+        setProgressLabel('Lecture du DOC (Word 97-2003)');
+        setProgress(30);
+        text = await extractTextFromLegacyDoc(file);
+        setProgress(100);
+        if (text.trim().length < 40) {
+          setError("Texte introuvable dans ce .doc. Pour un meilleur résultat, ouvrez le fichier dans Word ou LibreOffice et faites « Enregistrer sous » en .docx.");
+          setIsProcessing(false);
+          return;
+        }
       } else if (isPdf) {
         setProgressLabel('Lecture du PDF');
         setProgress(10);
@@ -246,8 +253,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
             </div>
           </div>
           <p className="text-sm text-gray-600 mb-3">
-            Importez un PDF, un fichier Word (.docx) ou une image (JPG/PNG/WebP). Le montant, le
-            département et le type d'acte seront extraits automatiquement.
+            Importez un PDF, un fichier Word (.doc/.docx) ou une image (JPG/PNG/WebP). Le montant,
+            le département et le type d'acte seront extraits automatiquement.
           </p>
 
           <button
@@ -331,9 +338,10 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
               </div>
 
               <div className="pt-3 border-t border-gray-100 text-xs text-gray-500">
-                <strong className="text-gray-700">Formats acceptés :</strong> PDF avec texte
-                sélectionnable, Word .docx, images JPG/PNG/WebP. Les anciens fichiers .doc (Word
-                97-2003) et les PDF entièrement scannés doivent être convertis ou exportés en image.
+                <strong className="text-gray-700">Formats acceptés :</strong> PDF (texte
+                sélectionnable), Word récent .docx, Word 97-2003 .doc (extraction best-effort —
+                préférez la conversion en .docx pour un résultat propre), images JPG/PNG/WebP. Les
+                PDF entièrement scannés doivent être exportés en image.
               </div>
             </div>
           )}
@@ -343,7 +351,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                accept="image/*,application/pdf,.pdf,.docx,.doc,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 className="hidden"
               />
