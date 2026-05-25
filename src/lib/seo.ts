@@ -122,6 +122,11 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Documentation — barèmes, formules, sources réglementaires",
     description: "Documentation NotariaPrime : barèmes notariaux 2026/2028, DMTO par département, formules de calcul des plus-values, sources réglementaires (BOI, décrets, Code civil).",
   },
+  "/cours-comptable-taxateur": {
+    title: "Cours comptable-taxateur notarial 2026 — taxation, comptabilité, Genapi",
+    description: "Cours complet et à jour 2025/2026 pour comptable-taxateur en office notarial : taxation des actes (émoluments, DMTO, CSI), comptabilité notariale (comptes clients, CDC, inspection), arrêté tarifaire 25/02/2026, loi de finances 2025, Genapi/iNot compta, cas pratiques.",
+    keywords: ["comptable taxateur", "taxateur notarial", "comptabilité notariale", "émoluments notaire", "DMTO 2025", "barème notaire 2026", "Genapi compta", "Caisse des Dépôts notaire"],
+  },
   "/contact": {
     title: "Contact — équipe NotariaPrime, support, demandes",
     description: "Contactez l'équipe NotariaPrime : support utilisateur, signalement d'erreur dans un calcul, demande de fonctionnalité, partenariat éditorial ou prestation sur-mesure.",

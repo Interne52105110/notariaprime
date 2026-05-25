@@ -30,6 +30,7 @@ const PAGES_EDITO = [
   { path: "prestations/developpement-informatique", priority: 0.6 },
   { path: "prestations/expertise-immobiliere", priority: 0.6 },
   { path: "documentation", priority: 0.6 },
+  { path: "cours-comptable-taxateur", priority: 0.7 },
   { path: "contact", priority: 0.5 },
   { path: "roadmap", priority: 0.4 },
 ];

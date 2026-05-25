@@ -39,6 +39,7 @@ export default function Footer() {
             <ul className="space-y-3 text-gray-600">
               <li><a href="/features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
               <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
+              <li><a href="/cours-comptable-taxateur" className="hover:text-gray-900 transition">Cours comptable-taxateur</a></li>
               <li><a href="/roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
               <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
             </ul>
