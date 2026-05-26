@@ -71,7 +71,7 @@ export default function RecapitulatifTab({
               Calcul conforme au tarif réglementé 2026/2028
             </p>
             <p className="text-xs text-green-700 mt-1">
-              Arrêté du 25 février 2026 (JORF 27/02/2026) • Décret n°2020-179 du 27 février 2020
+              Arrêté du 25 février 2026 (publié au JORF le 28/02/2026), tarif reconduit jusqu&apos;au 29 février 2028
               {getMajorationDOMTOM(selectedDepartement) > 0 && 
                 ` • Article A444-176 (majoration DOM-TOM +${getMajorationDOMTOM(selectedDepartement)}%)`
               }
