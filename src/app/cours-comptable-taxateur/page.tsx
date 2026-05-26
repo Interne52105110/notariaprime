@@ -33,7 +33,7 @@ const actesTable = [
   { acte: 'Donation', emol: 'proportionnels sur valeur', droits: 'DMTG après abattements (barème progressif)' },
   { acte: 'Succession', emol: 'proportionnels (déclaration)', droits: 'DMTG ; émoluments notoriété/attestation' },
   { acte: 'Prêt / hypothèque', emol: 'proportionnels sur capital', droits: 'TPF + CSI + contribution additionnelle' },
-  { acte: 'Partage', emol: 'proportionnels', droits: 'droit de partage 2,50 % (ou 1,80 %)' },
+  { acte: 'Partage', emol: 'proportionnels', droits: 'droit de partage 2,50 % (1,10 % si divorce)' },
 ];
 
 // Barème de l'usufruit / nue-propriété — art. 669 du CGI (par âge de l'usufruitier)
@@ -249,7 +249,7 @@ function CoursContent() {
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">DMTO — vente d&apos;ancien</h4><p className="text-sm text-gray-700">Droit départemental 4,50 % (jusqu&apos;à 5,00 % depuis avril 2025) + taxe communale 1,20 % + frais d&apos;assiette 2,37 % du droit départemental. Total ~5,80 % → jusqu&apos;à ~6,31 %.</p></div>
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Neuf / VEFA</h4><p className="text-sm text-gray-700">Pas de DMTO : TVA 20 % (incluse dans le prix) + taxe de publicité foncière réduite ~0,715 %. Frais réduits (2–3 %).</p></div>
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">CSI — Contribution de Sécurité Immobilière</h4><p className="text-sm text-gray-700">0,10 % du prix, versée à l&apos;État pour la publicité foncière. Remplace l&apos;ancien « salaire du conservateur ».</p></div>
-                <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Droit de partage</h4><p className="text-sm text-gray-700">2,50 % de l&apos;actif net ; réduit à 1,80 % pour les partages liés à divorce/séparation/succession.</p></div>
+                <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Droit de partage</h4><p className="text-sm text-gray-700">2,50 % de l&apos;actif net partagé (CGI art. 746) ; ramené à 1,10 % depuis 2022 pour les partages consécutifs à un divorce, une séparation de corps ou une rupture de PACS. Un partage de succession reste à 2,50 %.</p></div>
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Mutation à titre gratuit (donation / succession)</h4><p className="text-sm text-gray-700">Calcul après abattements (ex. 100 000 € parent-enfant) puis barème progressif par tranches.</p></div>
               </div>
 

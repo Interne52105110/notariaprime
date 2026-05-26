@@ -41,7 +41,10 @@ export interface ConfigActe {
   };
   taxes?: {
     applicable: boolean;
-    type?: 'dmto' | 'tva' | 'donation' | 'aucune';
+    // dmto = droits de mutation à titre onéreux (vente ancien)
+    // tva = mutation neuf/VEFA · tpf = taxe de publicité foncière (hypothèque 0,715 %)
+    // partage = droit de partage (2,50 % / 1,10 %) · donation = DMTG · aucune = non taxé
+    type?: 'dmto' | 'tva' | 'tpf' | 'partage' | 'donation' | 'aucune';
     calculAuto: boolean;
   };
 }
@@ -199,10 +202,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 2,
       copiesHypothecaires: 0
     },
+    // Droit de partage (CGI art. 746) : 2,50 % ou 1,10 % (divorce/séparation/PACS).
     taxes: {
-      applicable: false,
-      type: 'aucune',
-      calculAuto: false
+      applicable: true,
+      type: 'partage',
+      calculAuto: true
     }
   },
 
@@ -538,11 +542,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesHypothecaires: 1
     },
     // Une hypothèque relève de la taxe de publicité foncière (0,715 %) + CSI,
-    // PAS des DMTO. Calcul automatique DMTO désactivé.
+    // PAS des DMTO (CGI art. 663, 844).
     taxes: {
-      applicable: false,
-      type: 'aucune',
-      calculAuto: false
+      applicable: true,
+      type: 'tpf',
+      calculAuto: true
     }
   },
 
@@ -561,11 +565,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 1,
       copiesHypothecaires: 1
     },
-    // Idem : taxe de publicité foncière, pas DMTO.
+    // Idem : taxe de publicité foncière (0,715 %), pas DMTO.
     taxes: {
-      applicable: false,
-      type: 'aucune',
-      calculAuto: false
+      applicable: true,
+      type: 'tpf',
+      calculAuto: true
     }
   },
 
@@ -638,11 +642,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 1,
       copiesHypothecaires: 1
     },
-    // Sûreté → taxe de publicité foncière, pas DMTO.
+    // Sûreté → taxe de publicité foncière (0,715 %), pas DMTO.
     taxes: {
-      applicable: false,
-      type: 'aucune',
-      calculAuto: false
+      applicable: true,
+      type: 'tpf',
+      calculAuto: true
     }
   },
 

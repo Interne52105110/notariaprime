@@ -9,6 +9,7 @@ interface TaxesTabProps {
   totalTaxes: number;
   selectedDepartement: string;
   montantActe: string;
+  regimeTaxe: string;
 }
 
 export default function TaxesTab({
@@ -16,7 +17,8 @@ export default function TaxesTab({
   setTaxes,
   totalTaxes,
   selectedDepartement,
-  montantActe
+  montantActe,
+  regimeTaxe
 }: TaxesTabProps) {
   const prix = parseFloat((montantActe || '').replace(/\s/g, '')) || 0;
   const mobilier = Number(taxes.valeurMobilier) || 0;
@@ -25,13 +27,73 @@ export default function TaxesTab({
   const mobilierExcedeTolerance = ratioMobilier > 5;
   return (
     <div className="space-y-6">
-      {taxes.typeBien === 'aucune' ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-gray-600 text-sm">
-            Cet acte n'est pas soumis aux droits de mutation à titre onéreux (DMTO).
-          </p>
+      {/* Taxe de publicité foncière (hypothèque) */}
+      {regimeTaxe === 'tpf' && (
+        <div>
+          <h3 className="font-semibold text-gray-900 mb-4">Taxe de publicité foncière (hypothèque)</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Taxe de publicité foncière (0,715 %)</span>
+              <span className="font-medium">{(taxes.tpf || 0).toFixed(2)} €</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              L'inscription d'une hypothèque conventionnelle est soumise à la taxe de
+              publicité foncière de 0,715 % du capital garanti (CGI art. 663 et 844), et
+              non aux droits de mutation. La contribution de sécurité immobilière (0,05 %)
+              figure dans l'onglet Débours.
+            </p>
+          </div>
         </div>
-      ) : (
+      )}
+
+      {/* Droit de partage */}
+      {regimeTaxe === 'partage' && (
+        <div>
+          <h3 className="font-semibold text-gray-900 mb-4">Droit de partage</h3>
+          <div className="space-y-3 mb-4">
+            <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                checked={(taxes.regimePartage ?? 'standard') === 'standard'}
+                onChange={() => setTaxes(prev => ({ ...prev, regimePartage: 'standard' }))}
+                className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              />
+              <div>
+                <span className="font-medium text-gray-900">Partage ordinaire (2,50 %)</span>
+                <p className="text-sm text-gray-600">Succession, indivision, copropriété…</p>
+              </div>
+            </label>
+            <label className="flex items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                checked={taxes.regimePartage === 'divorce'}
+                onChange={() => setTaxes(prev => ({ ...prev, regimePartage: 'divorce' }))}
+                className="mr-3 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              />
+              <div>
+                <span className="font-medium text-gray-900">Divorce / séparation / rupture de PACS (1,10 %)</span>
+                <p className="text-sm text-gray-600">Partage des intérêts patrimoniaux (depuis le 1ᵉʳ janvier 2022)</p>
+              </div>
+            </label>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">
+                Droit de partage ({taxes.regimePartage === 'divorce' ? '1,10' : '2,50'} %)
+              </span>
+              <span className="font-medium">{(taxes.droitPartage || 0).toFixed(2)} €</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              CGI art. 746 — calculé sur l'actif net partagé. Le droit est ramené à 1,10 %
+              pour les partages consécutifs à un divorce, une séparation de corps ou une
+              rupture de PACS.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* DMTO (vente / mutation à titre onéreux) */}
+      {(regimeTaxe === 'dmto' || regimeTaxe === 'tva') && (
         <>
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Type de bien</h3>
@@ -159,6 +221,17 @@ export default function TaxesTab({
             </div>
           )}
         </>
+      )}
+
+      {/* Acte non soumis à une taxe automatique */}
+      {regimeTaxe !== 'tpf' && regimeTaxe !== 'partage' && regimeTaxe !== 'dmto' && regimeTaxe !== 'tva' && (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-gray-600 text-sm">
+            {regimeTaxe === 'donation'
+              ? "Acte soumis aux droits de mutation à titre gratuit (donation/succession) : utilisez le calculateur Donation pour les abattements et le barème progressif."
+              : "Cet acte n'est pas soumis à une taxe de mutation calculée automatiquement."}
+          </p>
+        </div>
       )}
 
       <div className="border-t-2 border-gray-200 pt-4">

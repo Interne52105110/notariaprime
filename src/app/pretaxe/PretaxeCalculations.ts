@@ -138,20 +138,80 @@ export function calculerTaxes(
 // CALCUL CSI
 // ============================================================================
 
+/**
+ * Contribution de sécurité immobilière (CGI art. 879 à 881 M).
+ * @param tauxPourMille 1 (0,10 %) pour une publication d'acte translatif
+ *   (vente, partage…) ; 0,5 (0,05 %) pour une inscription d'hypothèque.
+ *   Minimum de perception : 15 € (art. 881 M).
+ */
 export function calculerCSI(
   montantActe: string,
-  setDebours: React.Dispatch<React.SetStateAction<Debours>>
+  setDebours: React.Dispatch<React.SetStateAction<Debours>>,
+  tauxPourMille: number = 1
 ) {
   if (!montantActe) return;
-  
+
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
-  
-  const csi = Math.round(Math.max(montant * 0.001, 15) * 100) / 100;
+
+  const csi = Math.round(Math.max(montant * (tauxPourMille / 1000), 15) * 100) / 100;
 
   setDebours(prev => ({
     ...prev,
     csi: csi
+  }));
+}
+
+/**
+ * Taxe de publicité foncière sur l'inscription d'une hypothèque
+ * conventionnelle : 0,715 % du capital garanti (CGI art. 663, 844).
+ */
+export function calculerTPF(
+  montantActe: string,
+  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
+) {
+  if (!montantActe) return;
+  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  if (isNaN(montant)) return;
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const tpf = round2(montant * 0.00715);
+
+  setTaxes(prev => ({
+    ...prev,
+    departementale: 0,
+    communale: 0,
+    fraisAssiette: 0,
+    droitPartage: 0,
+    tpf,
+  }));
+}
+
+/**
+ * Droit de partage (CGI art. 746) : 2,50 %, ramené à 1,10 % depuis le
+ * 1ᵉʳ janvier 2022 pour les partages des intérêts patrimoniaux consécutifs
+ * à un divorce, une séparation de corps ou une rupture de PACS.
+ */
+export function calculerDroitPartage(
+  montantActe: string,
+  regime: 'standard' | 'divorce',
+  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
+) {
+  if (!montantActe) return;
+  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  if (isNaN(montant)) return;
+
+  const taux = regime === 'divorce' ? 1.10 : 2.50;
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const droitPartage = round2(montant * (taux / 100));
+
+  setTaxes(prev => ({
+    ...prev,
+    departementale: 0,
+    communale: 0,
+    fraisAssiette: 0,
+    tpf: 0,
+    droitPartage,
   }));
 }
 
@@ -277,20 +337,46 @@ export function appliquerConfigParDefaut(
     if (config.taxes.type === 'dmto') {
       setTaxes(prev => ({
         ...prev,
-        typeBien: 'ancien'
+        typeBien: 'ancien',
+        tpf: 0,
+        droitPartage: 0,
       }));
     } else if (config.taxes.type === 'tva') {
       setTaxes(prev => ({
         ...prev,
-        typeBien: 'neuf'
+        typeBien: 'neuf',
+        tpf: 0,
+        droitPartage: 0,
+      }));
+    } else if (config.taxes.type === 'tpf') {
+      setTaxes(prev => ({
+        ...prev,
+        typeBien: 'tpf',
+        departementale: 0,
+        communale: 0,
+        fraisAssiette: 0,
+        droitPartage: 0,
+      }));
+    } else if (config.taxes.type === 'partage') {
+      setTaxes(prev => ({
+        ...prev,
+        typeBien: 'partage',
+        // Préserve le régime choisi par l'utilisateur entre deux recalculs.
+        regimePartage: prev.regimePartage ?? 'standard',
+        departementale: 0,
+        communale: 0,
+        fraisAssiette: 0,
+        tpf: 0,
       }));
     } else {
-      // 'aucune', 'donation', etc. : pas de DMTO
+      // 'aucune', 'donation', etc. : pas de taxe automatique
       setTaxes({
         typeBien: 'aucune',
         departementale: 0,
         communale: 0,
-        fraisAssiette: 0
+        fraisAssiette: 0,
+        tpf: 0,
+        droitPartage: 0,
       });
     }
   }
@@ -473,6 +559,16 @@ export function exporterPDF(
       y += lineHeight;
       doc.text(`Frais d'assiette :`, 20, y);
       doc.text(`${taxes.fraisAssiette.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+    }
+    if (taxes.tpf && taxes.tpf > 0) {
+      doc.text(`Taxe de publicité foncière (0,715%) :`, 20, y);
+      doc.text(`${taxes.tpf.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+    }
+    if (taxes.droitPartage && taxes.droitPartage > 0) {
+      doc.text(`Droit de partage (${taxes.regimePartage === 'divorce' ? '1,10' : '2,50'}%) :`, 20, y);
+      doc.text(`${taxes.droitPartage.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight;
     }
     doc.setFont('helvetica', 'bold');

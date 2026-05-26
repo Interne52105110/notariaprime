@@ -26,6 +26,8 @@ import {
   calculerEmoluments,
   calculerTaxes,
   calculerCSI,
+  calculerTPF,
+  calculerDroitPartage,
   calculerUsufruit,
   appliquerConfigParDefaut,
   exporterPDF
@@ -629,10 +631,11 @@ function PretaxeContent() {
             const detail = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
             setEmolumentsDetail(detail);
             setEmoluments(detail.nets);
-            calculerCSI(montantActe, setDebours);
-            // Ne calculer les DMTO que pour les actes soumis aux droits de mutation
+            // Régime de taxe selon le type d'acte
             const configActe = actesConfig[selectedActe];
-            if (configActe?.taxes?.type === 'dmto') {
+            const typeTaxe = configActe?.taxes?.type;
+            if (typeTaxe === 'dmto') {
+              calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerTaxes(
                 montantActe,
                 selectedDepartement,
@@ -641,12 +644,20 @@ function PretaxeContent() {
                 taxes.primoAccedant === true,
                 Number(taxes.valeurMobilier) || 0
               );
+            } else if (typeTaxe === 'tpf') {
+              calculerCSI(montantActe, setDebours, 0.5); // inscription hypo : CSI 0,05 %
+              calculerTPF(montantActe, setTaxes);
+            } else if (typeTaxe === 'partage') {
+              calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
+              calculerDroitPartage(montantActe, taxes.regimePartage ?? 'standard', setTaxes);
+            } else {
+              calculerCSI(montantActe, setDebours);
             }
           }
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, selectedCategory, appliquerRemise]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, selectedCategory, appliquerRemise]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -679,7 +690,10 @@ function PretaxeContent() {
   const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo;
   const totalDocumentsTTC = round2(totalDocuments * (1 + tauxTVA / 100));
 
-  const totalTaxes = round2(taxes.departementale + taxes.communale + taxes.fraisAssiette);
+  const totalTaxes = round2(
+    taxes.departementale + taxes.communale + taxes.fraisAssiette +
+    (taxes.tpf || 0) + (taxes.droitPartage || 0)
+  );
 
   const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes);
 
@@ -1119,6 +1133,7 @@ function PretaxeContent() {
                     totalTaxes={totalTaxes}
                     selectedDepartement={selectedDepartement}
                     montantActe={montantActe}
+                    regimeTaxe={actesConfig[selectedActe]?.taxes?.type || 'aucune'}
                   />
                 )}
               </div>

@@ -119,6 +119,19 @@ export interface Taxes {
    * émoluments et de la CSI (publication porte sur le prix total).
    */
   valeurMobilier?: number;
+  /**
+   * Taxe de publicité foncière (0,715 %) due sur l'inscription d'une
+   * hypothèque conventionnelle (CGI art. 663, 844). N'est PAS un DMTO.
+   */
+  tpf?: number;
+  /**
+   * Droit de partage (CGI art. 746) : 2,50 % en principe, ramené à
+   * 1,10 % depuis le 1ᵉʳ janvier 2022 pour les partages consécutifs à
+   * un divorce, une séparation de corps ou une rupture de PACS.
+   */
+  droitPartage?: number;
+  /** Régime du partage : standard (2,50 %) ou divorce/séparation/PACS (1,10 %). */
+  regimePartage?: 'standard' | 'divorce';
 }
 
 export interface Usufruit {
