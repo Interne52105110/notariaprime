@@ -118,6 +118,8 @@ export interface Formalites {
   teleactes: FormaliteItem;
   /** Lettres recommandées (notifications) : variable, non systématique. */
   lettresRecommandees: FormaliteItem;
+  /** Établissement de la déclaration de plus-value (A444-172 n°206 : 56,60 €). */
+  declarationPlusValue: FormaliteItem;
 }
 
 export interface Documents {

@@ -557,7 +557,8 @@ function PretaxeContent() {
     transmissionCSN: { actif: false, montant: 15.31 },
     requisition: { actif: false, montant: 18.87 },
     teleactes: { actif: false, montant: 50 },
-    lettresRecommandees: { actif: false, montant: 7.08 }
+    lettresRecommandees: { actif: false, montant: 7.08 },
+    declarationPlusValue: { actif: false, montant: 56.60 }
   });
   
   const [documents, setDocuments] = useState<Documents>({
@@ -733,7 +734,8 @@ function PretaxeContent() {
     (formalites.transmissionCSN.actif ? formalites.transmissionCSN.montant : 0) +
     (formalites.requisition.actif ? formalites.requisition.montant : 0) +
     (formalites.teleactes.actif ? formalites.teleactes.montant : 0) +
-    (formalites.lettresRecommandees.actif ? formalites.lettresRecommandees.montant : 0)
+    (formalites.lettresRecommandees.actif ? formalites.lettresRecommandees.montant : 0) +
+    (formalites.declarationPlusValue.actif ? formalites.declarationPlusValue.montant : 0)
   );
 
   const totalFormalitesTTC = round2(totalFormalites * (1 + tauxTVA / 100));

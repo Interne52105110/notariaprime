@@ -324,7 +324,10 @@ export function appliquerConfigParDefaut(
         actif: config.formalites?.publiciteFonciere?.defaut || false,
         montant: 50
       },
-      lettresRecommandees: { actif: false, montant: 7.08 }
+      lettresRecommandees: { actif: false, montant: 7.08 },
+      // Déclaration de plus-value (A444-172 n°206) : à activer pour les ventes
+      // de biens taxables (résidence secondaire, locatif…).
+      declarationPlusValue: { actif: false, montant: 56.60 }
     }));
   }
   

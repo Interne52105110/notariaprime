@@ -31,7 +31,8 @@ export default function FormalitesTab({
           'transmissionCSN': { label: 'Transmission CSN', item: formalites.transmissionCSN },
           'requisition': { label: 'Réquisition SPF', item: formalites.requisition },
           'teleactes': { label: 'Télétransmission (Télé@ctes)', item: formalites.teleactes },
-          'lettresRecommandees': { label: 'Lettres recommandées', item: formalites.lettresRecommandees }
+          'lettresRecommandees': { label: 'Lettres recommandées', item: formalites.lettresRecommandees },
+          'declarationPlusValue': { label: 'Déclaration de plus-value', item: formalites.declarationPlusValue }
         }).map(([key, { label, item }]) => {
           const obligatoire = estFormaliteObligatoire(key, selectedActe);
           return (
