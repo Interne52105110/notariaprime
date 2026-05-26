@@ -173,14 +173,17 @@ const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.799 }
         ]
       },
-      'licitation': { 
-        label: 'Licitation',
+      'licitation': {
+        label: 'Licitation (gré à gré, cessant l\'indivision)',
         type: 'proportionnel',
+        // A444-87 1°a : licitation de gré à gré faisant cesser l'indivision.
+        // Autres cas : part acquise 3,870/1,596/1,064/0,798 (1°b) ;
+        // adjudication volontaire 7,740/3,193/2,128/1,596 (2°).
         tranches: [
-          { min: 0, max: 6500, taux: 4.837 },
-          { min: 6500, max: 17000, taux: 1.995 },
-          { min: 17000, max: 60000, taux: 1.330 },
-          { min: 60000, max: Infinity, taux: 0.998 }
+          { min: 0, max: 6500, taux: 2.580 },
+          { min: 6500, max: 17000, taux: 1.064 },
+          { min: 17000, max: 60000, taux: 0.709 },
+          { min: 60000, max: Infinity, taux: 0.532 }
         ]
       },
       'partage': { 
@@ -193,14 +196,18 @@ const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.998 }
         ]
       },
-      'bail_construction': { 
-        label: 'Bail à construction',
+      'bail_construction': {
+        label: 'Bail à construction (composante principale)',
         type: 'proportionnel',
+        // A444-104 : émolument composite. Composante 1° (versements des 5
+        // premières années + valeur des constructions remises). S'y ajoutent
+        // la composante 2° (1,258/0,692/0,472/0,346) et la 3° valeur résiduelle
+        // (2,322/1,277/0,871/0,639), non gérées ici.
         tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 0.798 },
-          { min: 17000, max: 60000, taux: 0.532 },
-          { min: 60000, max: Infinity, taux: 0.399 }
+          { min: 0, max: 6500, taux: 3.289 },
+          { min: 6500, max: 17000, taux: 1.809 },
+          { min: 17000, max: 30000, taux: 1.234 },
+          { min: 30000, max: Infinity, taux: 0.905 }
         ]
       },
       'servitude_fixe': { 
@@ -225,24 +232,26 @@ const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes relatifs à la famille',
     icon: Users,
     actes: {
-      'contrat_mariage': { 
-        label: 'Contrat de mariage',
+      'contrat_mariage': {
+        label: 'Contrat de mariage (valeur > 30 800 €)',
         type: 'proportionnel',
+        // A444-82 2° : au-delà de 30 800 €. En deçà : émolument fixe 188,68 €.
         tranches: [
-          { min: 0, max: 6500, taux: 2.580 },
-          { min: 6500, max: 17000, taux: 1.064 },
-          { min: 17000, max: 60000, taux: 0.709 },
-          { min: 60000, max: Infinity, taux: 0.532 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
-      'changement_regime': { 
-        label: 'Changement de régime matrimonial',
+      'changement_regime': {
+        label: 'Changement de régime matrimonial (valeur > 30 800 €)',
         type: 'proportionnel',
+        // A444-82 : même barème que le contrat de mariage.
         tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 0.798 },
-          { min: 17000, max: 60000, taux: 0.532 },
-          { min: 60000, max: Infinity, taux: 0.399 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
       'pacs': { 
@@ -302,25 +311,22 @@ const categoriesActes: Record<string, CategorieActes> = {
         type: 'fixe',
         montant: 56.60
       },
-      'attestation_propriete': { 
+      'attestation_propriete': {
         label: 'Attestation de propriété immobilière',
         type: 'proportionnel',
+        // A444-59 : attestation notariée (paliers à 30 000 €).
         tranches: [
-          { min: 0, max: 6500, taux: 0.968 },
-          { min: 6500, max: 17000, taux: 0.399 },
-          { min: 17000, max: 60000, taux: 0.266 },
-          { min: 60000, max: Infinity, taux: 0.200 }
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 1.064 },
+          { min: 17000, max: 30000, taux: 0.726 },
+          { min: 30000, max: Infinity, taux: 0.532 }
         ]
       },
-      'inventaire': { 
+      'inventaire': {
         label: 'Inventaire successoral',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
+        type: 'fixe',
+        // A444-155 : acte d'inventaire = émolument fixe.
+        montant: 75.46
       },
       'renonciation': { 
         label: 'Renonciation à succession',
@@ -330,11 +336,12 @@ const categoriesActes: Record<string, CategorieActes> = {
       'declaration_succession': {
         label: 'Déclaration de succession',
         type: 'proportionnel',
+        // A444-63 : sur l'actif brut total.
         tranches: [
           { min: 0, max: 6500, taux: 1.548 },
-          { min: 6500, max: 17000, taux: 0.638 },
-          { min: 17000, max: 30000, taux: 0.425 },
-          { min: 30000, max: Infinity, taux: 0.319 }
+          { min: 6500, max: 17000, taux: 0.851 },
+          { min: 17000, max: 30000, taux: 0.580 },
+          { min: 30000, max: Infinity, taux: 0.426 }
         ]
       }
     }
@@ -344,24 +351,26 @@ const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes relatifs aux prêts et sûretés',
     icon: Landmark,
     actes: {
-      'pret_hypothecaire': { 
+      'pret_hypothecaire': {
         label: 'Prêt avec hypothèque conventionnelle',
         type: 'proportionnel',
+        // A444-143 : prêt, obligation, ouverture de crédit.
         tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 0.798 },
-          { min: 17000, max: 60000, taux: 0.532 },
-          { min: 60000, max: Infinity, taux: 0.399 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
-      'pret_viager': { 
+      'pret_viager': {
         label: 'Prêt viager hypothécaire',
         type: 'proportionnel',
+        // A444-143 (barème des prêts).
         tranches: [
-          { min: 0, max: 6500, taux: 2.322 },
-          { min: 6500, max: 17000, taux: 0.958 },
-          { min: 17000, max: 60000, taux: 0.638 },
-          { min: 60000, max: Infinity, taux: 0.479 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
       'mainlevee_saisie': { 

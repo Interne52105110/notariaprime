@@ -218,10 +218,12 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 2,
       copiesHypothecaires: 0
     },
+    // Le bail à construction relève de la taxe de publicité foncière (0,715 %),
+    // PAS des DMTO. Calcul automatique désactivé en attendant un type 'tpf'.
     taxes: {
-      applicable: true,
-      type: 'dmto',
-      calculAuto: true
+      applicable: false,
+      type: 'aucune',
+      calculAuto: false
     }
   },
 
@@ -535,10 +537,12 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 1,
       copiesHypothecaires: 1
     },
+    // Une hypothèque relève de la taxe de publicité foncière (0,715 %) + CSI,
+    // PAS des DMTO. Calcul automatique DMTO désactivé.
     taxes: {
-      applicable: true,
-      type: 'dmto',
-      calculAuto: true
+      applicable: false,
+      type: 'aucune',
+      calculAuto: false
     }
   },
 
@@ -557,10 +561,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 1,
       copiesHypothecaires: 1
     },
+    // Idem : taxe de publicité foncière, pas DMTO.
     taxes: {
-      applicable: true,
-      type: 'dmto',
-      calculAuto: true
+      applicable: false,
+      type: 'aucune',
+      calculAuto: false
     }
   },
 
@@ -633,10 +638,11 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 1,
       copiesHypothecaires: 1
     },
+    // Sûreté → taxe de publicité foncière, pas DMTO.
     taxes: {
-      applicable: true,
-      type: 'dmto',
-      calculAuto: true
+      applicable: false,
+      type: 'aucune',
+      calculAuto: false
     }
   },
 
