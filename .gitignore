@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Artefacts de travail locaux (ne pas publier)
+ex *.jpg
+ex*.jpg
+cours-comptable-taxateur-notarial.md
