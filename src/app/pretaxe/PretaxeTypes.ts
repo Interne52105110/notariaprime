@@ -23,6 +23,16 @@ export interface ActeConfig {
    * applique la quotité choisie.
    */
   relatif?: boolean;
+  /**
+   * Droit fixe d'enregistrement applicable à l'acte (en €) : 25 € ou 125 €
+   * selon la nature (CGI art. 846 bis, 680, 847, 848…).
+   */
+  droitFixeEnreg?: number;
+  /**
+   * Acte de société soumis au droit fixe de 375 € (capital < 225 000 €) ou
+   * 500 € (capital ≥ 225 000 €) — CGI art. 810, 811, 812…
+   */
+  droitFixeSociete?: boolean;
 }
 
 export interface CategorieActes {
@@ -140,6 +150,12 @@ export interface Taxes {
   droitPartage?: number;
   /** Régime du partage : standard (2,50 %) ou divorce/séparation/PACS (1,10 %). */
   regimePartage?: 'standard' | 'divorce';
+  /**
+   * Droit fixe d'enregistrement (CGI art. 674, 680, 846 bis, 847, 848, 811…) :
+   * 25 € (procuration, mainlevée, notoriété), 125 € (acte innomé, testament,
+   * inventaire, attestation après décès…), 375/500 € (actes de société).
+   */
+  droitFixe?: number;
 }
 
 export interface Usufruit {

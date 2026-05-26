@@ -571,6 +571,11 @@ export function exporterPDF(
       doc.text(`${taxes.droitPartage.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight;
     }
+    if (taxes.droitFixe && taxes.droitFixe > 0) {
+      doc.text(`Droit fixe d'enregistrement :`, 20, y);
+      doc.text(`${taxes.droitFixe.toFixed(2)} €`, pageWidth - 60, y);
+      y += lineHeight;
+    }
     doc.setFont('helvetica', 'bold');
     doc.text(`Total taxes :`, 20, y);
     doc.text(`${totalTaxes.toFixed(2)} €`, pageWidth - 60, y);

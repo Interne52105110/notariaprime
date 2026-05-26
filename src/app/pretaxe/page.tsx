@@ -237,6 +237,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'contrat_mariage': {
         label: 'Contrat de mariage (valeur > 30 800 €)',
         type: 'proportionnel',
+        droitFixeEnreg: 125, // CGI art. 847 1° (minimum de perception)
         // A444-82 2° : au-delà de 30 800 €. En deçà : émolument fixe 188,68 €.
         tranches: [
           { min: 0, max: 6500, taux: 1.290 },
@@ -248,6 +249,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'changement_regime': {
         label: 'Changement de régime matrimonial (valeur > 30 800 €)',
         type: 'proportionnel',
+        droitFixeEnreg: 125, // CGI art. 847 1°
         // A444-82 : même barème que le contrat de mariage.
         tranches: [
           { min: 0, max: 6500, taux: 1.290 },
@@ -303,19 +305,22 @@ const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.998 }
         ]
       },
-      'testament': { 
+      'testament': {
         label: 'Testament authentique',
         type: 'fixe',
-        montant: 113.19
+        montant: 113.19,
+        droitFixeEnreg: 125 // CGI art. 848 5° (libéralités à cause de mort)
       },
-      'notoriete': { 
+      'notoriete': {
         label: 'Acte de notoriété',
         type: 'fixe',
-        montant: 56.60
+        montant: 56.60,
+        droitFixeEnreg: 25 // CGI art. 846 bis (notoriété autre qu'usucapion)
       },
       'attestation_propriete': {
         label: 'Attestation de propriété immobilière',
         type: 'proportionnel',
+        droitFixeEnreg: 125, // CGI art. 680 (attestation après décès)
         // A444-59 : attestation notariée (paliers à 30 000 €).
         tranches: [
           { min: 0, max: 6500, taux: 1.935 },
@@ -328,12 +333,14 @@ const categoriesActes: Record<string, CategorieActes> = {
         label: 'Inventaire successoral',
         type: 'fixe',
         // A444-155 : acte d'inventaire = émolument fixe.
-        montant: 75.46
+        montant: 75.46,
+        droitFixeEnreg: 125 // CGI art. 848 2° (par vacation)
       },
-      'renonciation': { 
-        label: 'Renonciation à succession',
+      'renonciation': {
+        label: 'Renonciation à succession (pure et simple)',
         type: 'fixe',
-        montant: 57.69
+        montant: 57.69,
+        droitFixeEnreg: 125 // CGI art. 847 2° (renonciation pure et simple)
       },
       'declaration_succession': {
         label: 'Déclaration de succession',
@@ -375,20 +382,23 @@ const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
-      'mainlevee_saisie': { 
+      'mainlevee_saisie': {
         label: 'Mainlevée de saisie',
         type: 'fixe',
-        montant: 26.41
+        montant: 26.41,
+        droitFixeEnreg: 25 // CGI art. 846 bis (mainlevée d'hypothèque)
       },
-      'mainlevee_hypo_inf': { 
+      'mainlevee_hypo_inf': {
         label: 'Mainlevée hypothèque < 77 090€',
         type: 'fixe',
-        montant: 78.00
+        montant: 78.00,
+        droitFixeEnreg: 25 // CGI art. 846 bis
       },
-      'mainlevee_hypo_sup': { 
+      'mainlevee_hypo_sup': {
         label: 'Mainlevée hypothèque ≥ 77 090€',
         type: 'fixe',
-        montant: 150.00
+        montant: 150.00,
+        droitFixeEnreg: 25 // CGI art. 846 bis
       },
       'caution_hypothecaire': {
         label: 'Caution / affectation hypothécaire (relatif à l\'acte principal)',
@@ -425,6 +435,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'constitution_societe': {
         label: 'Constitution de société — apport en publicité foncière',
         type: 'proportionnel',
+        droitFixeSociete: true, // CGI art. 810 : 375 € (<225k) / 500 € (≥225k)
         // A444-158 : en matière de sociétés, actes relatifs à des biens soumis
         // à publicité foncière (apport immobilier). Sans bien immobilier, la
         // constitution relève des honoraires libres.
@@ -438,7 +449,8 @@ const categoriesActes: Record<string, CategorieActes> = {
       'augmentation_capital': {
         label: 'Augmentation de capital',
         type: 'non_tarife',
-        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Droit d\'apport : gratuit pour les apports purs et simples (CGI art. 810).',
+        droitFixeSociete: true, // CGI art. 812 : 375 € (<225k) / 500 € (≥225k)
+        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Droit fixe d\'enregistrement 375/500 € selon le capital (CGI art. 812) ; apports purs et simples enregistrés gratuitement (art. 810).',
         honorairesEstimes: '500-1 500€ HT'
       },
       'cession_parts': {
@@ -450,7 +462,8 @@ const categoriesActes: Record<string, CategorieActes> = {
       'dissolution': {
         label: 'Dissolution de société',
         type: 'non_tarife',
-        description: 'Honoraires libres. Enregistrement gratuit si la dissolution ne porte aucune transmission de biens (CGI art. 811) ; en cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
+        droitFixeSociete: true, // CGI art. 811 : 375 € (<225k) / 500 € (≥225k) si sans transmission
+        description: 'Honoraires libres. Dissolution sans transmission de biens : droit fixe 375/500 € selon le capital (CGI art. 811). En cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
         honorairesEstimes: '500-1 500€ HT'
       },
       'transformation': {
@@ -466,10 +479,11 @@ const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes divers et procurations',
     icon: File,
     actes: {
-      'procuration': { 
+      'procuration': {
         label: 'Procuration',
         type: 'fixe',
-        montant: 26.41
+        montant: 26.41,
+        droitFixeEnreg: 25 // CGI art. 846 bis
       },
       'quittance': {
         label: 'Quittance (pure et simple)',
@@ -681,6 +695,16 @@ function PretaxeContent() {
           }
         }
       }
+
+      // Droit fixe d'enregistrement (CGI art. 674/680/846 bis/847/848/811…)
+      let droitFixe = 0;
+      if (acte?.droitFixeSociete) {
+        const capital = parseFloat((montantActe || '').replace(/\s/g, ''));
+        droitFixe = (!isNaN(capital) && capital >= 225000) ? 500 : 375;
+      } else if (acte?.droitFixeEnreg) {
+        droitFixe = acte.droitFixeEnreg;
+      }
+      setTaxes(prev => ({ ...prev, droitFixe }));
     }
   }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, selectedCategory, appliquerRemise, quotiteSurete]);
 
@@ -717,7 +741,7 @@ function PretaxeContent() {
 
   const totalTaxes = round2(
     taxes.departementale + taxes.communale + taxes.fraisAssiette +
-    (taxes.tpf || 0) + (taxes.droitPartage || 0)
+    (taxes.tpf || 0) + (taxes.droitPartage || 0) + (taxes.droitFixe || 0)
   );
 
   const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes);

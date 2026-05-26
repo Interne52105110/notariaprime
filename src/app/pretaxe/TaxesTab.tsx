@@ -223,8 +223,22 @@ export default function TaxesTab({
         </>
       )}
 
+      {/* Droit fixe d'enregistrement */}
+      {(taxes.droitFixe || 0) > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Droit fixe d&apos;enregistrement</span>
+            <span className="font-medium">{(taxes.droitFixe || 0).toFixed(2)} €</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Droit fixe perçu par l&apos;État sur cet acte (CGI art. 674, 680, 846 bis,
+            847, 848, 810-812 selon la nature de l&apos;acte).
+          </p>
+        </div>
+      )}
+
       {/* Acte non soumis à une taxe automatique */}
-      {regimeTaxe !== 'tpf' && regimeTaxe !== 'partage' && regimeTaxe !== 'dmto' && regimeTaxe !== 'tva' && (
+      {regimeTaxe !== 'tpf' && regimeTaxe !== 'partage' && regimeTaxe !== 'dmto' && regimeTaxe !== 'tva' && (taxes.droitFixe || 0) === 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <p className="text-gray-600 text-sm">
             {regimeTaxe === 'donation'
