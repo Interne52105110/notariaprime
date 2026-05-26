@@ -422,9 +422,12 @@ const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes relatifs aux sociétés',
     icon: Briefcase,
     actes: {
-      'constitution_societe': { 
-        label: 'Constitution de société',
+      'constitution_societe': {
+        label: 'Constitution de société — apport en publicité foncière',
         type: 'proportionnel',
+        // A444-158 : en matière de sociétés, actes relatifs à des biens soumis
+        // à publicité foncière (apport immobilier). Sans bien immobilier, la
+        // constitution relève des honoraires libres.
         tranches: [
           { min: 0, max: 6500, taux: 1.935 },
           { min: 6500, max: 17000, taux: 0.798 },
@@ -432,35 +435,29 @@ const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.399 }
         ]
       },
-      'augmentation_capital': { 
+      'augmentation_capital': {
         label: 'Augmentation de capital',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 0.968 },
-          { min: 6500, max: 17000, taux: 0.399 },
-          { min: 17000, max: 60000, taux: 0.266 },
-          { min: 60000, max: Infinity, taux: 0.200 }
-        ]
+        type: 'non_tarife',
+        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Droit d\'apport : gratuit pour les apports purs et simples (CGI art. 810).',
+        honorairesEstimes: '500-1 500€ HT'
       },
-      'cession_parts': { 
+      'cession_parts': {
         label: 'Cession de parts sociales',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
+        type: 'non_tarife',
+        description: 'Honoraires libres (annexe 4-9, 4°). Droit d\'enregistrement (CGI art. 726) : 3 % sur les parts de SARL/SNC après abattement de 23 000 € × (parts cédées / total des parts) ; 0,1 % pour les actions de SA/SAS ; 5 % pour les sociétés à prépondérance immobilière.',
+        honorairesEstimes: '300-800€ HT + droit d\'enregistrement'
       },
-      'dissolution': { 
+      'dissolution': {
         label: 'Dissolution de société',
-        type: 'fixe',
-        montant: 230.77
+        type: 'non_tarife',
+        description: 'Honoraires libres. Enregistrement gratuit si la dissolution ne porte aucune transmission de biens (CGI art. 811) ; en cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
+        honorairesEstimes: '500-1 500€ HT'
       },
-      'transformation': { 
+      'transformation': {
         label: 'Transformation de société',
-        type: 'fixe',
-        montant: 192.31
+        type: 'non_tarife',
+        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4°). Enregistrement au droit fixe le cas échéant.',
+        honorairesEstimes: '500-1 200€ HT'
       }
     }
   },
