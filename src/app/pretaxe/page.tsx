@@ -18,7 +18,9 @@ import {
   Donataire,
   HistoriqueCalcul,
   Usufruit,
-  Taxes
+  Taxes,
+  Documents,
+  Formalites
 } from './PretaxeTypes';
 import {
   getTauxTVA,
@@ -537,7 +539,7 @@ function PretaxeContent() {
     urbanisme: 0
   });
   
-  const [formalites, setFormalites] = useState({
+  const [formalites, setFormalites] = useState<Formalites>({
     publiciteFonciere: { actif: false, montant: 339.58 },
     cadastre: { actif: false, montant: 11.32 },
     casierJudiciaire: { actif: false, montant: 37.73 },
@@ -554,15 +556,16 @@ function PretaxeContent() {
     },
     transmissionCSN: { actif: false, montant: 15.31 },
     requisition: { actif: false, montant: 18.87 },
-    teleactes: 50,
-    lettresRecommandees: 7.08
+    teleactes: { actif: false, montant: 50 },
+    lettresRecommandees: { actif: false, montant: 7.08 }
   });
   
-  const [documents, setDocuments] = useState({
+  const [documents, setDocuments] = useState<Documents>({
     pagesActe: 10,
     copiesExecutoires: 0,
     copiesAuthentiques: 1,
-    copiesHypothecaires: 0
+    copiesHypothecaires: 0,
+    archivageNumerise: true
   });
   
   const [taxes, setTaxes] = useState<Taxes>({
@@ -673,6 +676,9 @@ function PretaxeContent() {
             // Régime de taxe selon le type d'acte
             const configActe = actesConfig[selectedActe];
             const typeTaxe = configActe?.taxes?.type;
+            // La CSI n'est due que pour les actes publiés au service de la
+            // publicité foncière (CGI art. 879). Sinon elle reste à 0.
+            const publie = configActe?.formalites?.publiciteFonciere?.defaut === true;
             if (typeTaxe === 'dmto') {
               calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerTaxes(
@@ -689,7 +695,7 @@ function PretaxeContent() {
             } else if (typeTaxe === 'partage') {
               calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerDroitPartage(montantActe, taxes.regimePartage ?? 'standard', setTaxes);
-            } else {
+            } else if (publie) {
               calculerCSI(montantActe, setDebours);
             }
           }
@@ -726,8 +732,8 @@ function PretaxeContent() {
     Object.values(formalites.diagnostics).reduce((sum, d) => sum + (d.actif ? d.montant : 0), 0) +
     (formalites.transmissionCSN.actif ? formalites.transmissionCSN.montant : 0) +
     (formalites.requisition.actif ? formalites.requisition.montant : 0) +
-    formalites.teleactes +
-    formalites.lettresRecommandees
+    (formalites.teleactes.actif ? formalites.teleactes.montant : 0) +
+    (formalites.lettresRecommandees.actif ? formalites.lettresRecommandees.montant : 0)
   );
 
   const totalFormalitesTTC = round2(totalFormalites * (1 + tauxTVA / 100));
@@ -736,7 +742,8 @@ function PretaxeContent() {
   const copiesExec = documents.copiesExecutoires * 4;
   const copiesAuth = documents.copiesAuthentiques * 40;
   const copiesHypo = documents.copiesHypothecaires * 4;
-  const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo;
+  const archivage = documents.archivageNumerise ? round2(documents.pagesActe * 0.19) : 0;
+  const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo + archivage;
   const totalDocumentsTTC = round2(totalDocuments * (1 + tauxTVA / 100));
 
   const totalTaxes = round2(

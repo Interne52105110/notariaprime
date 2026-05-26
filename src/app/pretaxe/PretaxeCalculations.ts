@@ -245,17 +245,16 @@ export function appliquerConfigParDefaut(
 ) {
   const config: ConfigActe = actesConfig[acteKey] || configParDefaut;
   
-  // Appliquer les débours
-  if (config.debours) {
-    setDebours(prev => ({
-      ...prev,
-      csi: config.debours?.csi?.auto ? prev.csi : 15,
-      etatsHypothecaires: config.debours?.etatsHypothecaires?.defaut ? 
-        config.debours.etatsHypothecaires.montant : 0,
-      cadastre: config.debours?.cadastre?.defaut ? 
-        config.debours.cadastre.montant : 0
-    }));
-  }
+  // Appliquer les débours. La CSI est remise à 0 à chaque changement d'acte :
+  // elle n'est recalculée (page.tsx) que pour les actes publiés au SPF.
+  setDebours(prev => ({
+    ...prev,
+    csi: 0,
+    etatsHypothecaires: config.debours?.etatsHypothecaires?.defaut
+      ? (config.debours.etatsHypothecaires.montant ?? 50) : 0,
+    cadastre: config.debours?.cadastre?.defaut
+      ? (config.debours.cadastre.montant ?? 0) : 0,
+  }));
   
   // Appliquer les formalités
   if (config.formalites) {
@@ -318,7 +317,14 @@ export function appliquerConfigParDefaut(
       requisition: {
         actif: config.formalites?.requisition?.defaut || false,
         montant: config.formalites?.requisition?.montant || 18.87
-      }
+      },
+      // Télé@ctes : uniquement pour les actes publiés au SPF (alignés sur la
+      // publicité foncière). Lettres recommandées : non systématiques (off).
+      teleactes: {
+        actif: config.formalites?.publiciteFonciere?.defaut || false,
+        montant: 50
+      },
+      lettresRecommandees: { actif: false, montant: 7.08 }
     }));
   }
   
@@ -328,7 +334,8 @@ export function appliquerConfigParDefaut(
       pagesActe: config.documents.pagesActe || 10,
       copiesExecutoires: config.documents.copiesExecutoires || 0,
       copiesAuthentiques: config.documents.copiesAuthentiques || 1,
-      copiesHypothecaires: config.documents.copiesHypothecaires || 0
+      copiesHypothecaires: config.documents.copiesHypothecaires || 0,
+      archivageNumerise: true
     });
   }
   

@@ -145,19 +145,25 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
       result.departement = dept;
     }
 
-    // 3) Type d'acte : recherche de mots-clés
+    // 3) Type d'acte : on retient la correspondance la PLUS LONGUE parmi tous
+    // les mots-clés (un mot-clé plus spécifique l'emporte : « donation-partage »
+    // bat « donation », « vente de terrain » bat « vente »…).
     const lowerText = text.toLowerCase();
+    let best = { len: 0, catKey: '', acteKey: '', label: '' };
     for (const [catKey, cat] of Object.entries(defaultCategoriesActes)) {
       for (const [acteKey, keywords] of Object.entries(cat.actes)) {
         for (const kw of keywords) {
-          if (lowerText.includes(kw.toLowerCase())) {
-            result.categoryKey = catKey;
-            result.acteKey = acteKey;
-            result.acteLabel = keywords[0];
-            return result;
+          const k = kw.toLowerCase();
+          if (k.length > best.len && lowerText.includes(k)) {
+            best = { len: k.length, catKey, acteKey, label: keywords[0] };
           }
         }
       }
+    }
+    if (best.acteKey) {
+      result.categoryKey = best.catKey;
+      result.acteKey = best.acteKey;
+      result.acteLabel = best.label;
     }
 
     return result;

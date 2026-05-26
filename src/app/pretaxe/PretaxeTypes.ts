@@ -114,8 +114,10 @@ export interface Formalites {
   };
   transmissionCSN: FormaliteItem;
   requisition: FormaliteItem;
-  teleactes: number;
-  lettresRecommandees: number;
+  /** Télétransmission Télé@ctes au SPF : uniquement pour les actes publiés. */
+  teleactes: FormaliteItem;
+  /** Lettres recommandées (notifications) : variable, non systématique. */
+  lettresRecommandees: FormaliteItem;
 }
 
 export interface Documents {
@@ -123,6 +125,8 @@ export interface Documents {
   copiesExecutoires: number;
   copiesAuthentiques: number;
   copiesHypothecaires: number;
+  /** Archivage numérisé des actes (A444-173 n°214 : 0,19 €/page). */
+  archivageNumerise?: boolean;
 }
 
 export interface Taxes {

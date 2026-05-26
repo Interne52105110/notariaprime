@@ -29,7 +29,9 @@ export default function FormalitesTab({
           'notification': { label: 'Notification préemption', item: formalites.notification },
           'mesurage': { label: 'Certificat mesurage', item: formalites.mesurage },
           'transmissionCSN': { label: 'Transmission CSN', item: formalites.transmissionCSN },
-          'requisition': { label: 'Réquisition SPF', item: formalites.requisition }
+          'requisition': { label: 'Réquisition SPF', item: formalites.requisition },
+          'teleactes': { label: 'Télétransmission (Télé@ctes)', item: formalites.teleactes },
+          'lettresRecommandees': { label: 'Lettres recommandées', item: formalites.lettresRecommandees }
         }).map(([key, { label, item }]) => {
           const obligatoire = estFormaliteObligatoire(key, selectedActe);
           return (
