@@ -15,6 +15,9 @@ interface EmolumentsTabProps {
   montantActe: string;
   appliquerRemise: boolean;
   setAppliquerRemise: (value: boolean) => void;
+  isRelatif?: boolean;
+  quotiteSurete?: number;
+  setQuotiteSurete?: (value: number) => void;
 }
 
 export default function EmolumentsTab({
@@ -26,10 +29,41 @@ export default function EmolumentsTab({
   selectedDepartement,
   montantActe,
   appliquerRemise,
-  setAppliquerRemise
+  setAppliquerRemise,
+  isRelatif = false,
+  quotiteSurete = 0.5,
+  setQuotiteSurete
 }: EmolumentsTabProps) {
+  const quotites = [
+    { val: 0.25, label: '¼ — sûreté consentie par un tiers dans l\'acte principal' },
+    { val: 0.5, label: '½ — autres cas (sûreté dans un acte distinct lié)' },
+    { val: 1, label: 'Totalité — aucun acte principal' },
+  ];
   return (
     <div>
+      {isRelatif && setQuotiteSurete && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <p className="text-sm font-medium text-amber-900 mb-3">
+            Émolument relatif à l&apos;acte principal (A444-127/136/148) — choisissez la quotité :
+          </p>
+          <div className="space-y-2">
+            {quotites.map((q) => (
+              <label key={q.val} className="flex items-center cursor-pointer text-sm">
+                <input
+                  type="radio"
+                  checked={quotiteSurete === q.val}
+                  onChange={() => setQuotiteSurete(q.val)}
+                  className="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-amber-900">{q.label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-amber-700 mt-2">
+            Le barème ci-dessous est celui du prêt garanti (A444-143), auquel la quotité est appliquée.
+          </p>
+        </div>
+      )}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
         <div className="flex items-start">
           <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />

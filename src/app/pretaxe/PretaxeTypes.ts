@@ -15,6 +15,14 @@ export interface ActeConfig {
   montant?: number;
   description?: string;
   honorairesEstimes?: string;
+  /**
+   * Acte accessoire dont l'émolument est une quotité (¼, ½ ou totalité) de
+   * l'émolument de l'acte principal (CGI/arrêté art. A444-127, 136, 148 :
+   * cautionnement, affectation hypothécaire, nantissement). Les `tranches`
+   * portent alors le barème de l'acte principal (prêt A444-143), auquel on
+   * applique la quotité choisie.
+   */
+  relatif?: boolean;
 }
 
 export interface CategorieActes {

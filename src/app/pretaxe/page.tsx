@@ -390,24 +390,29 @@ const categoriesActes: Record<string, CategorieActes> = {
         type: 'fixe',
         montant: 150.00
       },
-      'caution_hypothecaire': { 
-        label: 'Caution hypothécaire',
+      'caution_hypothecaire': {
+        label: 'Caution / affectation hypothécaire (relatif à l\'acte principal)',
         type: 'proportionnel',
+        relatif: true,
+        // A444-136 : ¼ (tiers dans l'acte principal), ½ (autres cas) ou
+        // totalité (pas d'acte principal) de l'émolument du prêt (A444-143).
         tranches: [
-          { min: 0, max: 6500, taux: 0.968 },
-          { min: 6500, max: 17000, taux: 0.399 },
-          { min: 17000, max: 60000, taux: 0.266 },
-          { min: 60000, max: Infinity, taux: 0.200 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
-      'ppd': { 
-        label: 'Privilège de prêteur de deniers',
+      'ppd': {
+        label: 'Privilège de prêteur de deniers (relatif à l\'acte principal)',
         type: 'proportionnel',
+        relatif: true,
+        // A444-148 (sûreté) : même logique de quotité que la caution.
         tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 0.798 },
-          { min: 17000, max: 60000, taux: 0.532 },
-          { min: 60000, max: Infinity, taux: 0.399 }
+          { min: 0, max: 6500, taux: 1.290 },
+          { min: 6500, max: 17000, taux: 0.532 },
+          { min: 17000, max: 60000, taux: 0.355 },
+          { min: 60000, max: Infinity, taux: 0.266 }
         ]
       }
     }
@@ -469,10 +474,16 @@ const categoriesActes: Record<string, CategorieActes> = {
         type: 'fixe',
         montant: 26.41
       },
-      'quittance': { 
-        label: 'Quittance',
-        type: 'fixe',
-        montant: 26.41
+      'quittance': {
+        label: 'Quittance (pure et simple)',
+        type: 'proportionnel',
+        // A444-161 1° : quittance pure et simple (paliers à 30 000 €).
+        tranches: [
+          { min: 0, max: 6500, taux: 1.935 },
+          { min: 6500, max: 17000, taux: 1.064 },
+          { min: 17000, max: 30000, taux: 0.726 },
+          { min: 30000, max: Infinity, taux: 0.532 }
+        ]
       },
       'consentement_adoption': { 
         label: 'Consentement à adoption',
@@ -503,6 +514,10 @@ function PretaxeContent() {
   });
   
   const [appliquerRemise, setAppliquerRemise] = useState(false);
+
+  // Quotité pour les sûretés accessoires (caution, PPD) : ¼ (tiers dans
+  // l'acte principal), ½ (autres cas) ou totalité (pas d'acte principal).
+  const [quotiteSurete, setQuotiteSurete] = useState(0.5);
   
   const [debours, setDebours] = useState({
     csi: 15,
@@ -628,7 +643,20 @@ function PretaxeContent() {
         } else if (acte.type === 'proportionnel' && montantActe && acte.tranches) {
           const montant = parseFloat(montantActe.replace(/\s/g, ''));
           if (!isNaN(montant)) {
-            const detail = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
+            const detailBase = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
+            // Sûretés accessoires : l'émolument est une quotité de celui de
+            // l'acte principal (A444-127/136/148).
+            const r2 = (n: number) => Math.round(n * 100) / 100;
+            const detail = acte.relatif
+              ? {
+                  bruts: r2(detailBase.bruts * quotiteSurete),
+                  majoration: r2(detailBase.majoration * quotiteSurete),
+                  avantRemise: r2(detailBase.avantRemise * quotiteSurete),
+                  remise10: 0,
+                  remise20: r2(detailBase.remise20 * quotiteSurete),
+                  nets: r2(detailBase.nets * quotiteSurete),
+                }
+              : detailBase;
             setEmolumentsDetail(detail);
             setEmoluments(detail.nets);
             // Régime de taxe selon le type d'acte
@@ -657,7 +685,7 @@ function PretaxeContent() {
         }
       }
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, selectedCategory, appliquerRemise]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, selectedCategory, appliquerRemise, quotiteSurete]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -1097,6 +1125,9 @@ function PretaxeContent() {
                     montantActe={montantActe}
                     appliquerRemise={appliquerRemise}
                     setAppliquerRemise={setAppliquerRemise}
+                    isRelatif={acteActuel?.relatif || false}
+                    quotiteSurete={quotiteSurete}
+                    setQuotiteSurete={setQuotiteSurete}
                   />
                 )}
 
