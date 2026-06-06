@@ -162,6 +162,12 @@ export interface Taxes {
    * inventaire, attestation après décès…), 375/500 € (actes de société).
    */
   droitFixe?: number;
+  /**
+   * Quote-part d'accessoires (intérêts, frais, indemnités) ajoutée au capital
+   * pour constituer l'assiette de la TPF (0,715 %) et de la CSI d'une sûreté.
+   * En pratique : 20 % (usuel) ou 15 %. Ex. prêt de 70 000 € → assiette 84 000 €.
+   */
+  accessoiresSurete?: number;
 }
 
 export interface Usufruit {

@@ -46,13 +46,23 @@ export function calculerEmoluments(
   appliquerRemise: boolean
 ): EmolumentsDetail {
   let emolumentsBruts = 0;
-  
+
   tranches.forEach(tranche => {
     if (montant > tranche.min) {
       const montantDansTranche = Math.min(montant - tranche.min, tranche.max - tranche.min);
       emolumentsBruts += montantDansTranche * (tranche.taux / 100);
     }
   });
+
+  // Émolument minimum (art. A444-58, al. 2) : pour une assiette inférieure au
+  // seuil de 500 €, la prestation donne lieu à un émolument fixe égal au produit
+  // de ce seuil par le taux de la première tranche du barème. (Les actes à
+  // minimum particulier — contrat de mariage, convention d'indivision,
+  // servitude, certificat de propriété — ne sont pas distingués ici, sans
+  // incidence pour une assiette réaliste.)
+  if (montant > 0 && montant < 500 && tranches.length > 0) {
+    emolumentsBruts = 500 * (tranches[0].taux / 100);
+  }
 
   const tauxMajoration = getMajorationDOMTOM(selectedDepartement);
   const majoration = emolumentsBruts * (tauxMajoration / 100);
@@ -120,11 +130,12 @@ export function calculerTaxes(
   const tauxDepartemental = primoAccedant ? Math.min(tauxDepartementalBase, 4.50) : tauxDepartementalBase;
   const tauxCommunal = 1.20;
   
-  const round2 = (n: number) => Math.round(n * 100) / 100;
-  const taxeDepartementale = round2(assietteDMTO * (tauxDepartemental / 100));
-  const taxeCommunale = round2(assietteDMTO * (tauxCommunal / 100));
+  // Les droits payés au Trésor sont arrondis à l'euro le plus proche (CGI art. 1724).
+  const roundEuro = (n: number) => Math.round(n);
+  const taxeDepartementale = roundEuro(assietteDMTO * (tauxDepartemental / 100));
+  const taxeCommunale = roundEuro(assietteDMTO * (tauxCommunal / 100));
   // Art. 1647-V CGI : prélèvement de 2,37% sur la seule taxe départementale
-  const fraisAssiette = round2(taxeDepartementale * 0.0237);
+  const fraisAssiette = roundEuro(taxeDepartementale * 0.0237);
 
   setTaxes(prev => ({
     ...prev,
@@ -147,14 +158,18 @@ export function calculerTaxes(
 export function calculerCSI(
   montantActe: string,
   setDebours: React.Dispatch<React.SetStateAction<Debours>>,
-  tauxPourMille: number = 1
+  tauxPourMille: number = 1,
+  baseOverride?: number
 ) {
   if (!montantActe) return;
 
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
 
-  const csi = Math.round(Math.max(montant * (tauxPourMille / 1000), 15) * 100) / 100;
+  // Pour une sûreté, l'assiette est le capital majoré des accessoires (cf.
+  // baseOverride). CSI arrondie à l'euro (CGI art. 1724), minimum 15 € (art. 881 M).
+  const base = baseOverride ?? montant;
+  const csi = Math.round(Math.max(base * (tauxPourMille / 1000), 15));
 
   setDebours(prev => ({
     ...prev,
@@ -168,14 +183,17 @@ export function calculerCSI(
  */
 export function calculerTPF(
   montantActe: string,
-  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
+  setTaxes: React.Dispatch<React.SetStateAction<Taxes>>,
+  baseOverride?: number
 ) {
   if (!montantActe) return;
   const montant = parseFloat(montantActe.replace(/\s/g, ''));
   if (isNaN(montant)) return;
 
-  const round2 = (n: number) => Math.round(n * 100) / 100;
-  const tpf = round2(montant * 0.00715);
+  // Assiette = capital garanti majoré des accessoires (baseOverride). TPF
+  // arrondie à l'euro le plus proche (CGI art. 1724).
+  const base = baseOverride ?? montant;
+  const tpf = Math.round(base * 0.00715);
 
   setTaxes(prev => ({
     ...prev,
@@ -202,8 +220,8 @@ export function calculerDroitPartage(
   if (isNaN(montant)) return;
 
   const taux = regime === 'divorce' ? 1.10 : 2.50;
-  const round2 = (n: number) => Math.round(n * 100) / 100;
-  const droitPartage = round2(montant * (taux / 100));
+  // Droit de partage arrondi à l'euro le plus proche (CGI art. 1724).
+  const droitPartage = Math.round(montant * (taux / 100));
 
   setTaxes(prev => ({
     ...prev,

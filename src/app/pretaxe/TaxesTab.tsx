@@ -31,6 +31,48 @@ export default function TaxesTab({
       {regimeTaxe === 'tpf' && (
         <div>
           <h3 className="font-semibold text-gray-900 mb-4">Taxe de publicité foncière (hypothèque)</h3>
+
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Accessoires de la sûreté (% du capital)
+            </label>
+            <div className="flex gap-2">
+              {[20, 15].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setTaxes(prev => ({ ...prev, accessoiresSurete: pct }))}
+                  className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    (taxes.accessoiresSurete ?? 20) === pct
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  +{pct}&nbsp;%
+                </button>
+              ))}
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={taxes.accessoiresSurete ?? 20}
+                onChange={(e) => setTaxes(prev => ({ ...prev, accessoiresSurete: Number(e.target.value) || 0 }))}
+                className="w-24 px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base"
+              />
+            </div>
+            <p className="text-xs text-amber-800 mt-2">
+              L'assiette de la TPF et de la CSI est le <strong>capital garanti majoré des
+              accessoires</strong> (intérêts, frais, indemnités), usuellement <strong>+20 %</strong>
+              (ou +15 %). Ex. : un prêt de 70 000 € donne une assiette de 84 000 €.
+            </p>
+            {prix > 0 && (
+              <div className="flex justify-between text-sm font-semibold text-gray-900 mt-2">
+                <span>= Assiette TPF / CSI</span>
+                <span>{Math.round(prix * (1 + (taxes.accessoiresSurete ?? 20) / 100)).toLocaleString('fr-FR')} €</span>
+              </div>
+            )}
+          </div>
+
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Taxe de publicité foncière (0,715 %)</span>
@@ -38,9 +80,15 @@ export default function TaxesTab({
             </div>
             <p className="text-xs text-gray-500">
               L'inscription d'une hypothèque conventionnelle est soumise à la taxe de
-              publicité foncière de 0,715 % du capital garanti (CGI art. 663 et 844), et
+              publicité foncière de 0,715 % de l'assiette (CGI art. 663 et 844), et
               non aux droits de mutation. La contribution de sécurité immobilière (0,05 %)
-              figure dans l'onglet Débours.
+              figure dans l'onglet Débours. Les droits sont arrondis à l'euro (CGI art. 1724).
+            </p>
+            <p className="text-xs text-gray-500 border-t border-gray-200 pt-2">
+              <strong>Double sûreté</strong> (privilège de prêteur de deniers + hypothèque
+              conventionnelle) : une seule TPF est due (le PPD en est exonéré), mais
+              <strong> deux CSI</strong> — une par inscription. Ajoutez la seconde CSI
+              manuellement le cas échéant.
             </p>
           </div>
         </div>

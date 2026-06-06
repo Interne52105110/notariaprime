@@ -605,7 +605,8 @@ function PretaxeContent() {
     communale: 0,
     fraisAssiette: 0,
     primoAccedant: false,
-    valeurMobilier: 0
+    valeurMobilier: 0,
+    accessoiresSurete: 20
   });
 
   // États pour les donations multiples
@@ -721,8 +722,12 @@ function PretaxeContent() {
                 Number(taxes.valeurMobilier) || 0
               );
             } else if (typeTaxe === 'tpf') {
-              calculerCSI(montantActe, setDebours, 0.5); // inscription hypo : CSI 0,05 %
-              calculerTPF(montantActe, setTaxes);
+              // Assiette d'une sûreté = capital garanti + accessoires (intérêts,
+              // frais, indemnités), usuellement +20 % (ou +15 %).
+              const accPct = Number(taxes.accessoiresSurete ?? 20);
+              const baseSurete = Math.round(montant * (1 + accPct / 100) * 100) / 100;
+              calculerCSI(montantActe, setDebours, 0.5, baseSurete); // inscription hypo : CSI 0,05 %
+              calculerTPF(montantActe, setTaxes, baseSurete);
             } else if (typeTaxe === 'partage') {
               calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerDroitPartage(montantActe, taxes.regimePartage ?? 'standard', setTaxes);
@@ -743,7 +748,7 @@ function PretaxeContent() {
       }
       setTaxes(prev => ({ ...prev, droitFixe }));
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, selectedCategory, appliquerRemise, quotiteSurete]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
