@@ -90,7 +90,7 @@ interface ScenarioDepart {
 // CONSTANTES 2026
 // ============================================
 
-const PASS_2025 = 46368;
+const PASS_2025 = 47100; // PASS 2025 : 47 100 EUR/an (la valeur 46 368 etait celle de 2024)
 const TAUX_PLEIN = 0.50;
 const DECOTE_PAR_TRIMESTRE = 0.0125;
 const SURCOTE_PAR_TRIMESTRE = 0.0125;
@@ -98,7 +98,7 @@ const MAX_TRIMESTRES_DECOTE = 20;
 const MINIMUM_CONTRIBUTIF = 8970;
 
 // Agirc-Arrco
-const VALEUR_POINT_AGIRC_ARRCO = 1.4159;
+const VALEUR_POINT_AGIRC_ARRCO = 1.4386; // valeur du point Agirc-Arrco depuis nov. 2024
 const PRIX_ACHAT_POINT_T1 = 19.6321;
 const PRIX_ACHAT_POINT_T2 = 19.6321;
 const TAUX_ACQUISITION_T1 = 0.0620 + 0.0821;
@@ -771,7 +771,7 @@ export default function SimulateurRetraite() {
     }
     doc.text(`SAM (Salaire Annuel Moyen) : ${Math.round(resultat.sam).toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`Taux de liquidation : ${(resultat.tauxLiquidation * 100).toFixed(2)} %`, 20, y);
+    doc.text(`Taux de liquidation : ${resultat.tauxLiquidation.toFixed(2)} %`, 20, y);
     y += 12;
 
     doc.setFontSize(14);
@@ -790,7 +790,7 @@ export default function SimulateurRetraite() {
     y += 7;
     doc.text(`Pension nette annuelle : ${Math.round(resultat.pensionNetteAnnuelle).toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`Taux de remplacement : ${(resultat.tauxRemplacement * 100).toFixed(1)} %`, 20, y);
+    doc.text(`Taux de remplacement : ${resultat.tauxRemplacement.toFixed(1)} %`, 20, y);
     y += 12;
 
     if (scenarios.length > 0) {
@@ -1929,7 +1929,7 @@ export default function SimulateurRetraite() {
                 <span className="font-semibold">Avertissement :</span> Ce simulateur fournit une estimation indicative basee sur
                 les regles en vigueur en 2026 et les informations saisies. Il ne se substitue pas a une consultation
                 aupres de votre caisse de retraite. Les montants reels dependent de l&apos;ensemble de votre carriere,
-                des revalorisations futures et des eventuelles evolutions legislatives. Donnees PASS 2025 : {formatEuros(PASS_2025)}.
+                des revalorisations futures et des eventuelles evolutions legislatives. L&apos;estimation suppose un depart a l&apos;age legal et ne projette pas l&apos;acquisition de trimestres au-dela de cet age. Donnees PASS 2025 : {formatEuros(PASS_2025)}.
               </p>
             </div>
           </div>

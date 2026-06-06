@@ -12,9 +12,15 @@ import type { FormData, ResultatsIR, ResultatsIS, ResultatsPlusValue, ResultatsT
 export const TAUX_IS_REDUIT = 0.15;
 export const SEUIL_IS_REDUIT = 42500;
 export const TAUX_IS_NORMAL = 0.25;
-export const TAUX_PRELEVEMENT_FORFAITAIRE = 0.128;
+export const TAUX_PRELEVEMENT_FORFAITAIRE = 0.128; // IR du PFU (12,8 %)
+// Prélèvements sociaux : 17,2 % pour les revenus du patrimoine
+// (revenus fonciers, plus-values immobilières des particuliers).
 export const TAUX_PRELEVEMENTS_SOCIAUX = 0.172;
-export const TAUX_PFU = 0.30;
+// LFSS 2026 : pour les DIVIDENDES, les prélèvements sociaux passent à 18,6 %.
+// Le PFU appliqué aux dividendes vaut donc 12,8 % (IR) + 18,6 % (PS) = 31,4 %.
+// Les revenus fonciers et les PV immobilières restent à 17,2 %.
+export const TAUX_PS_DIVIDENDES = 0.186;
+export const TAUX_PFU = TAUX_PRELEVEMENT_FORFAITAIRE + TAUX_PS_DIVIDENDES; // 0,314
 export const ABATTEMENT_40_POURCENT = 0.40;
 export const SEUIL_MICRO_FONCIER = 15000;
 export const ABATTEMENT_MICRO_FONCIER = 0.30;
@@ -51,7 +57,16 @@ export const BAREME_DONATIONS = [
   { max: Infinity, taux: 0.45 }
 ];
 
-// Abattement pour durée de détention (plus-value immobilière IR)
+// Abattement pour durée de détention (plus-value immobilière des particuliers,
+// art. 150 VC du CGI). L'abattement s'applique « par année de détention au-delà
+// de la 5e ». Donc, pour N années de détention révolues (annees = N) :
+//   IR : 6 %/an de la 6e à la 21e année (→ 96 % à 21 ans),
+//        + 4 % la 22e année (→ 100 % à 22 ans, exonération IR).
+//   PS : 1,65 %/an de la 6e à la 21e année (→ 26,4 % à 21 ans),
+//        + 1,60 % la 22e année (→ 28 % à 22 ans),
+//        + 9 %/an de la 23e à la 30e année (→ 100 % à 30 ans, exonération PS).
+// NB : la sélection du palier (cf. calculerPlusValue) doit retenir le palier le
+// plus élevé dont l'année est ATTEINTE (annees <= durée de détention).
 export const ABATTEMENT_IR_DUREE = [
   { annees: 0, abattementIR: 0, abattementPS: 0 },
   { annees: 6, abattementIR: 6, abattementPS: 1.65 },
@@ -70,14 +85,14 @@ export const ABATTEMENT_IR_DUREE = [
   { annees: 19, abattementIR: 84, abattementPS: 23.1 },
   { annees: 20, abattementIR: 90, abattementPS: 24.75 },
   { annees: 21, abattementIR: 96, abattementPS: 26.4 },
-  { annees: 22, abattementIR: 100, abattementPS: 28.05 },
-  { annees: 23, abattementIR: 100, abattementPS: 37.05 },
-  { annees: 24, abattementIR: 100, abattementPS: 46.05 },
-  { annees: 25, abattementIR: 100, abattementPS: 55.05 },
-  { annees: 26, abattementIR: 100, abattementPS: 64.05 },
-  { annees: 27, abattementIR: 100, abattementPS: 73.05 },
-  { annees: 28, abattementIR: 100, abattementPS: 82.05 },
-  { annees: 29, abattementIR: 100, abattementPS: 91.05 },
+  { annees: 22, abattementIR: 100, abattementPS: 28 },
+  { annees: 23, abattementIR: 100, abattementPS: 37 },
+  { annees: 24, abattementIR: 100, abattementPS: 46 },
+  { annees: 25, abattementIR: 100, abattementPS: 55 },
+  { annees: 26, abattementIR: 100, abattementPS: 64 },
+  { annees: 27, abattementIR: 100, abattementPS: 73 },
+  { annees: 28, abattementIR: 100, abattementPS: 82 },
+  { annees: 29, abattementIR: 100, abattementPS: 91 },
   { annees: 30, abattementIR: 100, abattementPS: 100 }
 ];
 
@@ -220,7 +235,14 @@ export function calculerResultatsIS(
   chargesAnnuelles: number,
   interetsEmprunt: number,
   remboursementCapital: number,
-  valeurBiens: number
+  valeurBiens: number,
+  // Art. 219-I-b du CGI : le taux réduit d'IS de 15 % sur les premiers 42 500 €
+  // de bénéfice n'est applicable qu'aux sociétés réalisant un CA < 10 M€ ET dont
+  // le capital, entièrement libéré, est détenu de façon continue à hauteur d'au
+  // moins 75 % par des personnes physiques (ou par des sociétés répondant elles-
+  // mêmes à ces conditions). Si la SCI n'est pas éligible, l'IS est dû au taux
+  // normal de 25 % dès le 1er euro.
+  eligibleTauxReduitIS: boolean = true
 ): ResultatsIS {
   const fraisGestion = parseFloat(formData.fraisGestion.replace(/\s/g, '')) || 0;
   const fraisComptable = parseFloat(formData.fraisComptable.replace(/\s/g, '')) || 0;
@@ -245,10 +267,13 @@ export function calculerResultatsIS(
   
   // Impôt sur les sociétés
   let impotSocietes = 0;
-  if (beneficeImposable <= SEUIL_IS_REDUIT) {
+  if (!eligibleTauxReduitIS) {
+    // Conditions de l'art. 219-I-b non remplies : 25 % dès le 1er euro.
+    impotSocietes = beneficeImposable * TAUX_IS_NORMAL;
+  } else if (beneficeImposable <= SEUIL_IS_REDUIT) {
     impotSocietes = beneficeImposable * TAUX_IS_REDUIT;
   } else {
-    impotSocietes = SEUIL_IS_REDUIT * TAUX_IS_REDUIT + 
+    impotSocietes = SEUIL_IS_REDUIT * TAUX_IS_REDUIT +
                    (beneficeImposable - SEUIL_IS_REDUIT) * TAUX_IS_NORMAL;
   }
   
@@ -271,10 +296,11 @@ export function calculerResultatsIS(
     const dividendesImposables = dividendesDistribues * (1 - ABATTEMENT_40_POURCENT);
     const trancheMarginal = parseFloat(formData.trancheMarginalIR) / 100;
     const impotBareme = dividendesImposables * trancheMarginal;
-    const prelevementsSociaux = dividendesDistribues * TAUX_PRELEVEMENTS_SOCIAUX;
+    // PS des dividendes : 18,6 % depuis la LFSS 2026 (assiette = dividendes bruts).
+    const prelevementsSociaux = dividendesDistribues * TAUX_PS_DIVIDENDES;
     prelevementsForfaitaires = impotBareme + prelevementsSociaux;
   } else {
-    // Flat tax 30%
+    // PFU (flat tax) sur dividendes : 12,8 % IR + 18,6 % PS = 31,4 % (LFSS 2026).
     prelevementsForfaitaires = dividendesDistribues * TAUX_PFU;
   }
   
@@ -329,14 +355,14 @@ export function calculerPlusValue(
     abattementIR = 100;
     abattementPS = 100;
   } else {
-    const tranche = ABATTEMENT_IR_DUREE.find(t => anneeRevente <= t.annees);
+    // On retient le palier le plus élevé dont l'année est ATTEINTE :
+    // le dernier palier tel que t.annees <= anneeRevente (durée de détention).
+    const tranche = ABATTEMENT_IR_DUREE
+      .filter(t => anneeRevente >= t.annees)
+      .pop();
     if (tranche) {
       abattementIR = tranche.abattementIR;
       abattementPS = tranche.abattementPS;
-    } else {
-      const derniere = ABATTEMENT_IR_DUREE[ABATTEMENT_IR_DUREE.length - 1];
-      abattementIR = derniere.abattementIR;
-      abattementPS = derniere.abattementPS;
     }
   }
   
@@ -543,7 +569,7 @@ export function genererSuggestions(
   // CCA
   const montantCCA = parseFloat(formData.compteCourantAssocie.replace(/\s/g, '')) || 0;
   if (montantCCA > 0) {
-    suggestions.push(`💰 Remboursez en priorité le CCA (${montantCCA.toLocaleString('fr-FR')} €) : 0% de fiscalité vs 30% sur les dividendes`);
+    suggestions.push(`💰 Remboursez en priorité le CCA (${montantCCA.toLocaleString('fr-FR')} €) : 0% de fiscalité vs 31,4% (PFU) sur les dividendes`);
   }
   
   // Distribution IS

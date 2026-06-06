@@ -242,9 +242,12 @@ function calculerMensualiteEmprunt(montant: number, tauxAnnuel: number, dureeMoi
   return (montant * tauxMensuel) / (1 - Math.pow(1 + tauxMensuel, -dureeMois));
 }
 
-function calculerRendementBrut(loyerAnnuel: number, prixAcquisition: number): number {
-  if (prixAcquisition <= 0) return 0;
-  return (loyerAnnuel / prixAcquisition) * 100;
+function calculerRendementBrut(loyerAnnuel: number, prixAcquisition: number, travaux: number = 0): number {
+  // Le rendement brut est calcule sur le cout de revient hors frais de notaire
+  // mais en incluant les travaux (un bien avec travaux coute reellement plus cher).
+  const base = prixAcquisition + travaux;
+  if (base <= 0) return 0;
+  return (loyerAnnuel / base) * 100;
 }
 
 function calculerRendementNet(
@@ -253,9 +256,10 @@ function calculerRendementNet(
   taxeFonciere: number,
   vacancePct: number,
   prixAcquisition: number,
-  fraisNotaire: number
+  fraisNotaire: number,
+  travaux: number = 0
 ): number {
-  const prixRevient = prixAcquisition + fraisNotaire;
+  const prixRevient = prixAcquisition + fraisNotaire + travaux;
   if (prixRevient <= 0) return 0;
   const loyerEffectif = loyerAnnuel * (1 - vacancePct / 100);
   const revenuNet = loyerEffectif - charges * 12 - taxeFonciere;
@@ -270,9 +274,10 @@ function calculerRendementNetNet(
   prixAcquisition: number,
   fraisNotaire: number,
   tmi: number,
-  avantageFiscalAnnuel: number
+  avantageFiscalAnnuel: number,
+  travaux: number = 0
 ): number {
-  const prixRevient = prixAcquisition + fraisNotaire;
+  const prixRevient = prixAcquisition + fraisNotaire + travaux;
   if (prixRevient <= 0) return 0;
   const loyerEffectif = loyerAnnuel * (1 - vacancePct / 100);
   const revenuNet = loyerEffectif - charges * 12 - taxeFonciere;
@@ -311,7 +316,7 @@ function calculerAvantageFiscalDenormandie(
   duree: DureePinel
 ): { avantageTotal: number; avantageAnnuel: number; eligible: boolean; raison: string } {
   const coutTotal = prixAcquisition + montantTravaux;
-  const tauxTravaux = montantTravaux / coutTotal;
+  const tauxTravaux = coutTotal > 0 ? montantTravaux / coutTotal : 0;
   const eligible = tauxTravaux >= 0.25;
   let raison = '';
   if (!eligible) {
@@ -540,12 +545,14 @@ export default function SimulateurInvestissementLocatif() {
     const mensualiteHorsAssurance = calculerMensualiteEmprunt(montantEmprunt, tauxEmprunt, dureeEmpruntMois);
     const mensualiteAssurance = (montantEmprunt * tauxAssurance / 100) / 12;
     const mensualiteTotale = mensualiteHorsAssurance + mensualiteAssurance;
+    // Part d'interets de la 1re mensualite = capital restant du x taux mensuel
+    const mensualiteInterets = montantEmprunt * (tauxEmprunt / 100 / 12);
 
-    // Rendements
-    const rendementBrut = calculerRendementBrut(loyerAnnuel, prix);
+    // Rendements (cout de revient incluant les travaux)
+    const rendementBrut = calculerRendementBrut(loyerAnnuel, prix, travaux);
 
     const rendementNet = calculerRendementNet(
-      loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire
+      loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire, travaux
     );
 
     // Avantage fiscal selon dispositif
@@ -581,7 +588,7 @@ export default function SimulateurInvestissementLocatif() {
     }
 
     const rendementNetNet = calculerRendementNetNet(
-      loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire, formData.tmi, avantageFiscalAnnuel
+      loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire, formData.tmi, avantageFiscalAnnuel, travaux
     );
 
     // Cash flow mensuel
@@ -617,6 +624,7 @@ export default function SimulateurInvestissementLocatif() {
       montantEmprunt,
       mensualiteHorsAssurance,
       mensualiteAssurance,
+      mensualiteInterets,
       mensualiteTotale,
       rendementBrut,
       rendementNet,
@@ -874,7 +882,7 @@ export default function SimulateurInvestissementLocatif() {
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-indigo-700 bg-indigo-100 px-4 py-2 rounded-full w-fit mx-auto">
               <Info className="w-4 h-4" />
-              Baremes fiscaux 2026 &mdash; Pinel, Denormandie, Loc&apos;Avantages, Deficit Foncier, Malraux
+              Baremes fiscaux 2026 &mdash; Denormandie, Loc&apos;Avantages, Deficit Foncier, Malraux (Pinel : supprime depuis 2025, historique)
             </div>
             <div className="flex justify-center gap-2 mt-2">
               <button
@@ -1321,8 +1329,8 @@ export default function SimulateurInvestissementLocatif() {
                           <span className="font-bold">{formatEurosDecimal(resultats.mensualiteTotale)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">dont interets</span>
-                          <span className="font-semibold text-gray-500">{formatEurosDecimal(resultats.mensualiteTotale - resultats.mensualiteAssurance - (resultats.mensualiteHorsAssurance > 0 ? resultats.montantEmprunt / (formData.dureeEmprunt * 12) : 0))}</span>
+                          <span className="text-gray-600">dont interets (1re mensualite)</span>
+                          <span className="font-semibold text-gray-500">{formatEurosDecimal(resultats.mensualiteInterets)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">dont assurance</span>
@@ -1464,7 +1472,7 @@ export default function SimulateurInvestissementLocatif() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
                     { id: 'aucun' as Dispositif, label: 'Aucun', desc: 'Droit commun' },
-                    { id: 'pinel' as Dispositif, label: 'Pinel', desc: 'Neuf - Termine fin 2024' },
+                    { id: 'pinel' as Dispositif, label: 'Pinel', desc: 'Supprime depuis 2025 - historique' },
                     { id: 'denormandie' as Dispositif, label: 'Denormandie', desc: 'Ancien + travaux' },
                     { id: 'loc_avantages' as Dispositif, label: 'Loc\'Avantages', desc: 'Loyers moderes' },
                     { id: 'deficit_foncier' as Dispositif, label: 'Deficit foncier', desc: 'Travaux deductibles' },
@@ -1480,7 +1488,14 @@ export default function SimulateurInvestissementLocatif() {
                           : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                       }`}
                     >
-                      <p className="font-bold text-sm">{d.label}</p>
+                      <p className="font-bold text-sm flex items-center gap-1">
+                        {d.label}
+                        {d.id === 'pinel' && (
+                          <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                            Supprime
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs opacity-70 mt-1">{d.desc}</p>
                     </button>
                   ))}
@@ -1491,13 +1506,19 @@ export default function SimulateurInvestissementLocatif() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <Landmark className="w-5 h-5 text-blue-600" />
-                      Configuration Pinel (taux reduits 2024)
+                      Configuration Pinel (simulation historique)
                     </h3>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                      <p className="text-sm text-amber-800 flex items-center gap-2">
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm font-bold text-red-800 flex items-center gap-2 mb-1">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                        Le dispositif Pinel a pris fin le 31 decembre 2024. Ces taux s&apos;appliquent aux investissements realises avant cette date.
+                        Dispositif supprime depuis le 1er janvier 2025
+                      </p>
+                      <p className="text-sm text-red-700">
+                        Le Pinel a ete definitivement supprime au 31 decembre 2024 : <strong>aucun
+                        investissement Pinel n&apos;est possible en 2025 ou apres</strong>. Cette
+                        simulation est fournie a titre historique uniquement (investissements
+                        realises au plus tard le 31/12/2024).
                       </p>
                     </div>
 
@@ -2294,7 +2315,7 @@ function FAQSection() {
         },
         {
           q: "Quelle difference entre rendement brut, net et net-net ?",
-          r: "Le rendement brut = (loyer annuel / prix achat) x 100. C'est un indicateur rapide de comparaison entre biens, mais il ne tient compte d'aucune charge. Le rendement net = ((loyer - charges annuelles) / (prix + frais notaire)) x 100. Il integre les charges de copropriete, la taxe fonciere, l'assurance, les frais de gestion et la vacance locative. Le rendement net-net = rendement net apres deduction de l'impot sur les revenus fonciers (TMI + prelevements sociaux 17,2%) et ajout de l'eventuel avantage fiscal. C'est le seul indicateur qui reflete votre rentabilite reelle. Exemple : un bien a 200 000€ loue 800€/mois = 4,8% brut, ~3,5% net, ~2,3% net-net pour une TMI a 30%."
+          r: "Le rendement brut = (loyer annuel / (prix achat + travaux)) x 100. C'est un indicateur rapide de comparaison entre biens, mais il ne tient compte d'aucune charge. Le rendement net = ((loyer - charges annuelles) / (prix + frais notaire + travaux)) x 100. Il integre les charges de copropriete, la taxe fonciere, l'assurance, les frais de gestion et la vacance locative. Le rendement net-net = rendement net apres deduction de l'impot sur les revenus fonciers (TMI + prelevements sociaux 17,2%) et ajout de l'eventuel avantage fiscal. C'est le seul indicateur qui reflete votre rentabilite reelle. Exemple : un bien a 200 000€ loue 800€/mois = 4,8% brut, ~3,5% net, ~2,3% net-net pour une TMI a 30%."
         },
         {
           q: "Comment estimer le cash flow d'un investissement locatif ?",

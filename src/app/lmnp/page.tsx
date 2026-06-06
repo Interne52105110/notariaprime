@@ -568,7 +568,15 @@ export default function SimulateurLMNP() {
     const reelCashFlow = recettesBrutes - charges - reelTotalImpots;
 
     const economieReel = microTotalImpots - reelTotalImpots;
-    const meilleurRegime = reelTotalImpots < microTotalImpots ? 'reel' : 'micro';
+    // Le regime micro-BIC n'est applicable qu'en deca du plafond de recettes
+    // (77 700 / 188 700 / 15 000 EUR selon le type de location). Au-dela, il
+    // ne peut etre ni propose ni recommande comme meilleur regime : on bascule
+    // alors obligatoirement au reel.
+    const meilleurRegime = !microEligible
+      ? 'reel'
+      : reelTotalImpots < microTotalImpots
+        ? 'reel'
+        : 'micro';
 
     return {
       recettesBrutes,
@@ -714,9 +722,23 @@ export default function SimulateurLMNP() {
   const donneesPlusValue = useMemo((): DonneePlusValue[] => {
     const prixAchat = parseNumber(formData.valeurBien);
     const recettesAnnuelles = resultats?.recettesBrutes || 0;
+    // Cumul total des amortissements (immobilier + mobilier) : utilise pour la
+    // PV professionnelle LMP (reprise integrale en PV court terme).
     const totalAmortCumul = (annee: number) => {
       let cumul = 0;
       composantsAmort.forEach(c => {
+        cumul += c.amortissementAnnuel * Math.min(annee, c.duree);
+      });
+      return cumul;
+    };
+    // Cumul des seuls amortissements afferents au BIEN IMMOBILIER, hors mobilier.
+    // La reintegration LF 2025 (art. 84, CGI 150 VB modifie) qui minore le prix
+    // d'acquisition pour la PV des particuliers (LMNP) ne porte que sur les
+    // amortissements de l'immeuble : le mobilier en est expressement exclu.
+    const totalAmortCumulImmo = (annee: number) => {
+      let cumul = 0;
+      composantsAmort.forEach(c => {
+        if (c.nom === 'Mobilier') return;
         cumul += c.amortissementAnnuel * Math.min(annee, c.duree);
       });
       return cumul;
@@ -728,8 +750,10 @@ export default function SimulateurLMNP() {
     for (let annee = 1; annee <= 30; annee++) {
       const prixRevente = prixAchat * Math.pow(1 + tauxValoAnnuel, annee);
 
-      const amortCumul = totalAmortCumul(annee);
-      const lmnpPV = calculerPlusValueLMNP(prixAchat, prixRevente, annee, formData.tmi, amortCumul);
+      // LMNP : seuls les amortissements de l'immeuble sont reintegres (hors mobilier).
+      const amortCumulImmo = totalAmortCumulImmo(annee);
+      const lmnpPV = calculerPlusValueLMNP(prixAchat, prixRevente, annee, formData.tmi, amortCumulImmo);
+      // LMP : reprise integrale des amortissements deduits (immobilier + mobilier) en PV court terme.
       const lmpPV = calculerPlusValueLMP(
         prixAchat, prixRevente, totalAmortCumul(annee), annee, recettesAnnuelles, formData.tmi
       );
@@ -1000,7 +1024,7 @@ export default function SimulateurLMNP() {
                     {formData.typeLocation === 'tourisme_non_classe' && formData.zoneTendue && (
                       <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        <span>Depuis 2024, les meubles de tourisme non classes en zone tendue ne beneficient que d'un abattement de 30% avec un plafond de 15 000 euros.</span>
+                        <span>Depuis les revenus 2025, les meubles de tourisme non classes en zone tendue ne beneficient que d'un abattement de 30% avec un plafond de 15 000 euros.</span>
                       </div>
                     )}
                   </div>

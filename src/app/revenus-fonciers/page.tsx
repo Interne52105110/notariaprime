@@ -104,6 +104,10 @@ const PLAFOND_MICRO_FONCIER = 15000;
 const ABATTEMENT_MICRO_FONCIER = 0.30;
 const PRELEVEMENTS_SOCIAUX = 0.172;
 const PLAFOND_DEFICIT_REVENU_GLOBAL = 10700;
+// Plafond doublé (21 400 €) pour les déficits issus de travaux de rénovation
+// énergétique faisant passer un logement de la classe F/G à au moins E
+// (dispositif en vigueur jusqu'au 31/12/2025, art. 156 I 3 du CGI).
+const PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION = 21400;
 const FRAIS_GESTION_FORFAITAIRES_PAR_LOCAL = 20;
 
 const TRANCHES_IR_2025 = [
@@ -175,7 +179,8 @@ function calculerImpotTMI(revenuImposable: number, tmi: number): number {
 function calculerComparaison(
   biens: BienLocatif[],
   charges: ChargesReelles,
-  tmi: number
+  tmi: number,
+  renovationEnergetique: boolean = false
 ): ResultatComparaison {
   // Calcul des revenus bruts
   const revenusBruts = biens.reduce((total, bien) => {
@@ -236,7 +241,10 @@ function calculerComparaison(
     const montantDeficit = Math.abs(revenuImposableReel);
     // Le deficit hors interets d'emprunt est imputable sur le revenu global
     const deficitHorsInterets = Math.abs(Math.min(0, revenusBruts - (totalChargesReelles - interetsEmprunt)));
-    const imputationRevenuGlobal = Math.min(deficitHorsInterets, PLAFOND_DEFICIT_REVENU_GLOBAL);
+    const plafondImputation = renovationEnergetique
+      ? PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION
+      : PLAFOND_DEFICIT_REVENU_GLOBAL;
+    const imputationRevenuGlobal = Math.min(deficitHorsInterets, plafondImputation);
     const reportSurRevenusFonciers = montantDeficit - imputationRevenuGlobal;
 
     deficitFoncier = {
@@ -266,7 +274,11 @@ function calculerComparaison(
   };
 
   // Determination du regime optimal
-  const regimeOptimal = totalFiscaliteReel <= totalFiscaliteMicro ? 'reel' : 'micro';
+  // Le micro-foncier n'est PAS applicable au-dela de 15 000 euros de recettes brutes :
+  // dans ce cas le regime reel est obligatoire et ne peut donc jamais etre recommande.
+  const microApplicable = revenusBruts <= PLAFOND_MICRO_FONCIER;
+  const regimeOptimal =
+    !microApplicable || totalFiscaliteReel <= totalFiscaliteMicro ? 'reel' : 'micro';
   const economie = Math.abs(totalFiscaliteMicro - totalFiscaliteReel);
 
   return {
@@ -428,6 +440,7 @@ export default function RevenusFonciersPage() {
   });
 
   const [tmi, setTmi] = useState<number>(30);
+  const [renovationEnergetique, setRenovationEnergetique] = useState<boolean>(false);
   const [results, setResults] = useState<ResultatComparaison | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
 
@@ -476,7 +489,7 @@ export default function RevenusFonciersPage() {
   };
 
   const calculer = () => {
-    const result = calculerComparaison(biens, charges, tmi);
+    const result = calculerComparaison(biens, charges, tmi, renovationEnergetique);
     setResults(result);
   };
 
@@ -492,6 +505,7 @@ export default function RevenusFonciersPage() {
       chargesCopropriete: ''
     });
     setTmi(30);
+    setRenovationEnergetique(false);
     setResults(null);
   };
 
@@ -990,6 +1004,23 @@ export default function RevenusFonciersPage() {
                     Les frais de gestion forfaitaires de 20 euros par local ({biens.length} {biens.length > 1 ? 'locaux' : 'local'} = {formatEuros(biens.length * FRAIS_GESTION_FORFAITAIRES_PAR_LOCAL)}) sont automatiquement ajoutes.
                   </p>
                 </div>
+
+                {/* Travaux de renovation energetique : plafond de deficit double */}
+                <label className="mt-4 flex items-start gap-3 p-3 bg-emerald-50 rounded-lg border-2 border-emerald-200 cursor-pointer hover:border-emerald-300 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={renovationEnergetique}
+                    onChange={(e) => setRenovationEnergetique(e.target.checked)}
+                    className="mt-0.5 w-5 h-5 accent-emerald-600 cursor-pointer"
+                  />
+                  <span className="text-sm text-emerald-800">
+                    <span className="font-semibold">Travaux de renovation energetique (passoire F/G &rarr; E ou mieux)</span>
+                    <span className="block text-xs text-emerald-700 mt-0.5">
+                      Double le plafond d&apos;imputation du deficit foncier sur le revenu global :
+                      21 400 euros au lieu de 10 700 euros (art. 156 I 3 du CGI).
+                    </span>
+                  </span>
+                </label>
               </div>
             </div>
 

@@ -105,9 +105,7 @@ function parseNumber(str: string): number {
   cleaned = cleaned.replace(/[^\d.-]/g, '');
   
   const result = parseFloat(cleaned);
-  
-  console.log(`parseNumber("${str}") => cleaned: "${cleaned}" => result: ${result}`);
-  
+
   return isNaN(result) ? 0 : result;
 }
 
@@ -117,21 +115,23 @@ function parseNumber(str: string): number {
 
 function calculerIFI(biens: Bien[]): ResultatIFI {
   let patrimoineTotal = 0;
-  let abattementRP = 0;
   let dettesDeductibles = 0;
 
   biens.forEach(bien => {
     const valeur = parseNumber(bien.valeur);
     const dette = parseNumber(bien.dette);
-    
+
     patrimoineTotal += valeur;
-    
-    if (bien.type === 'residence_principale') {
-      abattementRP += valeur * ABATTEMENT_RP;
-    }
-    
     dettesDeductibles += dette;
   });
+
+  // Un seul logement peut etre la residence principale : l'abattement de 30 %
+  // ne s'applique donc qu'a UN SEUL bien marque « residence_principale ».
+  // En cas de saisie multiple, on retient le bien de plus forte valeur.
+  const valeurRP = biens
+    .filter(bien => bien.type === 'residence_principale')
+    .reduce((max, bien) => Math.max(max, parseNumber(bien.valeur)), 0);
+  const abattementRP = valeurRP * ABATTEMENT_RP;
 
   const patrimoineNetTaxable = Math.max(0, patrimoineTotal - abattementRP - dettesDeductibles);
   
@@ -242,19 +242,7 @@ export default function CalculateurIFI() {
   };
 
   const calculer = () => {
-    console.log('🔍 Calcul IFI - Biens:', biens);
-    biens.forEach(bien => {
-      console.log(`Bien "${bien.nom}":`, {
-        valeurBrute: bien.valeur,
-        valeurParsée: parseNumber(bien.valeur),
-        detteBrute: bien.dette,
-        detteParsée: parseNumber(bien.dette),
-        type: bien.type
-      });
-    });
-    
     const result = calculerIFI(biens);
-    console.log('📊 Résultat IFI:', result);
     setResults(result);
   };
 
@@ -558,22 +546,20 @@ export default function CalculateurIFI() {
               
               {/* Verdict principal */}
               <div className={`rounded-2xl p-8 border-4 ${
-                results.patrimoineNetTaxable < 800000
+                results.patrimoineNetTaxable < 1300000
                   ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
-                  : results.patrimoineNetTaxable < 1300000
-                  ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300'
                   : 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300'
               }`}>
                 <div className="text-center">
-                  {results.patrimoineNetTaxable < 800000 ? (
+                  {results.patrimoineNetTaxable < 1300000 ? (
                     <>
                       <p className="text-sm font-semibold text-gray-600 mb-2">✅ Résultat fiscal</p>
                       <p className="text-4xl font-black mb-4 text-green-600">
                         Non imposable à l'IFI
                       </p>
                       <p className="text-lg text-gray-700">
-                        Votre patrimoine net taxable ({formatEuros(results.patrimoineNetTaxable)}) 
-                        est inférieur au seuil de 800 000 €
+                        Votre patrimoine net taxable ({formatEuros(results.patrimoineNetTaxable)})
+                        est inférieur au seuil d'imposition de 1 300 000 €
                       </p>
                     </>
                   ) : (
@@ -830,9 +816,16 @@ export default function CalculateurIFI() {
                   Les résultats sont des estimations basées sur les informations fournies et le barème IFI 2025. 
                 </p>
                 <p>
-                  L'IFI est un impôt complexe avec de nombreuses règles spécifiques (plafonnement, exonérations 
-                  particulières, cas de démembrement, etc.) qui ne sont pas toutes prises en compte dans ce 
+                  L'IFI est un impôt complexe avec de nombreuses règles spécifiques (exonérations
+                  particulières, cas de démembrement, etc.) qui ne sont pas toutes prises en compte dans ce
                   calculateur simplifié.
+                </p>
+                <p>
+                  <span className="font-semibold">Plafonnement non pris en compte :</span> ce calculateur
+                  n'applique pas le plafonnement de l'IFI (article 979 du CGI), qui limite la somme de
+                  l'IFI et de l'impôt sur le revenu à 75 % des revenus de l'année précédente. Ce mécanisme
+                  nécessite la connaissance de vos revenus et peut, le cas échéant, réduire l'IFI réellement
+                  dû. Le montant affiché peut donc être supérieur à votre IFI effectif.
                 </p>
                 <p className="font-semibold">
                   Pour une analyse personnalisée de votre situation fiscale, consultez un expert-comptable, 

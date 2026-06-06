@@ -150,7 +150,7 @@ function calculerExonerations(form: FormData, pvBrute: number, pvCT: number, pvL
     }
 
     const montantExonere = pvBrute * taux;
-    const economie = montantExonere * (tmi / 100 + 0.186);
+    const economie = montantExonere * (tmi / 100 + 0.172); // IR (TMI) + PS 17,2%
 
     exonerations.push({
       nom: 'Petites entreprises',
@@ -183,7 +183,7 @@ function calculerExonerations(form: FormData, pvBrute: number, pvCT: number, pvL
     }
 
     const montantExonere = pvBrute * taux;
-    const economie = montantExonere * (tmi / 100 + 0.186);
+    const economie = montantExonere * (tmi / 100 + 0.172); // IR (TMI) + PS 17,2%
 
     exonerations.push({
       nom: 'Cession d\'entreprise < 500K',
@@ -214,10 +214,12 @@ function calculerExonerations(form: FormData, pvBrute: number, pvCT: number, pvL
     const allConditions = condPME && condActivite && condRetraite && condSociete;
     const taux = allConditions ? 1 : 0;
     const montantExonere = pvBrute * taux;
-    // PS restent dus sur LT meme si exonere IR
-    const economieIR = montantExonere * (tmi / 100);
-    const economiePS_CT = pvCT * taux * 0.40;
-    const economie = economieIR + economiePS_CT;
+    // 151 septies A : exoneration d'IR (CT + LT) ; les PS restent dus sur la PV LT.
+    // Economie = IR economise = IR sur PV CT (au TMI) + IR sur PV LT (flat tax 12,8%).
+    // (Les PS LT a 17,2% ne sont PAS economises et n'entrent donc pas dans le calcul.)
+    const economieIR_CT = pvCT * taux * (tmi / 100);
+    const economieIR_LT = pvLT * taux * 0.128;
+    const economie = economieIR_CT + economieIR_LT;
 
     exonerations.push({
       nom: 'Depart a la retraite',
@@ -387,8 +389,11 @@ function calculerResultats(form: FormData): ResultatsCalcul | null {
   }
 
   // Calcul imposition CT
+  // La PV professionnelle a court terme s'ajoute au resultat de l'entreprise
+  // et est imposee au bareme de l'IR (TMI). Elle ne supporte pas de forfait
+  // supplementaire de cotisations sociales cumule avec le TMI.
   const impotCT = pvNetteImposableCT * (tmi / 100);
-  const cotisationsSocialesCT = pvNetteImposableCT * 0.425; // ~42.5% cotisations sociales
+  const cotisationsSocialesCT = 0; // pas de cotisations forfaitaires cumulees sur la PV CT
 
   // Calcul imposition LT
   let impotLT = 0;
@@ -399,11 +404,21 @@ function calculerResultats(form: FormData): ResultatsCalcul | null {
   } else {
     impotLT = pvNetteImposableLT * 0.128; // flat tax 12.8%
   }
-  psLT = pvNetteImposableLT * 0.186; // PS 18.6% LFSS 2026
+  // PV professionnelles a long terme : PS a 17,2% (hors champ de la hausse a 18,6% LFSS 2026)
+  // Base PS = base IR par defaut...
+  let basePS_LT = pvNetteImposableLT;
 
-  // Exception art. 151 septies A : PS restent dus sur PV LT
+  // Art. 150-0 D ter : l'abattement fixe de 500 000 EUR ne vaut que pour l'IR.
+  // Les prelevements sociaux portent sur la TOTALITE de la plus-value (avant abattement).
+  if (meilleurRegime?.article === 'Art. 150-0 D ter CGI') {
+    basePS_LT = plusValueBrute;
+  }
+
+  psLT = basePS_LT * 0.172; // PS 17,2% (PV pro LT)
+
+  // Exception art. 151 septies A : IR exonere mais PS restent dus sur PV LT
   if (meilleurRegime?.article === 'Art. 151 septies A CGI') {
-    psLT = pvLT * 0.186; // PS 18.6% LFSS 2026
+    psLT = pvLT * 0.172; // PS 17,2% (PV pro LT)
     impotLT = 0;
   }
 
@@ -431,7 +446,7 @@ function calculerResultats(form: FormData): ResultatsCalcul | null {
   }
 
   if (pvCT > 0 && duree < 2) {
-    suggestions.push('Envisager d\'attendre 2 ans de detention pour reclassifier une partie de la PV en long terme (taux forfaitaire de 30% vs bareme + cotisations).');
+    suggestions.push('Envisager d\'attendre 2 ans de detention pour reclassifier une partie de la PV en long terme (taux forfaitaire de 30% : 12,8% IR + 17,2% PS, vs bareme IR au TMI).');
   }
 
   if (form.optionBareme && tmi <= 11 && pvLT > 0) {
@@ -475,7 +490,7 @@ function FAQSection() {
       questions: [
         {
           q: "Quelle difference entre plus-value court terme et long terme ?",
-          r: "**PV COURT TERME (CT) :**\n• Bien detenu depuis moins de 2 ans\n• Ou : fraction de la PV correspondant aux amortissements deduits\n• Imposee comme un revenu ordinaire (bareme IR)\n• Soumise aux cotisations sociales (~42.5%)\n• Possibilite d'etalement sur 3 ans\n\n**PV LONG TERME (LT) :**\n• Bien detenu depuis 2 ans ou plus (hors amortissements)\n• Taux forfaitaire : 12.8% d'IR + 18.6% PS = 31.4% (flat tax LFSS 2026)\n• Ou option pour le bareme progressif\n• Regimes d'exoneration specifiques applicables",
+          r: "**PV COURT TERME (CT) :**\n• Bien detenu depuis moins de 2 ans\n• Ou : fraction de la PV correspondant aux amortissements deduits\n• Ajoutee au resultat de l'entreprise et imposee au bareme de l'IR (TMI)\n• Possibilite d'etalement sur 3 ans\n\n**PV LONG TERME (LT) :**\n• Bien detenu depuis 2 ans ou plus (hors amortissements)\n• Taux forfaitaire : 12.8% d'IR + 17.2% PS = 30% (flat tax)\n• Ou option pour le bareme progressif\n• Regimes d'exoneration specifiques applicables",
           source: "Articles 39 duodecies et 39 terdecies du CGI"
         },
         {
@@ -485,7 +500,7 @@ function FAQSection() {
         },
         {
           q: "Comment fonctionne l'exoneration depart a la retraite ?",
-          r: "**ART. 151 SEPTIES A - CONDITIONS :**\n\n• **PME** au sens europeen (< 250 salaries, CA < 50M EUR ou bilan < 43M EUR)\n• **Activite exercee pendant au moins 5 ans**\n• **Depart a la retraite** dans les 24 mois avant ou apres la cession\n• Cession a un **tiers** (pas de controle par le cedant apres la cession)\n\n**EFFETS :**\n• Exoneration totale d'impot sur le revenu (CT et LT)\n• **Prelevements sociaux restent dus** sur la PV long terme (18.6% depuis LFSS 2026)\n• Exoneration des cotisations sociales sur la PV CT\n\n**C'est l'un des regimes les plus avantageux** pour un cedant proche de la retraite.",
+          r: "**ART. 151 SEPTIES A - CONDITIONS :**\n\n• **PME** au sens europeen (< 250 salaries, CA < 50M EUR ou bilan < 43M EUR)\n• **Activite exercee pendant au moins 5 ans**\n• **Depart a la retraite** dans les 24 mois avant ou apres la cession\n• Cession a un **tiers** (pas de controle par le cedant apres la cession)\n\n**EFFETS :**\n• Exoneration totale d'impot sur le revenu (CT et LT)\n• **Prelevements sociaux restent dus** sur la PV long terme (17.2%)\n\n**C'est l'un des regimes les plus avantageux** pour un cedant proche de la retraite.",
           source: "Article 151 septies A du CGI"
         },
         {
@@ -500,7 +515,7 @@ function FAQSection() {
       questions: [
         {
           q: "Comment est imposee la plus-value sur parts sociales ?",
-          r: "**CESSION DE PARTS DE SOCIETE :**\n\n**Regime de droit commun :**\n• PV = Prix de cession - Prix d'acquisition des parts\n• Flat tax : 12.8% IR + 18.6% PS = 31.4% (LFSS 2026)\n• Ou option bareme progressif + PS 18.6%\n\n**Dirigeant partant a la retraite (art. 150-0 D ter) :**\n• Abattement fixe de 500 000 EUR\n• Conditions : PME, detention > 25%, dirigeant >= 2 ans, retraite dans 24 mois\n\n**Attention :** Les parts de SCI a l'IS relevent du regime des plus-values mobilieres, pas immobilieres.",
+          r: "**CESSION DE PARTS DE SOCIETE :**\n\n**Regime de droit commun :**\n• PV = Prix de cession - Prix d'acquisition des parts\n• Flat tax : 12.8% IR + 17.2% PS = 30%\n• Ou option bareme progressif + PS 17.2%\n\n**Dirigeant partant a la retraite (art. 150-0 D ter) :**\n• Abattement fixe de 500 000 EUR (IR uniquement ; PS dus sur la totalite de la PV)\n• Conditions : PME, detention > 25%, dirigeant >= 2 ans, retraite dans 24 mois\n\n**Attention :** Les parts de SCI a l'IS relevent du regime des plus-values mobilieres, pas immobilieres.",
           source: "Articles 150-0 A et 150-0 D ter du CGI"
         },
         {
@@ -515,7 +530,7 @@ function FAQSection() {
         },
         {
           q: "Quand opter pour le bareme progressif vs flat tax ?",
-          r: "**COMPARAISON :**\n\n**Flat tax (PFU) a 31.4% (depuis LFSS 2026) :**\n• 12.8% IR + 18.6% PS\n• Avantageuse si TMI >= 30%\n• Pas de possibilite de deduire la CSG\n\n**Bareme progressif :**\n• TMI + 18.6% PS\n• Avantageuse si TMI < 12.8% (tranches 0% ou 11%)\n• Permet de deduire 6.8% de CSG des revenus\n• Tous les revenus mobiliers passent au bareme\n\n**Regles pratiques :**\n• TMI 0% ou 11% : bareme progressif souvent meilleur\n• TMI 30% : quasi equivalent (option bareme + deduction CSG)\n• TMI 41% ou 45% : flat tax tres nettement meilleure"
+          r: "**COMPARAISON :**\n\n**Flat tax (PFU) a 30% :**\n• 12.8% IR + 17.2% PS\n• Avantageuse si TMI >= 30%\n• Pas de possibilite de deduire la CSG\n\n**Bareme progressif :**\n• TMI + 17.2% PS\n• Avantageuse si TMI < 12.8% (tranches 0% ou 11%)\n• Permet de deduire 6.8% de CSG des revenus\n• Tous les revenus mobiliers passent au bareme\n\n**Regles pratiques :**\n• TMI 0% ou 11% : bareme progressif souvent meilleur\n• TMI 30% : quasi equivalent (option bareme + deduction CSG)\n• TMI 41% ou 45% : flat tax tres nettement meilleure"
         }
       ]
     }
@@ -722,8 +737,10 @@ function PlusValueProContent() {
     y += 7;
     doc.text(`Impot CT (IR) : ${results.impotCT.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`Cotisations sociales CT : ${results.cotisationsSocialesCT.toLocaleString('fr-FR')} EUR`, 20, y);
-    y += 7;
+    if (results.cotisationsSocialesCT > 0) {
+      doc.text(`Cotisations sociales CT : ${results.cotisationsSocialesCT.toLocaleString('fr-FR')} EUR`, 20, y);
+      y += 7;
+    }
     doc.text(`PV nette imposable LT : ${results.pvNetteImposableLT.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
     doc.text(`Impot LT (12,8%) : ${results.impotLT.toLocaleString('fr-FR')} EUR`, 20, y);
@@ -1345,7 +1362,7 @@ function PlusValueProContent() {
                       )}
                       {results.psLT > 0 && (
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                          <span className="text-gray-600 ml-4">Prelevements sociaux LT (18,6%)</span>
+                          <span className="text-gray-600 ml-4">Prelevements sociaux LT (17,2%)</span>
                           <span className="font-semibold text-red-600">{formatEuros(results.psLT)}</span>
                         </div>
                       )}
@@ -1763,10 +1780,12 @@ function PlusValueProContent() {
                               <span className="text-sm text-gray-600">IR (TMI {formData.tmi}%)</span>
                               <span className="font-semibold text-red-600">{formatEuros(simCT.impotCT)}</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Cotisations (~42.5%)</span>
-                              <span className="font-semibold text-red-600">{formatEuros(simCT.cotisationsSocialesCT)}</span>
-                            </div>
+                            {simCT.cotisationsSocialesCT > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Cotisations</span>
+                                <span className="font-semibold text-red-600">{formatEuros(simCT.cotisationsSocialesCT)}</span>
+                              </div>
+                            )}
                             <div className="flex justify-between pt-2 border-t border-amber-200">
                               <span className="font-bold">Total</span>
                               <span className="font-bold text-red-700">{formatEuros(simCT.totalFiscalite)}</span>
@@ -1794,7 +1813,7 @@ function PlusValueProContent() {
                               <span className="font-semibold">{formatEuros(simLT.pvLongTerme)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Flat tax LT (31,4%)</span>
+                              <span className="text-sm text-gray-600">Flat tax LT (30%)</span>
                               <span className="font-semibold text-red-600">{formatEuros(simLT.impotLT + simLT.psLT)}</span>
                             </div>
                             <div className="flex justify-between pt-2 border-t border-green-200">

@@ -194,6 +194,35 @@ function calculerCotisationsSSI(benefice: number): number {
   return maladie + retraiteBase + retraiteCompl + invalidite + af + csgCrds + formation;
 }
 
+// Part CSG/CRDS des cotisations SSI (meme formule que calculerCotisationsSSI).
+// Necessaire pour l'ACRE, qui exonere 50% des cotisations SAUF la CSG/CRDS.
+function calculerCsgCrdsSSI(benefice: number): number {
+  if (benefice <= 0) return 0;
+
+  let maladie = 0;
+  if (benefice <= 16454) {
+    maladie = benefice * 0.005;
+  } else if (benefice <= PASS) {
+    maladie = benefice * 0.04;
+  } else {
+    maladie = benefice * 0.065;
+  }
+
+  const retraiteBase = Math.min(benefice, PASS) * 0.1775 + benefice * 0.006;
+  const retraiteCompl = Math.min(benefice, 4 * PASS) * 0.07;
+  const invalidite = Math.min(benefice, PASS) * 0.013;
+
+  let af = 0;
+  if (benefice > PASS * 1.1) {
+    af = benefice * 0.031;
+  } else if (benefice > PASS) {
+    af = benefice * 0.031 * ((benefice - PASS) / (PASS * 0.1));
+  }
+
+  const baseCsgTemp = benefice + maladie + retraiteBase + retraiteCompl + invalidite + af;
+  return baseCsgTemp * 0.097;
+}
+
 function calculerCotisationsSSIIteratif(remunerationNette: number): { cotisations: number; brut: number } {
   // Les cotisations SSI sont calculees sur le benefice (qui inclut les cotisations)
   // On cherche le benefice B tel que B - cotisations(B) = remunerationNette
@@ -326,11 +355,12 @@ function calculerStatut(
       let dividendesBruts = beneficeApresIS;
       let fiscDividendes = 0;
 
+      // La TOTALITE des dividendes supporte la flat tax (31,4%).
+      // La part > 10% du capital supporte EN PLUS les cotisations SSI.
       if (dividendesBruts > seuilSSIDividendes) {
         const partSSI = dividendesBruts - seuilSSIDividendes;
         const cotSSIDiv = calculerCotisationsSSI(partSSI) * 0.5; // Approximation
-        const partFlatTax = Math.min(dividendesBruts, seuilSSIDividendes);
-        fiscDividendes = cotSSIDiv + calculerFlatTax(partFlatTax);
+        fiscDividendes = cotSSIDiv + calculerFlatTax(dividendesBruts);
       } else {
         fiscDividendes = calculerFlatTax(dividendesBruts);
       }
@@ -369,11 +399,12 @@ function calculerStatut(
       const seuilSSIDividendes = capitalSocial * 0.10;
       let fiscDividendes = 0;
 
+      // La TOTALITE des dividendes supporte la flat tax (31,4%).
+      // La part > 10% du capital supporte EN PLUS les cotisations SSI.
       if (dividendesBruts > seuilSSIDividendes) {
         const partSSI = dividendesBruts - seuilSSIDividendes;
         const cotSSIDiv = calculerCotisationsSSI(partSSI) * 0.5;
-        const partFlatTax = Math.min(dividendesBruts, seuilSSIDividendes);
-        fiscDividendes = cotSSIDiv + calculerFlatTax(partFlatTax);
+        fiscDividendes = cotSSIDiv + calculerFlatTax(dividendesBruts);
       } else {
         fiscDividendes = calculerFlatTax(dividendesBruts);
       }
@@ -908,7 +939,7 @@ export default function ComparateurStatutJuridique() {
       doc.setFont('helvetica', 'normal');
       doc.text(`  Remuneration nette : ${Math.round(r.remunerationNette).toLocaleString('fr-FR')} EUR`, 20, y);
       y += 6;
-      doc.text(`  Cotisations sociales : ${Math.round(r.cotisationsSociales).toLocaleString('fr-FR')} EUR (${(r.tauxCotisations * 100).toFixed(1)}%)`, 20, y);
+      doc.text(`  Cotisations sociales : ${Math.round(r.cotisationsSociales).toLocaleString('fr-FR')} EUR (${r.tauxCotisations.toFixed(1)}%)`, 20, y);
       y += 6;
       doc.text(`  IS : ${Math.round(r.is).toLocaleString('fr-FR')} EUR | Dividendes nets : ${Math.round(r.dividendesNets).toLocaleString('fr-FR')} EUR`, 20, y);
       y += 6;
@@ -981,7 +1012,7 @@ export default function ComparateurStatutJuridique() {
       const resultatApresRemu = resultatBrut - coutTotal;
       const is = calculerIS(Math.max(0, resultatApresRemu));
       const divBruts = Math.max(0, resultatApresRemu - is);
-      const divNets = divBruts * 0.70;
+      const divNets = divBruts * 0.686; // net apres flat tax 31,4% (LFSS 2026)
       const ir = calculerIR(remuNetteCible);
 
       paliers.push({
@@ -1011,7 +1042,7 @@ export default function ComparateurStatutJuridique() {
       const { coutTotal } = calculerChargesAssimileSalarie(remuNette);
       const resultatIS = b - coutTotal;
       const is = calculerIS(Math.max(0, resultatIS));
-      const divNets = Math.max(0, resultatIS - is) * 0.70;
+      const divNets = Math.max(0, resultatIS - is) * 0.686; // net apres flat tax 31,4% (LFSS 2026)
       const ir2 = calculerIR(remuNette);
       const netIS = (remuNette - ir2) + divNets;
 
@@ -1028,7 +1059,11 @@ export default function ComparateurStatutJuridique() {
     if (resultatBrut <= 0) return null;
 
     const cotisationsNormales = calculerCotisationsSSI(resultatBrut);
-    const cotisationsACRE = cotisationsNormales * 0.5; // 50% reduction 1ere annee
+    // L'ACRE exonere 50% des cotisations SAUF la CSG/CRDS (qui reste due a 100%).
+    // On recalcule la part CSG/CRDS avec la meme formule que calculerCotisationsSSI.
+    const partCsgCrds = calculerCsgCrdsSSI(resultatBrut);
+    const partHorsCsgCrds = cotisationsNormales - partCsgCrds;
+    const cotisationsACRE = partHorsCsgCrds * 0.5 + partCsgCrds; // 50% reduction 1ere annee, hors CSG/CRDS
     const economie = cotisationsNormales - cotisationsACRE;
 
     return {

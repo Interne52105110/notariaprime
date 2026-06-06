@@ -87,6 +87,9 @@ interface ResultatViager {
   // ✅ Info crédirentiers
   nombreCredirentiers: number;
   creditentiersDetails: string[];
+
+  // ✅ Avertissements méthodologiques (espérance hors table, taux à 0, etc.)
+  avertissements: string[];
 }
 
 interface ResultatsComparatifs {
@@ -230,30 +233,72 @@ export default function ViagerCalculator() {
     dateNaissance: string,
     dateSignature: string,
     sexe: 'homme' | 'femme'
-  ): { esperanceVie: number; ageExact: number; generation: number; table: string } => {
+  ): { esperanceVie: number; ageExact: number; generation: number; table: string; horsTable: boolean; messageHorsTable?: string } => {
     const naissance = new Date(dateNaissance);
     const signature = new Date(dateSignature);
-    
+
     const diffMs = signature.getTime() - naissance.getTime();
     const ageExact = diffMs / (365.25 * 24 * 60 * 60 * 1000);
     const ageArrondi = Math.floor(ageExact);
-    
+
     const anneeNaissance = naissance.getFullYear();
     let generation = 1940;
     if (anneeNaissance >= 1955) generation = 1960;
     else if (anneeNaissance >= 1950) generation = 1955;
     else if (anneeNaissance >= 1945) generation = 1950;
     else if (anneeNaissance >= 1940) generation = 1945;
-    
+
     const table = sexe === 'homme' ? TGH05 : TGF05;
     const tableNom = sexe === 'homme' ? 'TGH05' : 'TGF05';
-    
-    if (!table[generation] || !table[generation][ageArrondi]) {
-      return { esperanceVie: 15, ageExact, generation, table: tableNom };
+    const tableGen = table[generation];
+
+    // Bornes de la table : âges 60 à 90 inclus
+    const AGE_MIN = 60;
+    const AGE_MAX = 90;
+
+    if (!tableGen) {
+      // Génération non couverte : on se rabat sur la plus proche disponible
+      return {
+        esperanceVie: 15,
+        ageExact,
+        generation,
+        table: tableNom,
+        horsTable: true,
+        messageHorsTable: `Génération ${generation} absente de la table ${tableNom}. Espérance forfaitaire de 15 ans appliquée : résultat purement indicatif, à valider par un homme de l'art.`,
+      };
     }
-    
-    const esperanceVie = table[generation][ageArrondi];
-    return { esperanceVie, ageExact, generation, table: tableNom };
+
+    if (tableGen[ageArrondi] !== undefined) {
+      return { esperanceVie: tableGen[ageArrondi], ageExact, generation, table: tableNom, horsTable: false };
+    }
+
+    // Âge hors des bornes de la table : extrapolation prudente plutôt que fallback muet.
+    if (ageArrondi < AGE_MIN) {
+      // Plus jeune que la table : on majore l'espérance du plus jeune âge connu
+      // d'environ 0,9 an par année manquante (pente moyenne observée dans les tables).
+      const base = tableGen[AGE_MIN];
+      const esperanceVie = base + (AGE_MIN - ageArrondi) * 0.9;
+      return {
+        esperanceVie,
+        ageExact,
+        generation,
+        table: tableNom,
+        horsTable: true,
+        messageHorsTable: `Âge ${ageArrondi} ans inférieur à la borne basse de la table (${AGE_MIN} ans). Espérance extrapolée (${esperanceVie.toFixed(1)} ans) : valeur indicative à confirmer.`,
+      };
+    }
+
+    // ageArrondi > AGE_MAX : on réduit l'espérance du plus grand âge connu sans descendre sous un plancher.
+    const base = tableGen[AGE_MAX];
+    const esperanceVie = Math.max(1, base - (ageArrondi - AGE_MAX) * 0.25);
+    return {
+      esperanceVie,
+      ageExact,
+      generation,
+      table: tableNom,
+      horsTable: true,
+      messageHorsTable: `Âge ${ageArrondi} ans supérieur à la borne haute de la table (${AGE_MAX} ans). Espérance extrapolée (${esperanceVie.toFixed(1)} ans) : valeur indicative à confirmer.`,
+    };
   };
 
   const calculerViager = (
@@ -266,44 +311,106 @@ export default function ViagerCalculator() {
     tauxPersonnalise: number,
     loyerTheorique: number,
     taxeFonciere: number,
-    payeurTaxe: 'acheteur' | 'vendeur' | 'partage'
+    payeurTaxe: 'acheteur' | 'vendeur' | 'partage',
+    typeOccupation: 'DUH' | 'usufruit' = 'DUH'
   ): ResultatViager => {
-    
-    // Espérance de vie moyenne pondérée si plusieurs crédirentiers
+
+    const avertissements: string[] = [];
+
+    // Taux technique : taux personnalisé saisi, ou défaut prudent de 3,5 %.
+    // Sécurise contre une saisie nulle/négative qui provoquerait une division par zéro
+    // dans les calculs actuariels (annuité).
+    const TAUX_DEFAUT = 3.5;
+    let tauxTechniquePct = tauxPersonnalise;
+    if (!Number.isFinite(tauxTechniquePct) || tauxTechniquePct <= 0) {
+      tauxTechniquePct = TAUX_DEFAUT;
+      avertissements.push(
+        `Taux technique invalide ou nul : application du taux par défaut de ${TAUX_DEFAUT} % pour les calculs actuariels.`
+      );
+    }
+
+    // Facteur d'annuité (capitalisation actuarielle) sur n années au taux i :
+    // facteur = (1 - (1+i)^-n) / i. La rente mensuelle = capital / (facteur × 12).
+    const facteurAnnuite = (n: number): number => {
+      const i = tauxTechniquePct / 100;
+      // i > 0 garanti par le garde-fou ci-dessus.
+      return (1 - Math.pow(1 + i, -n)) / i;
+    };
+
+    // Espérance de vie selon le nombre de têtes
     let esperanceVieMoyenne = 0;
     let ageExactPrincipal = 0;
     let generationPrincipale = 0;
     let tableUtilisee = '';
-    
+
     if (creditentiers.length === 1) {
       const info = obtenirEsperanceVie(creditentiers[0].dateNaissance, dateSignature, creditentiers[0].sexe);
       esperanceVieMoyenne = info.esperanceVie;
       ageExactPrincipal = info.ageExact;
       generationPrincipale = info.generation;
       tableUtilisee = info.table;
+      if (info.horsTable && info.messageHorsTable) avertissements.push(info.messageHorsTable);
     } else {
-      // Calcul sur tête conjointe (moyenne pondérée)
-      let sommeEsperancePonderee = 0;
+      // Viager sur plusieurs têtes avec réversion : la rente s'éteint au DERNIER survivant.
+      // L'espérance pertinente est donc celle du dernier survivant, supérieure à chaque
+      // espérance individuelle (et non une moyenne pondérée par le % de rente).
+      const esperances: number[] = [];
       creditentiers.forEach(cr => {
         const info = obtenirEsperanceVie(cr.dateNaissance, dateSignature, cr.sexe);
-        sommeEsperancePonderee += info.esperanceVie * (cr.pourcentageRente / 100);
+        esperances.push(info.esperanceVie);
+        if (info.horsTable && info.messageHorsTable) avertissements.push(info.messageHorsTable);
       });
-      esperanceVieMoyenne = sommeEsperancePonderee;
-      
+
+      // Approximation du dernier survivant. En supposant des durées de vie
+      // approximativement indépendantes, l'espérance du dernier survivant est
+      // supérieure au max des espérances individuelles. On retient :
+      //   E(max) ≈ max(e_i) + 0,5 × (somme des autres espérances rapportée au max)
+      // bornée pour rester actuariellement cohérente.
+      const eMax = Math.max(...esperances);
+      // Majoration : 50 % de la moyenne des espérances « hors plus longue »,
+      // plafonnée à eMax (la survie jointe ne double jamais l'espérance).
+      const esperancesSansMax = [...esperances];
+      esperancesSansMax.splice(esperances.indexOf(eMax), 1);
+      const moyenneAutres = esperancesSansMax.length > 0
+        ? esperancesSansMax.reduce((a, b) => a + b, 0) / esperancesSansMax.length
+        : 0;
+      const majoration = Math.min(0.5 * moyenneAutres, eMax);
+      esperanceVieMoyenne = eMax + majoration;
+
       // Pour affichage, prendre le premier
       const infoPrincipal = obtenirEsperanceVie(creditentiers[0].dateNaissance, dateSignature, creditentiers[0].sexe);
       ageExactPrincipal = infoPrincipal.ageExact;
       generationPrincipale = infoPrincipal.generation;
-      tableUtilisee = `Multi-têtes (${creditentiers.length})`;
+      tableUtilisee = `Dernier survivant (${creditentiers.length} têtes)`;
     }
-    
-    // Calculer décote DUH avec méthode précise basée sur loyer
+
+    // Calculer décote DUH
     let decoteDUH = 0;
     let valeurDUH = 0;
-    
+
     if (typeViager === 'occupe' && loyerTheorique > 0) {
-      // Méthode précise : Valeur DUH = loyer annuel × espérance de vie
-      valeurDUH = (loyerTheorique * 12) * esperanceVieMoyenne;
+      // Valeur économique de l'occupation = loyer annuel capitalisé sur l'espérance de vie.
+      // On capitalise à valeur actuelle (le bailleur perçoit les loyers étalés dans le temps)
+      // plutôt que de sommer des loyers non actualisés, ce qui surévaluait l'occupation.
+      const valeurUsufruit = (loyerTheorique * 12) * facteurAnnuite(esperanceVieMoyenne);
+
+      // Un droit d'usage et d'habitation (DUH) est plus restreint qu'un usufruit
+      // (pas de droit de louer, usage personnel) : en pratique notariale il vaut
+      // de l'ordre de 60 % de la valeur de l'usufruit. L'usufruit, lui, vaut 100 %.
+      const COEFF_DUH = 0.6;
+      valeurDUH = typeOccupation === 'DUH' ? valeurUsufruit * COEFF_DUH : valeurUsufruit;
+
+      // Garde-fou : la valeur d'occupation ne doit jamais rendre la valeur occupée
+      // (ni le capital restant) absurde ou négative. On plafonne la décote à 70 %
+      // de la valeur du bien, plafond prudent pour un viager occupé.
+      const PLAFOND_DECOTE = 0.7;
+      const valeurDUHMax = valeurBien * PLAFOND_DECOTE;
+      if (valeurDUH > valeurDUHMax) {
+        valeurDUH = valeurDUHMax;
+        avertissements.push(
+          `Valeur d'occupation plafonnée à ${(PLAFOND_DECOTE * 100).toFixed(0)} % de la valeur du bien (loyer/espérance très élevés). Vérifiez le loyer théorique saisi.`
+        );
+      }
       decoteDUH = (valeurDUH / valeurBien) * 100;
     } else if (typeViager === 'occupe') {
       // Méthode forfaitaire si pas de loyer indiqué
@@ -312,79 +419,98 @@ export default function ViagerCalculator() {
       else if (ageExactPrincipal < 80) decoteDUH = 40;
       else if (ageExactPrincipal < 85) decoteDUH = 35;
       else decoteDUH = 30;
-      
+
+      // Un DUH étant plus restreint que l'usufruit, on applique le coefficient sur
+      // le barème forfaitaire (qui exprime une valeur de type usufruit).
+      if (typeOccupation === 'DUH') decoteDUH = decoteDUH * 0.6;
+
       valeurDUH = valeurBien * (decoteDUH / 100);
     }
-    
+
     const valeurOccupee = typeViager === 'occupe' ? valeurBien - valeurDUH : valeurBien;
-    const capitalRestant = valeurOccupee - bouquet;
+    let capitalRestant = valeurOccupee - bouquet;
+
+    // Garde-fou : un bouquet supérieur à la valeur occupée rendrait le capital
+    // (et donc la rente) négatif. On borne à zéro et on avertit.
+    if (capitalRestant < 0) {
+      avertissements.push(
+        "Le bouquet dépasse la valeur occupée du bien : aucun capital ne reste à convertir en rente (rente ramenée à 0)."
+      );
+      capitalRestant = 0;
+    }
     
+    // Garde-fou : espérance de vie strictement positive (les divisions linéaires
+    // l'utilisent comme dénominateur).
+    const esperanceCalcul = esperanceVieMoyenne > 0 ? esperanceVieMoyenne : 1;
+
+    // Rente mensuelle actuarielle (Daubry) : on capitalise le capital sur l'espérance
+    // de vie au taux technique via le facteur d'annuité. Distinct de la division linéaire.
+    const renteActuarielle = capitalRestant / (facteurAnnuite(esperanceCalcul) * 12);
+    // Rente mensuelle « simple » : pure division linéaire, sans actualisation.
+    const renteSimple = capitalRestant / (esperanceCalcul * 12);
+
     // Calcul selon méthode choisie
     let renteViagere = 0;
     let tauxTechnique = 0;
     let nomMethode = '';
     let descriptionMethode = '';
-    
+
     switch (methode) {
       case 'simple':
-        renteViagere = capitalRestant / (esperanceVieMoyenne * 12);
+        renteViagere = renteSimple;
         tauxTechnique = 0;
         nomMethode = 'Simple (Division Linéaire)';
-        descriptionMethode = 'Capital / (espérance de vie × 12 mois)';
+        descriptionMethode = 'Capital / (espérance de vie × 12 mois), sans actualisation';
         break;
-        
+
       case 'daubry':
-        const coeffDaubry = 1 / esperanceVieMoyenne;
-        const tauxDaubry = coeffDaubry * 100;
-        renteViagere = (capitalRestant * coeffDaubry) / 12;
-        tauxTechnique = tauxDaubry;
-        nomMethode = 'Daubry (Référence Marché)';
-        descriptionMethode = 'Barème Daubry basé sur pratique notariale';
+        // Méthode Daubry : capitalisation actuarielle du capital sur l'espérance de vie,
+        // au taux technique. Le barème Daubry repose sur une capitalisation actuarielle
+        // et NON sur une simple division linéaire.
+        renteViagere = renteActuarielle;
+        tauxTechnique = tauxTechniquePct;
+        nomMethode = 'Daubry (Capitalisation actuarielle)';
+        descriptionMethode = `Capitalisation actuarielle du capital au taux ${tauxTechniquePct}% (barème de type Daubry)`;
         break;
-        
+
       case 'actuarielle':
-        const tauxActu = tauxPersonnalise / 100;
-        const facteurActu = ((Math.pow(1 + tauxActu, esperanceVieMoyenne) - 1) / 
-                           (tauxActu * Math.pow(1 + tauxActu, esperanceVieMoyenne)));
-        renteViagere = (capitalRestant / facteurActu) / 12;
-        tauxTechnique = tauxPersonnalise;
+        renteViagere = renteActuarielle;
+        tauxTechnique = tauxTechniquePct;
         nomMethode = 'Actuarielle Variable';
-        descriptionMethode = `Calcul actuariel au taux ${tauxPersonnalise}%`;
+        descriptionMethode = `Calcul actuariel au taux ${tauxTechniquePct}%`;
         break;
-        
+
       case 'fiscale':
         let tauxFiscal = 0.70;
         if (ageExactPrincipal < 50) tauxFiscal = 0.70;
         else if (ageExactPrincipal < 60) tauxFiscal = 0.50;
         else if (ageExactPrincipal < 70) tauxFiscal = 0.40;
         else tauxFiscal = 0.30;
-        
-        renteViagere = (capitalRestant * tauxFiscal) / (esperanceVieMoyenne * 12);
+
+        renteViagere = (capitalRestant * tauxFiscal) / (esperanceCalcul * 12);
         tauxTechnique = tauxFiscal * 100;
         nomMethode = 'Fiscale (Art. 669 CGI)';
         descriptionMethode = `Application barème fiscal (${(tauxFiscal * 100).toFixed(0)}% imposable)`;
         break;
-        
-      case 'moyenne':
-        const r1 = capitalRestant / (esperanceVieMoyenne * 12);
-        const r2 = (capitalRestant * (1 / esperanceVieMoyenne)) / 12;
-        const tauxActuMoy = tauxPersonnalise / 100;
-        const facteurActuMoy = ((Math.pow(1 + tauxActuMoy, esperanceVieMoyenne) - 1) / 
-                                (tauxActuMoy * Math.pow(1 + tauxActuMoy, esperanceVieMoyenne)));
-        const r3 = (capitalRestant / facteurActuMoy) / 12;
-        
+
+      case 'moyenne': {
+        const r1 = renteSimple;        // Simple (division linéaire)
+        const r2 = renteActuarielle;   // Daubry (capitalisation actuarielle) — distinct de r1
+        const r3 = renteActuarielle;   // Actuarielle (même base actuarielle)
+
         let tauxFiscalMoy = 0.70;
         if (ageExactPrincipal < 50) tauxFiscalMoy = 0.70;
         else if (ageExactPrincipal < 60) tauxFiscalMoy = 0.50;
         else if (ageExactPrincipal < 70) tauxFiscalMoy = 0.40;
         else tauxFiscalMoy = 0.30;
-        const r4 = (capitalRestant * tauxFiscalMoy) / (esperanceVieMoyenne * 12);
-        
+        const r4 = (capitalRestant * tauxFiscalMoy) / (esperanceCalcul * 12);
+
         renteViagere = (r1 * 0.20) + (r2 * 0.40) + (r3 * 0.30) + (r4 * 0.10);
-        tauxTechnique = tauxPersonnalise;
+        tauxTechnique = tauxTechniquePct;
         nomMethode = 'Moyenne Pondérée';
         descriptionMethode = 'Moyenne: 40% Daubry + 30% Actuarielle + 20% Simple + 10% Fiscale';
         break;
+      }
     }
     
     // Calculs finaux
@@ -438,7 +564,8 @@ export default function ViagerCalculator() {
       tauxTechniqueApplique: Math.round(tauxTechnique * 10) / 10,
       descriptionMethode,
       nombreCredirentiers: creditentiers.length,
-      creditentiersDetails
+      creditentiersDetails,
+      avertissements
     };
   };
 
@@ -466,7 +593,8 @@ export default function ViagerCalculator() {
       formData.tauxTechniquePersonnalise || 4.5,
       loyerTheo,
       taxe,
-      formData.payeurTaxeFonciere
+      formData.payeurTaxeFonciere,
+      formData.typeOccupation || 'DUH'
     );
   }, [showResults, formData]);
 
@@ -487,7 +615,7 @@ export default function ViagerCalculator() {
       resultats[m] = calculerViager(
         valeur, bouq, formData.typeViager, formData.creditentiers,
         formData.dateSignature, m, formData.tauxTechniquePersonnalise || 4.5,
-        loyerTheo, taxe, formData.payeurTaxeFonciere
+        loyerTheo, taxe, formData.payeurTaxeFonciere, formData.typeOccupation || 'DUH'
       );
     });
     
@@ -511,17 +639,20 @@ export default function ViagerCalculator() {
       bouquetActuel: calculerViager(
         valeur, bouqActuel, formData.typeViager, formData.creditentiers,
         formData.dateSignature, formData.methodeCalcul, 
-        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere
+        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere,
+        formData.typeOccupation || 'DUH'
       ),
       bouquetTiers: calculerViager(
         valeur, bouqTiers, formData.typeViager, formData.creditentiers,
         formData.dateSignature, formData.methodeCalcul,
-        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere
+        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere,
+        formData.typeOccupation || 'DUH'
       ),
       bouquetZero: calculerViager(
         valeur, bouqZero, formData.typeViager, formData.creditentiers,
         formData.dateSignature, formData.methodeCalcul,
-        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere
+        formData.tauxTechniquePersonnalise || 4.5, loyerTheo, taxe, formData.payeurTaxeFonciere,
+        formData.typeOccupation || 'DUH'
       )
     };
   }, [formData, showResults]);
@@ -1426,7 +1557,19 @@ export default function ViagerCalculator() {
           {/* Résultats */}
           {showResults && resultat && (
             <div ref={resultsRef} className="space-y-8">
-              
+
+              {/* Avertissements méthodologiques */}
+              {resultat.avertissements && resultat.avertissements.length > 0 && (
+                <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-5">
+                  <p className="font-bold text-amber-800 mb-2">⚠ Avertissements</p>
+                  <ul className="list-disc list-inside space-y-1 text-amber-900 text-sm">
+                    {resultat.avertissements.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Résultats principaux */}
               {!modeComparaison && (
                 <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">

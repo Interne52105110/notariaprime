@@ -20,6 +20,7 @@ interface Donataire {
   handicap: boolean;
   typeDon: 'bien' | 'argent' | 'argent-residence';
   ageDonateur: string;
+  ageDonataire: string;
 }
 
 interface Demembrement {
@@ -149,6 +150,24 @@ function calculerValeurUsufruit(age: number): number {
   if (age <= 80) return 30;
   if (age <= 90) return 20;
   return 10;
+}
+
+// Applique le barème progressif sur une assiette taxable donnée (après abattement)
+function appliquerBareme(
+  base: number,
+  tranches: Array<{ max: number; taux: number }>
+): number {
+  let droits = 0;
+  let reste = Math.max(0, base);
+  let trancheInf = 0;
+  for (const tranche of tranches) {
+    if (reste <= 0) break;
+    const montantTranche = Math.min(reste, tranche.max - trancheInf);
+    droits += montantTranche * (tranche.taux / 100);
+    reste -= montantTranche;
+    trancheInf = tranche.max;
+  }
+  return droits;
 }
 
 // Composant FAQ
@@ -338,7 +357,7 @@ function FAQSection() {
 
 function DonationCalculatorContent() {
   const [donataires, setDonataires] = useState<Donataire[]>([
-    { id: 1, nom: 'Bénéficiaire 1', lien: 'enfant', montant: '', handicap: false, typeDon: 'bien', ageDonateur: '' }
+    { id: 1, nom: 'Bénéficiaire 1', lien: 'enfant', montant: '', handicap: false, typeDon: 'bien', ageDonateur: '', ageDonataire: '' }
   ]);
 
   const [demembrement, setDemembrement] = useState<Demembrement>({
@@ -371,7 +390,8 @@ function DonationCalculatorContent() {
       montant: '', 
       handicap: false,
       typeDon: 'bien',
-      ageDonateur: ''
+      ageDonateur: '',
+      ageDonataire: ''
     }]);
   };
 
@@ -415,101 +435,117 @@ function DonationCalculatorContent() {
       }
     }
 
-    // Abattement de base
-    let abattementDisponible = BAREME_SUCCESSION[donataire.lien].abattement;
-    
-    // Don familial de somme d'argent (art. 790 G) - 31 865 €
+    // ---- Exonérations spécifiques (s'imputent sur la valeur, hors barème) ----
+    // Bénéficiaires éligibles aux dons familiaux : descendants, ou à défaut neveux/nièces
+    const estDescendant = ['enfant', 'petit-enfant', 'arriere-petit-enfant'].includes(donataire.lien);
+    const eligibleDonFamilial = estDescendant || donataire.lien === 'neveu-niece';
+    const ageDonataireNum = parseInt(donataire.ageDonataire);
+    const donataireMajeur = !isNaN(ageDonataireNum) && ageDonataireNum >= 18;
+
+    // Don familial de somme d'argent (art. 790 G) - 31 865 € : donateur < 80 ans ET donataire majeur
     let donFamilialArgent = 0;
     if (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') {
       const ageDonateur = parseInt(donataire.ageDonateur);
-      const donataireMajeur = ['enfant', 'petit-enfant', 'arriere-petit-enfant', 'neveu-niece'].includes(donataire.lien);
-      
-      if (ageDonateur && ageDonateur < 80 && donataireMajeur) {
+      if (!isNaN(ageDonateur) && ageDonateur < 80 && eligibleDonFamilial && donataireMajeur) {
         donFamilialArgent = 31865;
-        abattementDisponible += donFamilialArgent;
-      }
-    }
-    
-    // Exonération résidence principale 2025-2026 (art. 790 A bis) - 100 000 €
-    let exonerationResidence = 0;
-    if (donataire.typeDon === 'argent-residence') {
-      const donataireMajeur = ['enfant', 'petit-enfant', 'arriere-petit-enfant', 'neveu-niece'].includes(donataire.lien);
-      if (donataireMajeur) {
-        exonerationResidence = 100000;
-        abattementDisponible += exonerationResidence;
       }
     }
 
-    // Donation antérieure dans les 15 ans
+    // Don familial pour le logement (art. 790 A bis, loi de finances 2025) :
+    // 100 000 € par donateur, 300 000 € par donataire, réservé descendants
+    // (ou neveux/nièces à défaut de descendance). Affectation logement neuf / rénovation.
+    let exonerationResidence = 0;
+    if (donataire.typeDon === 'argent-residence' && eligibleDonFamilial) {
+      // Plafond par donateur (100 000 €) ; le plafond global 300 000 €/donataire
+      // ne mord que si plusieurs donateurs interviennent (un seul ici).
+      const plafondParDonateur = 100000;
+      const plafondParDonataire = 300000;
+      exonerationResidence = Math.min(plafondParDonateur, plafondParDonataire);
+    }
+
+    // Valeur taxable nette des exonérations spécifiques (790 G / 790 A bis)
+    const exonerationsSpecifiques = donFamilialArgent + exonerationResidence;
+    const valeurApresExo = Math.max(0, valeurTaxable - exonerationsSpecifiques);
+
+    // ---- Abattement personnel (art. 779) + handicap ----
+    let abattementPersonnel = BAREME_SUCCESSION[donataire.lien].abattement;
+    if (donataire.handicap) {
+      abattementPersonnel += 159325;
+    }
+
+    // ---- Rappel fiscal des donations antérieures de moins de 15 ans (art. 784 CGI) ----
+    // L'abattement déjà consommé n'est plus disponible ET le barème progressif
+    // se réapplique comme si la nouvelle donation se cumulait à l'antérieure.
+    let donationsAnterieures = 0;
     if (donationAnterieure && dateDerniereDonation) {
       const dateAnt = new Date(dateDerniereDonation);
       const maintenant = new Date();
       const diffAnnees = (maintenant.getTime() - dateAnt.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-      
       if (diffAnnees < 15) {
         const montantAnt = parseFloat(donationAnterieure.replace(/\s/g, ''));
-        // On réduit d'abord l'abattement général, pas les exonérations spécifiques
-        const abattementBase = BAREME_SUCCESSION[donataire.lien].abattement;
-        const reductionAbattement = Math.min(montantAnt, abattementBase);
-        abattementDisponible -= reductionAbattement;
+        if (!isNaN(montantAnt)) donationsAnterieures = Math.max(0, montantAnt);
       }
     }
 
-    // Abattement handicap
-    if (donataire.handicap) {
-      abattementDisponible += 159325;
-    }
+    // Abattement résiduel : ce qu'il reste après imputation des donations antérieures
+    const abattementResiduel = Math.max(0, abattementPersonnel - donationsAnterieures);
+    // Part de l'abattement déjà consommée par les donations antérieures
+    const abattementConsommeAnt = Math.min(abattementPersonnel, donationsAnterieures);
 
-    const baseImposable = Math.max(0, valeurTaxable - abattementDisponible);
-    
-    // Calcul des droits par tranches
     const tranches = BAREME_SUCCESSION[donataire.lien].tranches;
-    let droits = 0;
-    let reste = baseImposable;
-    let trancheInf = 0;
-    const detailTranches: Array<{tranche: string; montant: number; taux: number; impot: number}> = [];
 
-    for (const tranche of tranches) {
-      if (reste <= 0) break;
-      
-      const montantTranche = Math.min(reste, tranche.max - trancheInf);
-      const impotTranche = montantTranche * (tranche.taux / 100);
-      droits += impotTranche;
-      
-      if (montantTranche > 0) {
-        detailTranches.push({
-          tranche: tranche.max === Infinity 
-            ? `Au-delà de ${trancheInf.toLocaleString('fr-FR')} €`
-            : `${trancheInf.toLocaleString('fr-FR')} € - ${tranche.max.toLocaleString('fr-FR')} €`,
-          montant: montantTranche,
-          taux: tranche.taux,
-          impot: impotTranche
-        });
+    // Base taxable de la nouvelle donation (après abattement résiduel)
+    const baseImposable = Math.max(0, valeurApresExo - abattementResiduel);
+    // Base taxable de l'antérieure (après la part d'abattement qu'elle a consommée)
+    const baseAnterieureTaxable = Math.max(0, donationsAnterieures - abattementConsommeAnt);
+
+    // Droits = barème sur (antérieure + nouvelle) − barème sur l'antérieure seule.
+    // Les premières tranches basses, déjà « utilisées » par l'antérieure, ne sont
+    // pas réappliquées à la nouvelle donation.
+    const droitsCumul = appliquerBareme(baseAnterieureTaxable + baseImposable, tranches);
+    const droitsAnterieurs = appliquerBareme(baseAnterieureTaxable, tranches);
+    const droits = Math.max(0, droitsCumul - droitsAnterieurs);
+
+    // Détail des tranches imposées à la nouvelle donation (au-dessus de la base antérieure)
+    const detailTranches: Array<{tranche: string; montant: number; taux: number; impot: number}> = [];
+    {
+      let reste = baseImposable;
+      let position = baseAnterieureTaxable; // on démarre au-dessus de l'antérieure déjà taxée
+      let trancheInf = 0;
+      for (const tranche of tranches) {
+        if (reste <= 0) break;
+        // largeur de la tranche encore disponible au-dessus de la position courante
+        const dispoDansTranche = tranche.max - Math.max(trancheInf, position);
+        if (dispoDansTranche > 0) {
+          const montantTranche = Math.min(reste, dispoDansTranche);
+          const impotTranche = montantTranche * (tranche.taux / 100);
+          detailTranches.push({
+            tranche: tranche.max === Infinity
+              ? `Au-delà de ${trancheInf.toLocaleString('fr-FR')} €`
+              : `${trancheInf.toLocaleString('fr-FR')} € - ${tranche.max.toLocaleString('fr-FR')} €`,
+            montant: montantTranche,
+            taux: tranche.taux,
+            impot: impotTranche
+          });
+          reste -= montantTranche;
+        }
+        trancheInf = tranche.max;
       }
-      
-      reste -= montantTranche;
-      trancheInf = tranche.max;
     }
 
     const tauxMoyen = baseImposable > 0 ? (droits / baseImposable) * 100 : 0;
     const netApresImpot = montantBase - droits;
-    const droitsSansAbattement = baseImposable + abattementDisponible;
+
+    // Abattement total affiché (personnel résiduel + exonérations spécifiques)
+    const abattementDisponible = abattementResiduel + exonerationsSpecifiques;
+
+    // Économie d'abattement = droits dus SANS abattement ni exonération − droits dus AVEC.
+    // (à donations antérieures inchangées, donc même rappel fiscal)
     let economieAbattement = 0;
-    
-    if (droitsSansAbattement > 0) {
-      let droitsSansAb = 0;
-      let resteSansAb = droitsSansAbattement;
-      let trancheInfSansAb = 0;
-      
-      for (const tranche of tranches) {
-        if (resteSansAb <= 0) break;
-        const montantTrancheSansAb = Math.min(resteSansAb, tranche.max - trancheInfSansAb);
-        droitsSansAb += montantTrancheSansAb * (tranche.taux / 100);
-        resteSansAb -= montantTrancheSansAb;
-        trancheInfSansAb = tranche.max;
-      }
-      
-      economieAbattement = droitsSansAb - droits;
+    {
+      const droitsSansAbCumul = appliquerBareme(baseAnterieureTaxable + valeurTaxable, tranches);
+      const droitsSansAb = Math.max(0, droitsSansAbCumul - droitsAnterieurs);
+      economieAbattement = Math.max(0, droitsSansAb - droits);
     }
 
     return {
@@ -1154,8 +1190,8 @@ function DonationCalculatorContent() {
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
                         >
                           <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
-                          <option value="argent">Somme d'argent → Abattement +31 865€ si donateur &lt; 80 ans</option>
-                          <option value="argent-residence">Somme d'argent résidence principale → Abattement +131 865€ (2025-2026)</option>
+                          <option value="argent">Somme d'argent → Don familial +31 865€ (donateur &lt; 80 ans, donataire majeur)</option>
+                          <option value="argent-residence">Somme d'argent pour le logement → Exo. jusqu'à 100 000€/donateur (2025)</option>
                         </select>
                         <p className="text-xs text-gray-600 mt-1">
                           {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
@@ -1168,26 +1204,48 @@ function DonationCalculatorContent() {
 
                   {activeTab === 'donation' && (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') && (
                     <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Âge du donateur (pour don familial de somme d'argent)
-                      </label>
-                      <input
-                        type="number"
-                        value={donataire.ageDonateur}
-                        onChange={(e) => {
-                          const newDonataires = [...donataires];
-                          newDonataires[index].ageDonateur = e.target.value;
-                          setDonataires(newDonataires);
-                        }}
-                        placeholder="65"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <p className="text-xs text-blue-700 mt-2">
-                        ⚠️ Le donateur doit avoir <strong>moins de 80 ans</strong> pour bénéficier du don familial de somme d'argent (+31 865€)
-                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Âge du donateur
+                          </label>
+                          <input
+                            type="number"
+                            value={donataire.ageDonateur}
+                            onChange={(e) => {
+                              const newDonataires = [...donataires];
+                              newDonataires[index].ageDonateur = e.target.value;
+                              setDonataires(newDonataires);
+                            }}
+                            placeholder="65"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Âge du donataire (bénéficiaire)
+                          </label>
+                          <input
+                            type="number"
+                            value={donataire.ageDonataire}
+                            onChange={(e) => {
+                              const newDonataires = [...donataires];
+                              newDonataires[index].ageDonataire = e.target.value;
+                              setDonataires(newDonataires);
+                            }}
+                            placeholder="25"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      {donataire.typeDon === 'argent' && (
+                        <p className="text-xs text-blue-700 mt-2">
+                          ⚠️ Don familial de somme d'argent (art. 790 G, +31 865€) : donateur <strong>&lt; 80 ans</strong> et donataire <strong>majeur (≥ 18 ans)</strong>. Réservé aux descendants (ou neveux/nièces à défaut de descendance).
+                        </p>
+                      )}
                       {donataire.typeDon === 'argent-residence' && (
                         <p className="text-xs text-green-700 mt-2">
-                          ✅ <strong>Exonération résidence principale 2025-2026 :</strong> +100 000€ si affecté à l'achat d'un logement neuf ou travaux de rénovation énergétique (utilisation sous 6 mois, conservation 5 ans)
+                          ✅ <strong>Don familial pour le logement (art. 790 A bis, 2025) :</strong> exonéré jusqu'à <strong>100 000 €/donateur</strong> et <strong>300 000 €/donataire</strong>, affecté à l'achat d'un logement neuf ou à des travaux de rénovation énergétique (utilisation sous 6 mois, conservation 5 ans). Réservé aux descendants (ou neveux/nièces à défaut de descendance). Cumulable avec le don familial 790 G.
                         </p>
                       )}
                     </div>

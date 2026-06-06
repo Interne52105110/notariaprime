@@ -85,7 +85,7 @@ interface ResultatSuccession {
 
 const ABATTEMENT_990I = 152500; // par beneficiaire
 const ABATTEMENT_757B = 30500;  // global partage
-const TAUX_PS = 0.186;          // 18.6% (LFSS 2026 : CSG 10.6% + CRDS 0.5% + PS 4.5% + CFA 3%)
+const TAUX_PS = 0.172;          // 17,2% (CSG 9,2% + CRDS 0,5% + prelevement de solidarite 7,5%). La hausse a 18,6% (LFSS 2026) ne concerne PAS l'assurance-vie.
 
 const TRANCHES_990I = [
   { max: 700000, taux: 0.20 },
@@ -168,7 +168,9 @@ function calculerRachat(
   montantRachat: number,
   situation: SituationFamiliale,
   tmi: number,
-  encoursTotalAV: number
+  // Cumul des primes versees NETTES de rachats depuis le 27/09/2017 (et non l'encours / valeur de rachat).
+  // C'est ce montant que l'art. 125-0 A compare au seuil de 150 000 EUR.
+  totalPrimesNettesApres2017: number
 ): ResultatRachat | null {
   if (valeurContrat <= 0 || primesVersees <= 0 || montantRachat <= 0) return null;
 
@@ -193,10 +195,18 @@ function calculerRachat(
   let tauxPFUMoyen: number;
 
   if (anciennete === 'plus8') {
-    // Primes avant 27/09/2017 : 7.5%
+    // Primes avant 27/09/2017 : 7,5%
     const tauxAvant = 0.075;
-    // Primes apres 27/09/2017 : 7.5% si encours < 150k, sinon 12.8%
-    const tauxApres = encoursTotalAV <= 150000 ? 0.075 : 0.128;
+    // Primes apres 27/09/2017 (art. 125-0 A, 1 quater) : taux applique PAR FRACTION de produits.
+    // 7,5% sur la fraction de produits afferente aux primes nettes <= 150 000 EUR,
+    // 12,8% sur la fraction afferente aux primes nettes au-dela de 150 000 EUR.
+    // Le seuil de 150 000 EUR porte sur le CUMUL DES PRIMES VERSEES NETTES, pas sur l'encours.
+    // Approximation par tranche proportionnelle : on ventile les produits "apres 2017" au prorata
+    // de la part des primes <= 150k vs > 150k (faute de detail prime par prime).
+    const primesNettes = Math.max(0, totalPrimesNettesApres2017);
+    const partPrimesSousSeuil = primesNettes > 0 ? Math.min(primesNettes, 150000) / primesNettes : 1;
+    const partPrimesAuDela = 1 - partPrimesSousSeuil;
+    const tauxApres = partPrimesSousSeuil * 0.075 + partPrimesAuDela * 0.128;
     tauxPFUMoyen = partAvant2017 * tauxAvant + partApres2017 * tauxApres;
   } else if (anciennete === 'entre4et8') {
     const tauxAvant = 0.15;
@@ -289,7 +299,13 @@ function calculerSuccession(
   const totalPourcentage = beneficiaires.reduce((sum, b) => sum + parseNumber(b.pourcentage), 0);
   if (totalPourcentage <= 0) return null;
 
-  const abattement757BParBenef = ABATTEMENT_757B / beneficiaires.filter(b => b.lien !== 'conjoint').length || ABATTEMENT_757B;
+  // Art. 757 B : l'abattement global de 30 500 EUR se repartit entre les beneficiaires
+  // NON EXONERES (hors conjoint/PACS) AU PRORATA de leurs parts dans les primes taxables,
+  // et non a parts egales. On calcule d'abord l'assiette totale des primes taxables non exonerees.
+  const totalPrimesApres70NonExo = beneficiaires.reduce((sum, b) => {
+    if (b.lien === 'conjoint') return sum;
+    return sum + primesApres70 * (parseNumber(b.pourcentage) / 100);
+  }, 0);
 
   const resultsBeneficiaires: ResultatBeneficiaire[] = beneficiaires.map(b => {
     const pct = parseNumber(b.pourcentage) / 100;
@@ -323,9 +339,12 @@ function calculerSuccession(
     const baseTaxable990I = Math.max(0, partAvant70Benef - abattement990I);
     const droits990I = calculerDroits990I(baseTaxable990I);
 
-    // Art. 757 B (apres 70 ans) - abattement global partage
-    const nbBenefNonConjoint = beneficiaires.filter(bb => bb.lien !== 'conjoint').length;
-    const abattement757B = Math.min(primesApres70Benef, ABATTEMENT_757B / nbBenefNonConjoint);
+    // Art. 757 B (apres 70 ans) - abattement global de 30 500 EUR reparti AU PRORATA
+    // de la part de chaque beneficiaire non exonere dans les primes taxables.
+    const quotePartAbattement = totalPrimesApres70NonExo > 0
+      ? ABATTEMENT_757B * (primesApres70Benef / totalPrimesApres70NonExo)
+      : 0;
+    const abattement757B = Math.min(primesApres70Benef, quotePartAbattement);
     const baseTaxable757B = Math.max(0, primesApres70Benef - abattement757B);
 
     // Pour art. 757 B, on applique le bareme classique selon le lien
@@ -430,7 +449,7 @@ function FAQSection() {
         },
         {
           q: "Quel est l'interet fiscal apres 8 ans ?",
-          r: "Apres 8 ans de detention, l'assurance-vie offre ses meilleurs avantages :\n\n**Abattement annuel sur les gains :**\n- 4 600 EUR pour une personne seule\n- 9 200 EUR pour un couple\n\n**Taux d'imposition reduit :**\n- 7,5 % sur les produits (primes versees avant le 27/09/2017)\n- 7,5 % si encours total < 150 000 EUR (primes apres 27/09/2017)\n- 12,8 % au-dela de 150 000 EUR d'encours\n\nCes taux sont nettement inferieurs au bareme progressif de l'IR pour les TMI elevees.",
+          r: "Apres 8 ans de detention, l'assurance-vie offre ses meilleurs avantages :\n\n**Abattement annuel sur les gains :**\n- 4 600 EUR pour une personne seule\n- 9 200 EUR pour un couple\n\n**Taux d'imposition reduit :**\n- 7,5 % sur les produits (primes versees avant le 27/09/2017)\n- 7,5 % sur la fraction de produits afferente aux primes versees nettes <= 150 000 EUR (primes apres 27/09/2017)\n- 12,8 % sur la fraction afferente aux primes au-dela de 150 000 EUR\n\nLe seuil de 150 000 EUR s'apprecie sur le cumul des primes versees nettes de rachats (tous contrats), et non sur l'encours. Les prelevements sociaux (17,2 %) s'ajoutent dans tous les cas.\n\nCes taux sont nettement inferieurs au bareme progressif de l'IR pour les TMI elevees.",
           source: "Article 125-0 A du CGI"
         },
         {
@@ -607,7 +626,8 @@ function AssuranceVieContent() {
   const [montantRachat, setMontantRachat] = useState('');
   const [situation, setSituation] = useState<SituationFamiliale>('celibataire');
   const [tmi, setTmi] = useState(0.30);
-  const [encoursTotalAV, setEncoursTotalAV] = useState('');
+  // Cumul des primes versees nettes de rachats depuis le 27/09/2017 (seuil des 150 000 EUR, art. 125-0 A).
+  const [primesNettesApres2017, setPrimesNettesApres2017] = useState('');
 
   // ===== ETAT SUCCESSION =====
   const [valeurContratDeces, setValeurContratDeces] = useState('');
@@ -635,9 +655,10 @@ function AssuranceVieContent() {
       parseNumber(montantRachat),
       situation,
       tmi,
-      parseNumber(encoursTotalAV) || parseNumber(valeurContrat)
+      // A defaut de saisie, on retient le total des primes versees du contrat (approximation prudente).
+      parseNumber(primesNettesApres2017) || parseNumber(primesVersees)
     );
-  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, encoursTotalAV]);
+  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, primesNettesApres2017]);
 
   const resultatSuccession = useMemo(() => {
     return calculerSuccession(
@@ -1056,23 +1077,24 @@ function AssuranceVieContent() {
                   </p>
                 </div>
 
-                {/* Encours total AV */}
+                {/* Total des primes versees nettes depuis le 27/09/2017 */}
                 <div className="mb-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Encours total en assurance-vie (tous contrats)
+                    Total des primes versees nettes (depuis le 27/09/2017)
                   </label>
                   <div className="relative">
                     <input
                       type="text"
-                      value={encoursTotalAV}
-                      onChange={e => setEncoursTotalAV(formatMontant(e.target.value))}
-                      placeholder="Laisser vide = valeur du contrat"
+                      value={primesNettesApres2017}
+                      onChange={e => setPrimesNettesApres2017(formatMontant(e.target.value))}
+                      placeholder="Laisser vide = total des primes versees"
                       className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                     />
                     <Euro className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Seuil de 150 000 EUR pour le taux de PFU (primes apres 27/09/2017)
+                    Cumul des primes versees nettes de rachats, tous contrats. Le seuil de 150 000 EUR
+                    (7,5 % / 12,8 %) porte sur ce montant de primes, et non sur l&apos;encours.
                   </p>
                 </div>
               </div>
@@ -1156,7 +1178,7 @@ function AssuranceVieContent() {
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.impotPFU)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">PS (18,6 %)</span>
+                              <span className="text-gray-600">PS (17,2 %)</span>
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.prelevementsSociaux)}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 pt-2">
@@ -1188,7 +1210,7 @@ function AssuranceVieContent() {
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.impotIR)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">PS (18,6 %)</span>
+                              <span className="text-gray-600">PS (17,2 %)</span>
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.prelevementsSociaux)}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 pt-2">
