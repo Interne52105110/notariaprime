@@ -29,10 +29,17 @@ interface FormData {
   travaux: 'aucun' | 'forfait' | 'reel';
   travauxMontant: string;
   premiereVente: boolean;
+  remploiResidencePrincipale: string;
   retraite: boolean;
   revenuFiscal: string;
   expropriation: boolean;
   zoneTendue: boolean;
+  ehpad: boolean;
+  ehpadConditions: boolean;
+  nonResident: boolean;
+  nonResidentConditions: boolean;
+  dejaBeneficieExoRPNonResident: boolean;
+  nombreCedants: string;
 }
 
 interface Results {
@@ -51,6 +58,7 @@ interface Results {
   totalFiscalite: number;
   exoneration: boolean;
   motifExoneration: string;
+  notesExoneration: string[];
   suggestions: string[];
   economieAbattements: number;
   valeurDemembrement?: { usufruit: number; nue: number; };
@@ -93,8 +101,8 @@ function FAQSection() {
       questions: [
         {
           q: "Dans quels cas puis-je être exonéré de plus-value ?",
-          r: "**🏠 EXONÉRATION TOTALE automatique :**\n• **Résidence principale** : exonération totale + dépendances (garage, cave dans 1 km)\n• **Détention > 30 ans** : exonération totale IR + PS\n• **Prix de vente ≤ 15 000 €** : exonération totale\n• **Première vente** hors résidence principale (retraités/invalides) : conditions strictes\n\n**💼 EXONÉRATIONS SPÉCIFIQUES :**\n• **Expropriation** : si réemploi dans 12 mois\n• **Départ en EHPAD/maison retraite** : sous conditions de revenus\n• **Bien en France vendu par non-résident UE/EEE** : conditions strictes\n• **Logements sociaux** : dans certaines communes\n\n**⚠️ Attention :** Pour la résidence principale, l'exonération s'applique jusqu'à la date de cession, même si vous avez déménagé (délai raisonnable).",
-          source: "Articles 150 U-II et 150 U-II bis du CGI"
+          r: "**🏠 EXONÉRATION TOTALE :**\n• **Résidence principale** (150 U II 1°) : exonération totale + dépendances (garage, cave dans 1 km)\n• **Détention > 30 ans** : exonération totale IR + PS (effet des abattements)\n• **Prix de vente ≤ 15 000 €** (150 U II 6°) : exonération totale (seuil par cédant, en pleine propriété)\n• **Personne en EHPAD/établissement médicalisé** (150 U II 1° ter) : ancienne RP, cession sous 2 ans, sous conditions de revenus\n\n**💼 EXONÉRATIONS SOUS CONDITIONS :**\n• **Première cession d'un logement** (150 U II 1° bis) : si non propriétaire de sa RP depuis 4 ans + remploi du prix dans une RP sous 24 mois (exonération proportionnelle à la part remployée)\n• **Expropriation** (150 U II 4°) : si réemploi dans 12 mois\n• **Non-résident UE/EEE** (150 U II 2°) : plafonnée à **150 000 € de plus-value nette imposable par cédant** ; domiciliation ≥ 2 ans en France ; délai de 10 ans après le départ ou libre disposition ; une seule résidence. Exclue si déjà bénéficié de l'exo RP non-résident (244 bis A)\n• **Retraités/invalides modestes** (150 U III) : sous condition de RFR\n• **Logements sociaux** (150 U II 7° et 8°) : dispositif temporaire\n\n**⚠️ Attention :** Pour la résidence principale, l'exonération s'applique jusqu'à la date de cession, même si vous avez déménagé (délai raisonnable de mise en vente).",
+          source: "Article 150 U du CGI (II 1° à 9°, II 1° bis, II 1° ter, III) et art. 244 bis A"
         },
         {
           q: "Comment transformer ma résidence secondaire en résidence principale ?",
@@ -271,10 +279,17 @@ function PlusValueContent() {
     travaux: 'aucun',
     travauxMontant: '',
     premiereVente: false,
+    remploiResidencePrincipale: '',
     retraite: false,
     revenuFiscal: '',
     expropriation: false,
-    zoneTendue: false
+    zoneTendue: false,
+    ehpad: false,
+    ehpadConditions: false,
+    nonResident: false,
+    nonResidentConditions: false,
+    dejaBeneficieExoRPNonResident: false,
+    nombreCedants: '1'
   });
 
   useEffect(() => {
@@ -402,34 +417,33 @@ function PlusValueContent() {
         totalFiscalite: 0,
         exoneration: true,
         motifExoneration: 'Résidence principale - Exonération totale (Art. 150 U II 1° CGI)',
+        notesExoneration: [],
         suggestions: [],
         economieAbattements: 0
       };
     }
 
-    if (formData.premiereVente && formData.typeBien === 'secondaire') {
-      const prixVenteBrut = parseFloat(formData.prixVente.replace(/\s/g, ''));
-      if (prixVenteBrut <= 150000) {
-        return {
-          plusValueBrute: 0,
-          prixAcquisitionCorrige: 0,
-          prixVenteCorrige: prixVenteBrut,
-          dureeDetention: 0,
-          dureeDetentionJours: 0,
-          abattementIR: 100,
-          abattementPS: 100,
-          plusValueIR: 0,
-          plusValuePS: 0,
-          impotRevenu: 0,
-          prelevementsSociaux: 0,
-          taxeAdditionnelle: 0,
-          totalFiscalite: 0,
-          exoneration: true,
-          motifExoneration: 'Première cession résidence secondaire (Art. 150 U II 1° bis CGI)',
-          suggestions: [],
-          economieAbattements: 0
-        };
-      }
+    if (formData.ehpad && formData.ehpadConditions) {
+      return {
+        plusValueBrute: 0,
+        prixAcquisitionCorrige: 0,
+        prixVenteCorrige: parseFloat(formData.prixVente.replace(/\s/g, '')),
+        dureeDetention: 0,
+        dureeDetentionJours: 0,
+        abattementIR: 100,
+        abattementPS: 100,
+        plusValueIR: 0,
+        plusValuePS: 0,
+        impotRevenu: 0,
+        prelevementsSociaux: 0,
+        taxeAdditionnelle: 0,
+        totalFiscalite: 0,
+        exoneration: true,
+        motifExoneration: 'Cession par une personne âgée ou handicapée résidant en établissement médicalisé (Art. 150 U II 1° ter CGI)',
+        notesExoneration: [],
+        suggestions: [],
+        economieAbattements: 0
+      };
     }
 
     if (formData.retraite && formData.revenuFiscal) {
@@ -450,7 +464,8 @@ function PlusValueContent() {
           taxeAdditionnelle: 0,
           totalFiscalite: 0,
           exoneration: true,
-          motifExoneration: 'Retraité modeste - RFR ≤ 12 679€ (Art. 150 U II 6° CGI)',
+          motifExoneration: 'Retraité modeste ou invalide - RFR ≤ 12 679€ (Art. 150 U III CGI)',
+          notesExoneration: [],
           suggestions: [],
           economieAbattements: 0
         };
@@ -474,13 +489,14 @@ function PlusValueContent() {
         totalFiscalite: 0,
         exoneration: true,
         motifExoneration: 'Expropriation avec réemploi sous 12 mois (Art. 150 U II 4° CGI)',
+        notesExoneration: [],
         suggestions: [],
         economieAbattements: 0
       };
     }
 
     const prixVenteBrut = parseFloat(formData.prixVente.replace(/\s/g, ''));
-    if (prixVenteBrut < 15000) {
+    if (prixVenteBrut <= 15000) {
       return {
         plusValueBrute: 0,
         prixAcquisitionCorrige: 0,
@@ -496,7 +512,8 @@ function PlusValueContent() {
         taxeAdditionnelle: 0,
         totalFiscalite: 0,
         exoneration: true,
-        motifExoneration: 'Prix de vente < 15 000€ (Art. 150 U II 5° CGI)',
+        motifExoneration: 'Prix de vente ≤ 15 000 € (Art. 150 U II 6° CGI)',
+        notesExoneration: [],
         suggestions: [],
         economieAbattements: 0
       };
@@ -573,13 +590,56 @@ function PlusValueContent() {
       abattementPS = Math.max(abattementPS, 70);
     }
 
-    const plusValueIR = plusValueBrute * (1 - abattementIR / 100);
-    const plusValuePS = plusValueBrute * (1 - abattementPS / 100);
+    // Plus-values nettes imposables (après abattement pour durée de détention)
+    let plusValueIR = plusValueBrute * (1 - abattementIR / 100);
+    let plusValuePS = plusValueBrute * (1 - abattementPS / 100);
+
+    const notesExoneration: string[] = [];
+
+    // Art. 150 U II 1° bis - Première cession d'un logement autre que la RP,
+    // exonération de la fraction de plus-value correspondant au prix remployé
+    // dans l'acquisition/construction d'une résidence principale sous 24 mois.
+    if (formData.premiereVente && (formData.typeBien === 'secondaire' || formData.typeBien === 'locatif')) {
+      const remploi = parseFloat(formData.remploiResidencePrincipale.replace(/\s/g, '')) || 0;
+      // À défaut de montant renseigné, on présume un remploi intégral du prix (exonération totale).
+      const proportionRemployee = prixVenteBrut > 0 && remploi > 0
+        ? Math.min(1, remploi / prixVenteBrut)
+        : 1;
+      if (proportionRemployee > 0) {
+        plusValueIR = plusValueIR * (1 - proportionRemployee);
+        plusValuePS = plusValuePS * (1 - proportionRemployee);
+        notesExoneration.push(
+          `Première cession d'un logement (Art. 150 U II 1° bis CGI) : exonération de ${(proportionRemployee * 100).toFixed(0)} % de la plus-value au titre du remploi dans une résidence principale sous 24 mois.`
+        );
+      }
+    }
+
+    // Art. 150 U II 2° - Cession d'un logement en France par un non-résident UE/EEE,
+    // exonération dans la limite de 150 000 € de plus-value nette imposable PAR CÉDANT.
+    const nbCedants = Math.max(1, parseInt(formData.nombreCedants) || 1);
+    const nonResidentEligible =
+      formData.nonResident &&
+      formData.nonResidentConditions &&
+      !formData.dejaBeneficieExoRPNonResident;
+    if (nonResidentEligible) {
+      const plafond = 150000 * nbCedants;
+      plusValueIR = Math.max(0, plusValueIR - plafond);
+      plusValuePS = Math.max(0, plusValuePS - plafond);
+      notesExoneration.push(
+        `Cession par un non-résident (Art. 150 U II 2° CGI) : exonération à hauteur de 150 000 € de plus-value nette imposable par cédant${nbCedants > 1 ? ` (${nbCedants} cédants → ${(150000 * nbCedants).toLocaleString('fr-FR')} €)` : ''}.`
+      );
+    } else if (formData.nonResident) {
+      notesExoneration.push(
+        formData.dejaBeneficieExoRPNonResident
+          ? "⚠️ Exonération non-résident écartée : le cédant a déjà bénéficié de l'exonération de sa résidence principale en tant que non-résident (Art. 244 bis A II-1° CGI)."
+          : "⚠️ Exonération non-résident non appliquée : confirmez la domiciliation fiscale en France ≥ 2 ans et la condition de délai (cession ≤ 10e année après le départ, ou libre disposition depuis le 1er janvier de l'année précédente)."
+      );
+    }
 
     const impotRevenu = plusValueIR * 0.19;
     const prelevementsSociaux = plusValuePS * 0.172;
     const taxeAdditionnelle = calculerTaxeAdditionnelle(plusValueIR);
-    
+
     const totalFiscalite = impotRevenu + prelevementsSociaux + taxeAdditionnelle;
 
     const fiscaliteSansAbattement = plusValueBrute * 0.362 + calculerTaxeAdditionnelle(plusValueBrute);
@@ -599,8 +659,11 @@ function PlusValueContent() {
       prelevementsSociaux,
       taxeAdditionnelle,
       totalFiscalite,
-      exoneration: false,
-      motifExoneration: '',
+      exoneration: notesExoneration.length > 0 && totalFiscalite === 0,
+      motifExoneration: (notesExoneration.length > 0 && totalFiscalite === 0)
+        ? notesExoneration.join(' ')
+        : '',
+      notesExoneration,
       suggestions: [],
       economieAbattements
     };
@@ -1277,15 +1340,15 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         Art. 150 U II 1° bis CGI - Conditions:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Pas propriétaire RP les 4 années précédentes</li>
-                        <li>• Engagement de rachat RP sous 24 mois</li>
-                        <li>• Prix ≤ 150 000€</li>
+                        <li>• Ne pas avoir été propriétaire de sa RP au cours des 4 années précédentes</li>
+                        <li>• Remploi du prix de cession dans une RP (acquisition/construction) sous 24 mois</li>
+                        <li>• Exonération proportionnelle à la fraction du prix effectivement remployée</li>
                       </ul>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium text-gray-700 flex-1">
-                      Je remplis TOUTES ces conditions
+                      Je remplis ces conditions
                     </span>
                     <div className="flex gap-3">
                       <button
@@ -1310,6 +1373,25 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       </button>
                     </div>
                   </div>
+
+                  {formData.premiereVente && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Montant du prix de cession remployé dans la résidence principale (optionnel)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.remploiResidencePrincipale}
+                        onChange={(e) => setFormData({...formData, remploiResidencePrincipale: e.target.value})}
+                        placeholder="Ex : 200 000 (laisser vide = remploi intégral)"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <p className="text-xs text-gray-600 mt-2">
+                        L'exonération porte sur la part de plus-value correspondant à la fraction du prix remployée.
+                        À vide, on présume un remploi de 100 % (exonération totale).
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Retraité */}
@@ -1409,6 +1491,176 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         onClick={() => setFormData({...formData, expropriation: false})}
                         className={`px-6 py-2 rounded-lg font-medium transition-all ${
                           !formData.expropriation
+                            ? 'bg-gray-600 text-white'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        Non
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Non-résident UE/EEE */}
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">Cession par un non-résident (UE/EEE)</h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Art. 150 U II 2° CGI - Exonération partielle (plafonnée), conditions :
+                      </p>
+                      <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
+                        <li>• Personne physique non-résidente, ressortissante d'un État de l'UE/EEE</li>
+                        <li>• Domiciliée fiscalement en France ≥ 2 ans continus, à un moment quelconque avant la cession</li>
+                        <li>• Cession ≤ 31/12 de la 10ᵉ année suivant le transfert du domicile hors de France, OU libre disposition du bien depuis le 1ᵉʳ janvier de l'année précédente</li>
+                        <li>• <strong>Plafond : 150 000 € de plus-value nette imposable par cédant</strong> (le surplus reste taxé)</li>
+                        <li>• Limitée à une seule résidence par contribuable</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700 flex-1">
+                      Le cédant est un non-résident UE/EEE
+                    </span>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setFormData({...formData, nonResident: true})}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                          formData.nonResident
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        Oui
+                      </button>
+                      <button
+                        onClick={() => setFormData({...formData, nonResident: false})}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                          !formData.nonResident
+                            ? 'bg-gray-600 text-white'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        Non
+                      </button>
+                    </div>
+                  </div>
+
+                  {formData.nonResident && (
+                    <div className="mt-4 space-y-4">
+                      <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                        <span className="text-sm font-medium text-gray-700 flex-1">
+                          Domiciliation ≥ 2 ans en France + condition de délai (10 ans) ou libre disposition remplies
+                        </span>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setFormData({...formData, nonResidentConditions: true})}
+                            className={`px-5 py-2 rounded-lg font-medium transition-all text-sm ${
+                              formData.nonResidentConditions
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-white border-2 border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            Oui
+                          </button>
+                          <button
+                            onClick={() => setFormData({...formData, nonResidentConditions: false})}
+                            className={`px-5 py-2 rounded-lg font-medium transition-all text-sm ${
+                              !formData.nonResidentConditions
+                                ? 'bg-gray-600 text-white'
+                                : 'bg-white border-2 border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            Non
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-lg">
+                        <span className="text-sm font-medium text-gray-700 flex-1">
+                          A déjà bénéficié de l'exonération de sa RP en tant que non-résident (244 bis A) → exclut l'exonération
+                        </span>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setFormData({...formData, dejaBeneficieExoRPNonResident: true})}
+                            className={`px-5 py-2 rounded-lg font-medium transition-all text-sm ${
+                              formData.dejaBeneficieExoRPNonResident
+                                ? 'bg-red-600 text-white'
+                                : 'bg-white border-2 border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            Oui
+                          </button>
+                          <button
+                            onClick={() => setFormData({...formData, dejaBeneficieExoRPNonResident: false})}
+                            className={`px-5 py-2 rounded-lg font-medium transition-all text-sm ${
+                              !formData.dejaBeneficieExoRPNonResident
+                                ? 'bg-gray-600 text-white'
+                                : 'bg-white border-2 border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            Non
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nombre de cédants (plafond de 150 000 € apprécié par cédant)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.nombreCedants}
+                          onChange={(e) => setFormData({...formData, nombreCedants: e.target.value})}
+                          placeholder="1"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                        <p className="text-xs text-gray-600 mt-2">
+                          Concubins, indivisaires et époux sont chacun considérés comme un cédant distinct (plafond apprécié sur leur quote-part).
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* EHPAD / établissement médicalisé */}
+                <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">Personne âgée ou handicapée en établissement médicalisé</h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Art. 150 U II 1° ter CGI - Conditions :
+                      </p>
+                      <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
+                        <li>• Le bien constituait la résidence principale avant l'entrée en établissement</li>
+                        <li>• Cession dans les 2 ans suivant l'entrée en établissement (EHPAD, foyer, etc.)</li>
+                        <li>• Le logement est resté inoccupé depuis l'entrée</li>
+                        <li>• Revenu fiscal de référence sous le seuil de l'art. 1417 II et non soumis à l'IFI</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700 flex-1">
+                      Je remplis TOUTES ces conditions
+                    </span>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setFormData({...formData, ehpad: true, ehpadConditions: true})}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                          formData.ehpad
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-white border-2 border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        Oui
+                      </button>
+                      <button
+                        onClick={() => setFormData({...formData, ehpad: false, ehpadConditions: false})}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                          !formData.ehpad
                             ? 'bg-gray-600 text-white'
                             : 'bg-white border-2 border-gray-300 text-gray-700'
                         }`}
@@ -1688,6 +1940,20 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
               </div>
             ) : (
               <div className="space-y-6">
+                {results.notesExoneration && results.notesExoneration.length > 0 && (
+                  <div className="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-2">
+                        <p className="font-semibold text-emerald-900">Exonération(s) partielle(s) appliquée(s)</p>
+                        {results.notesExoneration.map((note, i) => (
+                          <p key={i} className="text-sm text-emerald-800">{note}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Durée détention */}
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
                   <div className="flex items-center gap-3 mb-3">
