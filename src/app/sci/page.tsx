@@ -78,6 +78,7 @@ export default function SCISimulator() {
     compteCourantAssocie: '50000',
     tauxInteretCCA: '4.0',
     optionBaremeProgressif: false,
+    eligibleTauxReduitIS: true,
     dureeAmortissement: '30',
     trancheMarginalIR: '30',
     nonResident: false,
@@ -134,7 +135,7 @@ export default function SCISimulator() {
     }
 
     const resultatsIR = calculerResultatsIR(formData, revenusBruts, chargesAnnuelles, interetsAnnuels, capitalRembourse);
-    const resultatsIS = calculerResultatsIS(formData, revenusBruts, chargesAnnuelles, interetsAnnuels, capitalRembourse, valeurBiens);
+    const resultatsIS = calculerResultatsIS(formData, revenusBruts, chargesAnnuelles, interetsAnnuels, capitalRembourse, valeurBiens, formData.eligibleTauxReduitIS);
 
     const economie = resultatsIR.fiscaliteTotal - resultatsIS.fiscaliteTotal;
     const regimeOptimal = resultatsIS.cashFlowReel > resultatsIR.cashFlowReel ? 'IS' : 'IR';
@@ -507,6 +508,26 @@ export default function SCISimulator() {
                               <span className="font-medium text-gray-700">Option barème progressif (IS)</span>
                               <p className="text-xs text-gray-500 mt-1">
                                 Abattement 40% puis TMI au lieu de flat tax 30%
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="pt-4 border-t border-purple-200">
+                          <label className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={formData.eligibleTauxReduitIS}
+                              onChange={(e) => setFormData({...formData, eligibleTauxReduitIS: e.target.checked})}
+                              className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
+                            />
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-700">
+                                SCI éligible au taux réduit d&apos;IS à 15 %
+                              </span>
+                              <p className="text-xs text-gray-500 mt-1">
+                                CA &lt; 10 M€ et capital entièrement libéré détenu à ≥ 75 % par des personnes physiques (art. 219-I-b CGI).
+                                Si décoché : IS à 25 % dès le 1<sup>er</sup> euro.
                               </p>
                             </div>
                           </label>

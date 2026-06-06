@@ -45,6 +45,10 @@ export interface FormData {
   compteCourantAssocie: string;
   tauxInteretCCA: string;
   optionBaremeProgressif: boolean;
+  // Art. 219-I-b du CGI : éligibilité au taux réduit d'IS de 15 %
+  // (CA < 10 M€ ET capital entièrement libéré détenu à ≥ 75 % par des
+  // personnes physiques). Si false, IS à 25 % dès le 1er euro.
+  eligibleTauxReduitIS: boolean;
   dureeAmortissement: string;
   
   // Fiscalité IR

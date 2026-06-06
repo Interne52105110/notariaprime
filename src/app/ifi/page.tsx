@@ -64,6 +64,11 @@ interface ResultatIFI {
   details: DetailTranche[];
   decote: number;
   ifiApresDecote: number;
+  plafonnementApplicable: boolean;
+  revenusAnneePrecedente: number;
+  irEtPsAnneePrecedente: number;
+  reductionPlafonnement: number;
+  ifiFinal: number;
 }
 
 interface DetailTranche {
@@ -113,7 +118,11 @@ function parseNumber(str: string): number {
 // FONCTIONS DE CALCUL
 // ============================================
 
-function calculerIFI(biens: Bien[]): ResultatIFI {
+function calculerIFI(
+  biens: Bien[],
+  revenusStr: string,
+  irEtPsStr: string
+): ResultatIFI {
   let patrimoineTotal = 0;
   let dettesDeductibles = 0;
 
@@ -166,8 +175,30 @@ function calculerIFI(biens: Bien[]): ResultatIFI {
     ifiApresDecote = Math.max(0, ifi - decote);
   }
 
-  const tauxMoyen = patrimoineNetTaxable > 0 && ifiApresDecote > 0 
-    ? (ifiApresDecote / patrimoineNetTaxable) * 100 
+  // ============================================
+  // PLAFONNEMENT (art. 979 CGI)
+  // La somme de [IFI dû] + [IR + prélèvements sociaux de l'année précédente
+  // sur les revenus de l'année précédente] ne peut excéder 75 % des revenus
+  // mondiaux nets de l'année précédente. L'excédent se déduit de l'IFI, sans
+  // pouvoir le rendre négatif.
+  // ============================================
+  const revenusAnneePrecedente = parseNumber(revenusStr);
+  const irEtPsAnneePrecedente = parseNumber(irEtPsStr);
+
+  // IFI servant de base au plafonnement = IFI après décote (IFI réellement dû)
+  let reductionPlafonnement = 0;
+  let ifiFinal = ifiApresDecote;
+  const plafonnementApplicable = revenusAnneePrecedente > 0;
+
+  if (plafonnementApplicable) {
+    const total = ifiApresDecote + irEtPsAnneePrecedente;
+    const plafond = 0.75 * revenusAnneePrecedente;
+    reductionPlafonnement = Math.max(0, total - plafond);
+    ifiFinal = Math.max(0, ifiApresDecote - reductionPlafonnement);
+  }
+
+  const tauxMoyen = patrimoineNetTaxable > 0 && ifiFinal > 0
+    ? (ifiFinal / patrimoineNetTaxable) * 100
     : 0;
 
   return {
@@ -179,7 +210,12 @@ function calculerIFI(biens: Bien[]): ResultatIFI {
     tauxMoyen,
     details,
     decote,
-    ifiApresDecote
+    ifiApresDecote,
+    plafonnementApplicable,
+    revenusAnneePrecedente,
+    irEtPsAnneePrecedente,
+    reductionPlafonnement,
+    ifiFinal
   };
 }
 
@@ -205,6 +241,8 @@ export default function CalculateurIFI() {
     { id: 1, type: 'residence_principale', nom: 'Résidence principale', valeur: '', dette: '' }
   ]);
   const [results, setResults] = useState<ResultatIFI | null>(null);
+  const [revenusAnneePrecedente, setRevenusAnneePrecedente] = useState<string>('');
+  const [irEtPsAnneePrecedente, setIrEtPsAnneePrecedente] = useState<string>('');
 
   // ============================================
   // HANDLERS
@@ -242,12 +280,14 @@ export default function CalculateurIFI() {
   };
 
   const calculer = () => {
-    const result = calculerIFI(biens);
+    const result = calculerIFI(biens, revenusAnneePrecedente, irEtPsAnneePrecedente);
     setResults(result);
   };
 
   const reinitialiser = () => {
     setBiens([{ id: 1, type: 'residence_principale', nom: 'Résidence principale', valeur: '', dette: '' }]);
+    setRevenusAnneePrecedente('');
+    setIrEtPsAnneePrecedente('');
     setResults(null);
   };
 
@@ -312,7 +352,7 @@ export default function CalculateurIFI() {
                   <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border-2 border-emerald-200">
                     <p className="text-sm text-emerald-700 font-semibold">IFI à payer</p>
                     <p className="text-3xl font-bold text-emerald-900">
-                      {formatEuros(results.ifiApresDecote)}
+                      {formatEuros(results.ifiFinal)}
                     </p>
                     <p className="text-xs text-emerald-600 mt-1">
                       Taux moyen : {formatPourcentage(results.tauxMoyen)}
@@ -440,6 +480,52 @@ export default function CalculateurIFI() {
                   <Plus className="w-5 h-5" />
                   Ajouter un bien
                 </button>
+              </div>
+
+              {/* Plafonnement (art. 979 CGI) */}
+              <div className="bg-white rounded-2xl shadow-lg border-2 border-emerald-100 p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                  <Shield className="w-7 h-7 text-emerald-600" />
+                  Plafonnement (art. 979)
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Optionnel. La somme de l'IFI et de l'impôt sur le revenu + prélèvements sociaux
+                  de l'année précédente ne peut excéder 75 % de vos revenus mondiaux nets de
+                  l'année précédente. Renseignez ces montants pour appliquer le plafonnement.
+                  Laissez vide pour ignorer ce mécanisme.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Revenus nets de l'année précédente (€)
+                    </label>
+                    <input
+                      type="text"
+                      value={revenusAnneePrecedente}
+                      onChange={(e) => setRevenusAnneePrecedente(formatMontant(e.target.value))}
+                      placeholder="80 000"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Revenus mondiaux nets</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      IR + prélèvements sociaux payés (année précédente) (€)
+                    </label>
+                    <input
+                      type="text"
+                      value={irEtPsAnneePrecedente}
+                      onChange={(e) => setIrEtPsAnneePrecedente(formatMontant(e.target.value))}
+                      placeholder="15 000"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Impôt sur le revenu + prélèvements sociaux
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Boutons d'action */}
@@ -571,7 +657,7 @@ export default function CalculateurIFI() {
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text'
                       }}>
-                        {formatEuros(results.ifiApresDecote)}
+                        {formatEuros(results.ifiFinal)}
                       </p>
                       <p className="text-2xl font-bold text-gray-900 mb-2">
                         Patrimoine net taxable : {formatEuros(results.patrimoineNetTaxable)}
@@ -583,6 +669,13 @@ export default function CalculateurIFI() {
                         <div className="mt-4 inline-block bg-white/50 px-4 py-2 rounded-lg">
                           <p className="text-sm text-emerald-700">
                             Décote appliquée : {formatEuros(results.decote)}
+                          </p>
+                        </div>
+                      )}
+                      {results.reductionPlafonnement > 0 && (
+                        <div className="mt-4 inline-block bg-white/50 px-4 py-2 rounded-lg">
+                          <p className="text-sm text-emerald-700">
+                            Plafonnement (art. 979) appliqué : - {formatEuros(results.reductionPlafonnement)}
                           </p>
                         </div>
                       )}
@@ -657,11 +750,29 @@ export default function CalculateurIFI() {
                             </span>
                           </div>
                         )}
-                        
+
+                        {results.plafonnementApplicable && (
+                          <div className="flex justify-between py-2 border-b border-gray-200">
+                            <span className="text-gray-700">IFI avant plafonnement</span>
+                            <span className="font-bold text-gray-900">
+                              {formatEuros(results.ifiApresDecote)}
+                            </span>
+                          </div>
+                        )}
+
+                        {results.reductionPlafonnement > 0 && (
+                          <div className="flex justify-between py-2 border-b border-gray-200">
+                            <span className="text-green-700">Réduction plafonnement (art. 979)</span>
+                            <span className="font-bold text-green-600">
+                              - {formatEuros(results.reductionPlafonnement)}
+                            </span>
+                          </div>
+                        )}
+
                         <div className="flex justify-between pt-2 bg-red-50 px-3 py-2 rounded-lg border-2 border-red-200">
                           <span className="font-bold text-red-900">IFI à payer</span>
                           <span className="font-bold text-xl text-red-600">
-                            {formatEuros(results.ifiApresDecote)}
+                            {formatEuros(results.ifiFinal)}
                           </span>
                         </div>
                       </>
@@ -784,9 +895,46 @@ export default function CalculateurIFI() {
                     <div className="space-y-2 text-sm text-blue-900">
                       <p className="font-semibold">Calcul de l'IFI</p>
                       <p>
-                        Votre IFI est calculé sur la part de votre patrimoine qui dépasse 800 000 €, 
+                        Votre IFI est calculé sur la part de votre patrimoine qui dépasse 800 000 €,
                         soit {formatEuros(results.patrimoineNetTaxable - 800000)}, en appliquant le barème progressif.
                       </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {results.plafonnementApplicable && (
+                <div className={`rounded-2xl p-6 border-2 ${
+                  results.reductionPlafonnement > 0
+                    ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200'
+                    : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <Shield className={`w-6 h-6 flex-shrink-0 mt-1 ${
+                      results.reductionPlafonnement > 0 ? 'text-emerald-600' : 'text-blue-600'
+                    }`} />
+                    <div className={`space-y-2 text-sm ${
+                      results.reductionPlafonnement > 0 ? 'text-emerald-900' : 'text-blue-900'
+                    }`}>
+                      <p className="font-semibold">Plafonnement (art. 979 CGI) pris en compte</p>
+                      {results.reductionPlafonnement > 0 ? (
+                        <p>
+                          La somme de l'IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
+                          prélèvements sociaux ({formatEuros(results.irEtPsAnneePrecedente)}) dépasse 75 %
+                          de vos revenus nets de l'année précédente
+                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). L'excédent de{' '}
+                          {formatEuros(results.reductionPlafonnement)} est déduit de l'IFI, ramené à{' '}
+                          {formatEuros(results.ifiFinal)}.
+                        </p>
+                      ) : (
+                        <p>
+                          La somme de l'IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
+                          prélèvements sociaux ({formatEuros(results.irEtPsAnneePrecedente)}) n'excède pas
+                          75 % de vos revenus nets de l'année précédente
+                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). Aucune réduction n'est
+                          appliquée : l'IFI reste de {formatEuros(results.ifiFinal)}.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -820,13 +968,24 @@ export default function CalculateurIFI() {
                   particulières, cas de démembrement, etc.) qui ne sont pas toutes prises en compte dans ce
                   calculateur simplifié.
                 </p>
-                <p>
-                  <span className="font-semibold">Plafonnement non pris en compte :</span> ce calculateur
-                  n'applique pas le plafonnement de l'IFI (article 979 du CGI), qui limite la somme de
-                  l'IFI et de l'impôt sur le revenu à 75 % des revenus de l'année précédente. Ce mécanisme
-                  nécessite la connaissance de vos revenus et peut, le cas échéant, réduire l'IFI réellement
-                  dû. Le montant affiché peut donc être supérieur à votre IFI effectif.
-                </p>
+                {results?.plafonnementApplicable ? (
+                  <p>
+                    <span className="font-semibold">Plafonnement pris en compte :</span> ce calculateur
+                    applique le plafonnement de l'IFI (article 979 du CGI) à partir des revenus et impôts
+                    que vous avez saisis, qui limite la somme de l'IFI et de l'impôt sur le revenu +
+                    prélèvements sociaux à 75 % des revenus nets de l'année précédente. Le résultat reste
+                    une estimation : seuls les revenus et impôts éligibles au sens de l'article 979 doivent
+                    être retenus.
+                  </p>
+                ) : (
+                  <p>
+                    <span className="font-semibold">Plafonnement non pris en compte :</span> vous n'avez pas
+                    renseigné vos revenus dans la section « Plafonnement (art. 979) ». Ce mécanisme limite la
+                    somme de l'IFI et de l'impôt sur le revenu à 75 % des revenus de l'année précédente et
+                    peut, le cas échéant, réduire l'IFI réellement dû. Le montant affiché peut donc être
+                    supérieur à votre IFI effectif.
+                  </p>
+                )}
                 <p className="font-semibold">
                   Pour une analyse personnalisée de votre situation fiscale, consultez un expert-comptable, 
                   un notaire ou un conseiller en gestion de patrimoine.
