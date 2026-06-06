@@ -174,7 +174,7 @@ export const actesConfig: Record<string, ConfigActe> = {
       publiciteFonciere: { defaut: true, montant: 339.58, obligatoire: true },
       cadastre: { defaut: true, montant: 11.32 },
       requisition: { defaut: true, montant: 18.87, obligatoire: true },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 18,
@@ -194,7 +194,7 @@ export const actesConfig: Record<string, ConfigActe> = {
       publiciteFonciere: { defaut: true, montant: 339.58, obligatoire: true },
       cadastre: { defaut: true, montant: 11.32 },
       requisition: { defaut: true, montant: 18.87, obligatoire: true },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 20,
@@ -296,7 +296,7 @@ export const actesConfig: Record<string, ConfigActe> = {
     formalites: {
       publiciteFonciere: { defaut: false, montant: 0 },
       cadastre: { defaut: false, montant: 0 },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 15,
@@ -352,7 +352,7 @@ export const actesConfig: Record<string, ConfigActe> = {
   'liquidation_regime': {
     formalites: {
       publiciteFonciere: { defaut: false, montant: 0 },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 20,
@@ -376,7 +376,7 @@ export const actesConfig: Record<string, ConfigActe> = {
       publiciteFonciere: { defaut: true, montant: 339.58 },
       cadastre: { defaut: true, montant: 11.32 },
       requisition: { defaut: true, montant: 18.87 },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 15,
@@ -396,7 +396,7 @@ export const actesConfig: Record<string, ConfigActe> = {
       publiciteFonciere: { defaut: true, montant: 339.58 },
       cadastre: { defaut: true, montant: 11.32 },
       requisition: { defaut: true, montant: 18.87 },
-      notification: { defaut: true, montant: 37.73 }
+      notification: { defaut: true, montant: 15.09 }
     },
     documents: {
       pagesActe: 18,
@@ -1032,7 +1032,7 @@ export const configParDefaut: ConfigActe = {
     publiciteFonciere: { defaut: false, montant: 339.58 },
     cadastre: { defaut: false, montant: 11.32 },
     casierJudiciaire: { defaut: false, montant: 37.73 },
-    notification: { defaut: false, montant: 37.73 },
+    notification: { defaut: false, montant: 15.09 },
     mesurage: { defaut: false, montant: 15.09 },
     diagnostics: {
       dpe: { defaut: false, montant: 15.09 },

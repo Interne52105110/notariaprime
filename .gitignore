@@ -44,3 +44,4 @@ next-env.d.ts
 ex *.jpg
 ex*.jpg
 cours-comptable-taxateur-notarial.md
+/cours/

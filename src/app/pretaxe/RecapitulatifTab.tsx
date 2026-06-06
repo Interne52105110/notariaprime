@@ -10,6 +10,7 @@ interface RecapitulatifTabProps {
   totalFormalitesTTC: number;
   totalDocumentsTTC: number;
   totalTaxes: number;
+  ecretementTTC?: number;
   totalGeneral: number;
   selectedDepartement: string;
   appliquerRemise: boolean;
@@ -21,6 +22,7 @@ export default function RecapitulatifTab({
   totalFormalitesTTC,
   totalDocumentsTTC,
   totalTaxes,
+  ecretementTTC = 0,
   totalGeneral,
   selectedDepartement,
   appliquerRemise
@@ -52,6 +54,12 @@ export default function RecapitulatifTab({
           <span className="text-gray-600 font-medium">Taxes et droits</span>
           <span className="font-semibold text-lg">{totalTaxes.toFixed(2)} €</span>
         </div>
+        {ecretementTTC > 0 && (
+          <div className="flex justify-between items-center py-3 border-b border-gray-100">
+            <span className="text-green-700 font-medium">Écrêtement (art. R.444-6) — plafond 10 %</span>
+            <span className="font-semibold text-lg text-green-700">-{ecretementTTC.toFixed(2)} €</span>
+          </div>
+        )}
         <div className="flex justify-between items-center pt-6 border-t-2 border-gray-300">
           <span className="text-2xl font-bold text-gray-900">TOTAL GÉNÉRAL</span>
           <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">

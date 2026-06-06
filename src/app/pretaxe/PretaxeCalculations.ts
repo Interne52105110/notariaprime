@@ -274,7 +274,7 @@ export function appliquerConfigParDefaut(
       },
       notification: {
         actif: config.formalites?.notification?.defaut || false,
-        montant: config.formalites?.notification?.montant || 37.73
+        montant: config.formalites?.notification?.montant || 15.09
       },
       mesurage: {
         actif: config.formalites?.mesurage?.defaut || false,

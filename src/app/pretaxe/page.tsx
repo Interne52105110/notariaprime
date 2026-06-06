@@ -770,12 +770,18 @@ function PretaxeContent() {
 
   const totalFormalitesTTC = round2(totalFormalites * (1 + tauxTVA / 100));
 
-  const fraisRole = documents.pagesActe * 2;
-  const copiesExec = documents.copiesExecutoires * 4;
-  const copiesAuth = documents.copiesAuthentiques * 40;
-  const copiesHypo = documents.copiesHypothecaires * 4;
-  const archivage = documents.archivageNumerise ? round2(documents.pagesActe * 0.19) : 0;
-  const totalDocuments = fraisRole + copiesExec + copiesAuth + copiesHypo + archivage;
+  // Copies authentiques/exécutoires/hypothécaires (A444-172 n°212) : 1,13 €
+  // par page délivrée, toutes natures confondues. Archivage numérisé
+  // (A444-173 n°214) : 0,19 €/page. Le tarif réglementé ne prévoit pas de
+  // « frais de rôle » distinct : seules les copies et l'archivage de l'acte
+  // sont facturés à la page (confirmé par les exemples de taxe : copie de
+  // 15 pages = 15 × 1,13 = 16,95 €).
+  const TARIF_COPIE_PAGE = 1.13;
+  const TARIF_ARCHIVAGE_PAGE = 0.19;
+  const nbCopies = documents.copiesExecutoires + documents.copiesAuthentiques + documents.copiesHypothecaires;
+  const copies = round2(nbCopies * documents.pagesActe * TARIF_COPIE_PAGE);
+  const archivage = documents.archivageNumerise ? round2(documents.pagesActe * TARIF_ARCHIVAGE_PAGE) : 0;
+  const totalDocuments = round2(copies + archivage);
   const totalDocumentsTTC = round2(totalDocuments * (1 + tauxTVA / 100));
 
   const totalTaxes = round2(
@@ -783,7 +789,25 @@ function PretaxeContent() {
     (taxes.tpf || 0) + (taxes.droitPartage || 0) + (taxes.droitFixe || 0)
   );
 
-  const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes);
+  // Écrêtement (art. R.444-6 et A.444-175 du Code de commerce) : pour une
+  // mutation immobilière à titre onéreux, la somme des émoluments d'acte et de
+  // formalités (nette des remises) ne peut excéder 10 % de la valeur du bien,
+  // sans pouvoir être inférieure à 90 €. L'excédent est restitué (émolument
+  // d'écrêtement négatif).
+  const PLANCHER_ECRETEMENT = 90;
+  const montantAssietteActe = parseFloat((montantActe || '').replace(/\s/g, '')) || 0;
+  const estMutationEcretable = taxes.typeBien === 'ancien' || taxes.typeBien === 'neuf';
+  let ecretementHT = 0;
+  if (estMutationEcretable && montantAssietteActe > 0) {
+    const plafondEcretement = Math.max(PLANCHER_ECRETEMENT, montantAssietteActe * 0.10);
+    const baseEcretable = totalEmoluments + totalFormalites; // HT (acte + formalités)
+    if (baseEcretable > plafondEcretement) {
+      ecretementHT = round2(baseEcretable - plafondEcretement);
+    }
+  }
+  const ecretementTTC = round2(ecretementHT * (1 + tauxTVA / 100));
+
+  const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes - ecretementTTC);
 
   const acteActuel = categoriesActes[selectedCategory]?.actes[selectedActe];
   const estActeNonTarife = acteActuel?.type === 'non_tarife';
@@ -1236,6 +1260,7 @@ function PretaxeContent() {
               totalFormalitesTTC={totalFormalitesTTC}
               totalDocumentsTTC={totalDocumentsTTC}
               totalTaxes={totalTaxes}
+              ecretementTTC={ecretementTTC}
               totalGeneral={totalGeneral}
               selectedDepartement={selectedDepartement}
               appliquerRemise={appliquerRemise}
