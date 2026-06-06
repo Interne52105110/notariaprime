@@ -58,6 +58,26 @@ export const categoriesActes: Record<string, { actes: Record<string, string[]> }
       transformation: ['transformation de société'],
     }
   },
+  associations: {
+    actes: {
+      // Acte d'association AVEC bien soumis à publicité foncière (tarifé
+      // A444-159, n°160 du tableau 5). Sans immeuble, retomber sur
+      // acte_association_hors_immobilier (honoraires libres).
+      fusion_apport_association_immobilier: [
+        'fusion-absorption d\'association',
+        'fusion d\'association',
+        'traité de fusion d\'association',
+        'apport d\'immeuble à une association',
+        'apport immobilier à une association',
+      ],
+      acte_association_hors_immobilier: [
+        'fusion d\'associations',
+        'dissolution d\'association',
+        'dévolution d\'association',
+        'apport d\'association',
+      ],
+    }
+  },
   divers: {
     actes: {
       procuration: ['procuration authentique', 'procuration'],

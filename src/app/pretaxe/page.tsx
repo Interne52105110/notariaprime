@@ -477,6 +477,36 @@ const categoriesActes: Record<string, CategorieActes> = {
     }
   },
 
+  'associations': {
+    label: 'Actes relatifs aux associations',
+    icon: Users,
+    actes: {
+      'fusion_apport_association_immobilier': {
+        label: "Fusion / apport d'association — bien soumis à publicité foncière",
+        type: 'proportionnel',
+        droitFixeEnreg: 125, // CGI art. 680 : droit fixe pour fusion d'assos non lucratives conforme statuts
+        // A444-159 : en matière d'association (n°160 du tableau 5), actes
+        // relatifs à des biens faisant l'objet d'une publicité foncière.
+        // Barème identique en chiffres au n°54 / A444-91 (ventes), mais base
+        // juridique distincte — ne pas substituer les fondements.
+        // Sans bien immobilier transféré, l'acte relève des honoraires libres
+        // (silence du tarif pour les associations, annexe 4-9 par analogie).
+        tranches: [
+          { min: 0, max: 6500, taux: 3.870 },
+          { min: 6500, max: 17000, taux: 1.596 },
+          { min: 17000, max: 60000, taux: 1.064 },
+          { min: 60000, max: Infinity, taux: 0.799 }
+        ]
+      },
+      'acte_association_hors_immobilier': {
+        label: "Acte d'association sans transfert d'immeuble",
+        type: 'non_tarife',
+        description: "Honoraires libres (silence du tarif pour les associations, annexe 4-9 par analogie avec les actes de société non immobiliers ; fondement renvoi R.444-3, libre fixation R.444-16). Régime spécial fusions art. 816 CGI inapplicable aux associations (réservé aux personnes morales passibles de l'IS) ; droit fixe d'enregistrement 125 € (art. 680 CGI) pour fusion d'assos non lucratives conforme statuts, sinon DMTG/DMTO selon qualification (vigilance sur la prise en charge d'un passif → risque d'apport à titre onéreux).",
+        honorairesEstimes: 'à convenir'
+      }
+    }
+  },
+
   'divers': {
     label: 'Actes divers et procurations',
     icon: File,
