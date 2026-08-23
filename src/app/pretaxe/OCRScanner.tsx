@@ -218,7 +218,10 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
       } else if (isPdf) {
         setProgressLabel('Lecture du PDF');
         setProgress(10);
-        const pdfjs = await import('pdfjs-dist');
+        // Build "legacy" : pdfjs-dist v6 utilise Promise.try / Uint8Array.toHex dans
+        // le build moderne, qui exigent Chrome 140+, Firefox 133+, Safari 18.2+.
+        // Le build legacy est transpilé et couvre les navigateurs de bureau plus anciens.
+        const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
