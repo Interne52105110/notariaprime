@@ -167,3 +167,14 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Taux effectif calculé par actualisation des flux (frais initiaux et assurance saisis), explicitement estimatif et non simple addition de taux. Pas de validation juridique automatique duTAEG/usure.
 - FAQ remplacée : amortissement non constant, HCSF35%/25ans avecexceptions, IRA au plus petit des deux plafonds et non au choix, pas de pondération universelle70%desrevenus ni rentabilité garantie du rachat.
 - ExportCSV testé, tableau mobile, tauxnul et invalidation, build/types/lint et118testsPASS. SourcesBDF/HCSF/ServicePublicF1669.
+
+
+## Lot SCI approfondi — 122 tests
+
+- Nouvelle comparaison annuelle résidents/personnes physiques au réel : amortissement non décaissé, principal non déductible, trésorerieSCI et associés réconciliée. Dividendes bornés par résultat comptable et cash après prêt/IS.
+- IntérêtsCCA payés distincts de déductibilitéIR/IS, PFU31,4% ou barème sans abattement40% sur intérêts. Retrait du faux plafond universel TMO+1,31%, du conseil «aucun formalisme» et des gains fiscaux figés30/25%.
+- Terrain exclu de l’aide à la dotation ; échéancier bancaire réel par année, tauxnul, aucun intérêt fictif après fin du prêt. Suppression de la répétition de premièreannée sur20ans.
+- ReventeIR : frais/travaux admissibles, abattements et surtaxe société entière. IS : valeur brutecomptable et amortissements réels séparés, IS marginal et tranche réduite disponible. Net conservé dansSCI avant dettes/distribution.
+- Micro-foncier traité par associé et orienté vers modulefoncier, plus d’éligibilité automatique sur seuls loyersSCI. IFI orienté versfoyer (suppression calcul erroné surSCIentière), transmission versdonation/succession aprèsvalorisationparts ; fraisnotariés séparés.
+- Limites visibles : absence de déficits/pertes/réserves antérieurs ; mêmesTMIassociés, chargescommunes éligibles, aucuneimputationglobalefoncierautomatique ; annuel, pasdeprojectionpatrimonialegarantissantunrégimeoptimal. Les anciens composantsSCI ne sont plus utilisés parlapage.
+- Validation122tests, build/types/lint, Chromiumcash/annéedeprêtà0/dividendesnuls/revente/mobile. SourcesDGFiPSCI, BOI-BIC-CHG-50-50-30-20260805, SPCCA.

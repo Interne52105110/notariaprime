@@ -465,3 +465,24 @@ test('prêt : invalides rejetés et frais de financement augmentent le taux effe
  assert.ok(f({...p,frais:2000}).tauxEffectif>f(p).tauxEffectif);
  for(const x of [{mois:0},{mois:2.5},{taux:-1},{frais:100000},{capital:0}])assert.throws(()=>f({...p,...x}));
 });
+
+const sciAnnuel={loyers:20000,charges:2000,interets:1000,principal:6000,chargesFiscalesIR:0,amortissement:5000,ccaVerse:1000,ccaDeductibleIR:1000,ccaDeductibleIS:500,tmi:30,distribution:100,isReduit:false,bareme:false};
+test('SCI annuelle : amortissement non décaissé, CCA interne et distribution plafonnée cash',()=>{
+ const r=require('../src/lib/sci.ts').liquidationSCI(sciAnnuel);
+ assert.equal(r.baseIR,16000);assert.equal(r.baseIS,11500);assert.equal(r.impotIS,2875);assert.equal(r.dividendes,7125);assert.equal(r.tresorerieIS,0);assert.equal(r.cashIR,3134);assert.equal(r.cashIS,5573.75);
+});
+test('SCI annuelle : déficit de cash sans dividende fictif et déficit fiscal sans remboursement',()=>{
+ const f=require('../src/lib/sci.ts').liquidationSCI;
+ const a=f({...sciAnnuel,principal:30000});assert.equal(a.dividendes,0);assert.ok(a.tresorerieIS<0);
+ const b=f({...sciAnnuel,charges:30000});assert.equal(b.impotIR,0);assert.equal(b.psIR,0);assert.equal(b.impotIS,0);assert.ok(b.deficitIR>0);
+ assert.throws(()=>f({...sciAnnuel,ccaDeductibleIS:1001}));
+});
+test('SCI annuelle : pas d’abattement40 sur intérêts CCA au barème',()=>{
+ const r=require('../src/lib/sci.ts').liquidationSCI({...sciAnnuel,bareme:true});assert.equal(r.taxeCCA,486);assert.ok(Math.abs(r.taxeDividendes-7125*.366)<1e-7);
+});
+test('SCI revente : fraisIR et valeur bruteIS distincts, amortissements réels, abattements',()=>{
+ const f=require('../src/lib/sci.ts').reventeSCI;
+ const p={acquisition:100000,fraisAcquisition:7500,vente:200000,fraisVente:2500,travauxIR:15000,valeurBruteIS:120000,amortissements:30000,annees:10,autreBeneficeIS:0,isReduit:false};
+ const r=f(p);assert.equal(r.gainIR,75000);assert.equal(r.vnc,90000);assert.equal(r.gainIS,107500);assert.equal(r.impotIS,26875);assert.ok(Math.abs(r.impotIR-22485.75)<1e-7);
+ assert.equal(f({...p,annees:30}).impotIR,0);assert.equal(f({...p,vente:50000}).impotIS,0);
+});
