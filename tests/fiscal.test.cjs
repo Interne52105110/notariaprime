@@ -125,7 +125,7 @@ test('Dutreil : réduction à 69 ans, exclusion à 70 ans et nue-propriété',()
  assert.equal(succession.reductionDroitsDutreil(...args,70,true),0);
  assert.equal(succession.reductionDroitsDutreil(...args,69,false),0);
 });
-for(const [date,ans,mois,t] of [['1961-08-31',62,0,168],['1961-09-01',62,3,168],['1964-09-08',62,9,170],['1965-03-31',62,9,170],['1965-04-01',63,0,171],['1966-01-01',63,3,172],['1968-01-01',63,9,172],['1969-01-01',64,0,172]]) test(`Retraite septembre 2026 ${date}`,()=>assert.deepEqual(retraite.parametresRetraite(date),{ans,mois,trimestres:t}));
+for(const [date,ans,mois,t] of [['1961-08-31',62,0,168],['1961-09-01',62,3,169],['1964-09-08',62,9,170],['1965-03-31',62,9,170],['1965-04-01',63,0,171],['1966-01-01',63,3,172],['1968-01-01',63,9,172],['1969-01-01',64,0,172]]) test(`Retraite septembre 2026 ${date}`,()=>assert.deepEqual(retraite.parametresRetraite(date),{ans,mois,trimestres:t}));
 test('Agirc-Arrco exemple officiel salaire 75500 euros',()=>assert.ok(Math.abs(retraite.pointsAnnuelsAgircArrco(75500)-378.67)<.01));
 test('Décote relative, taux plein automatique et surcote après plafond',()=>{
  assert.equal(retraite.pensionBasePrive(30000,166,170,63).taux,.475);
@@ -253,4 +253,42 @@ test('partage : droit sur actif net et minimum de perception, distinct des émol
  pretaxe.calculerDroitPartage('100','standard',setter);assert.equal(taxes.droitPartage,25);
  const em=pretaxe.calculerEmoluments(300000,[{min:0,max:6500,taux:4.837},{min:6500,max:17000,taux:1.995},{min:17000,max:60000,taux:1.330},{min:60000,max:Infinity,taux:.998}],'75',false);
  assert.equal(em.nets,3490.98);
+});
+
+test('retraite : génération septembre 1961 et minoration complémentaire définitive',()=>{
+ const r=require('../src/lib/retraite.ts');
+ assert.equal(r.parametresRetraite('1961-08-31').trimestres,168);
+ assert.equal(r.parametresRetraite('1961-09-01').trimestres,169);
+ assert.equal(r.coefficientAgircArrco(64,4),.96);
+ assert.equal(r.coefficientAgircArrco(63,30),.83);
+ assert.equal(r.coefficientAgircArrco(67,30),1);
+});
+const retraiteProjection={naissance:'1962-01-01',statut:'salarie',objectif:'legal',trimestres:165,trimestresRegime:165,trimestresFutursAn:0,rachatTauxSeul:0,surcoteAcquise:0,reference:40000,points:1000,pointsFutursAn:0,complement:0,complementSaisi:false,socialBase:9.1,socialComplement:10.1,revenuNet:30000};
+test('retraite : relevé, décote de base et complémentaire, deux taux sociaux',()=>{
+ const r=require('../src/lib/retraite.ts').projectionRetraite(retraiteProjection,new Date('2026-09-08T12:00:00Z'));
+ assert.equal(r.date,'2026-10-01'); assert.equal(r.decote,4);
+ assert.ok(Math.abs(r.base-18550.295857988167)<1e-6);
+ assert.ok(Math.abs(r.complement-1381.056)<1e-6);
+ assert.ok(Math.abs(r.net-(r.base*.909+r.complement*.899))<1e-8);
+});
+test('retraite : rachat taux seul sans proratisation artificielle et comparaison cohérente',()=>{
+ const fn=require('../src/lib/retraite.ts').projectionRetraite, now=new Date('2026-09-08T12:00:00Z');
+ const r=fn({...retraiteProjection,rachatTauxSeul:4},now);
+ assert.equal(r.decote,0);assert.equal(r.ratio,165/169);
+ const a=fn({...retraiteProjection,complementSaisi:true,complement:5000},now);
+ const b=fn({...retraiteProjection,complementSaisi:true,complement:5000},now,24);
+ assert.equal(a.complement,5000);assert.equal(b.complement,5000);
+});
+test('retraite : fonction publique décotée et libéral sans pension inventée',()=>{
+ const fn=require('../src/lib/retraite.ts').projectionRetraite,now=new Date('2026-09-08T12:00:00Z');
+ const r=fn({...retraiteProjection,statut:'fonctionnaire',trimestresRegime:120,complement:1200},now);
+ assert.ok(Math.abs(r.base-40000*.75*120/169*.95)<1e-7);assert.equal(r.complement,1200);
+ const l=fn({...retraiteProjection,statut:'liberal',reference:15000,complement:2000},now);
+ assert.equal(l.base,15000);assert.equal(l.complement,2000);
+ assert.throws(()=>fn({...retraiteProjection,trimestresRegime:170},now));
+});
+test('retraite : taux plein automatique ne crée pas de surcote sans durée requise',()=>{
+ const fn=require('../src/lib/retraite.ts').projectionRetraite;
+ const r=fn({...retraiteProjection,objectif:'surcote',trimestres:120,trimestresRegime:120,trimestresFutursAn:0},new Date('2026-09-08T12:00:00Z'));
+ assert.equal(r.age,69);assert.equal(r.decote,0);assert.equal(r.surcote,0);assert.equal(r.ratio,120/169);
 });

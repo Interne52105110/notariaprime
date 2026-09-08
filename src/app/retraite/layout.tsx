@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       <CalculatorJsonLd
         name="Simulateur retraite — pension, cotisations, fiscalité"
-        description="Estimez votre future pension de retraite : régime de base, complémentaire AGIRC-ARRCO, décote/surcote, abattement 10%, comparaison statuts (cadre, TNS, fonction publique)."
+        description="Projetez votre retraite à partir de vos relevés : pension de base, complémentaire, décote et surcote, prélèvements sociaux et comparaison des dates de départ."
         path="/retraite"
       />
       {children}

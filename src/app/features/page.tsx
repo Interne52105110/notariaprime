@@ -312,12 +312,12 @@ function FonctionnalitesContent() {
       quarter: 'T1 2026',
       icon: PiggyBank,
       category: 'Retraite & Transmission',
-      description: 'Estimation retraite tous régimes. Rachat trimestres, cumul emploi-retraite, réversion.',
+      description: 'Projection de retraite à partir des relevés, selon le régime sélectionné.',
       features: [
-        'Estimation tous régimes',
-        'Rachat trimestres',
-        'Cumul emploi-retraite',
-        'Réversion'
+        'Données de carrière renseignées',
+        'Décote et surcote',
+        'Comparaison des départs',
+        'Prélèvements sociaux distincts'
       ]
     },
     {

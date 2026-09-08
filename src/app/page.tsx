@@ -347,7 +347,7 @@ function HomepageContent() {
       icon: PiggyBank,
       description: 'Estimation de votre pension selon votre carrière et votre régime',
       status: 'Disponible',
-      features: ['Pension de base + complémentaire', 'Décote / surcote', 'Scénarios de départ', 'Rachat de trimestres'],
+      features: ['Pension de base + complémentaire', 'Décote / surcote', 'Scénarios de départ', 'Données du relevé'],
       link: '/retraite',
       isNew: true,
       category: 'Entreprise'

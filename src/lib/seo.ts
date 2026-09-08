@@ -69,7 +69,7 @@ const PAGE_META: Record<string, PageMeta> = {
   },
   "/retraite": {
     title: "Simulateur retraite — pension, cotisations, fiscalité",
-    description: "Estimez votre future pension de retraite : régime de base, complémentaire AGIRC-ARRCO, décote/surcote, abattement 10%, comparaison statuts (cadre, TNS, fonction publique).",
+    description: "Projetez votre retraite à partir des relevés : base, complémentaire, décote, surcote et comparaison des dates de départ.",
     keywords: ["simulateur retraite", "pension", "AGIRC-ARRCO", "décote surcote", "abattement 10%"],
   },
   "/revenus-fonciers": {
