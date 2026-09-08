@@ -1,6 +1,7 @@
 "use client";
 
 import { plusDeCinqAns, anneesRevolues, abattementsPlusValue, surtaxePlusValue } from '@/lib/fiscal';
+import { basesPlusValue, abattementExceptionnelPV } from '@/lib/plusvalue';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
@@ -12,6 +13,8 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface FormData {
+  prixAcquisitionDroit?:string; prixVenteDroit?:string; natureImmeuble?:string;
+  tauxExceptionnel?:string; datePromesse?:string; affiliationEurope?:boolean;
   modeAcquisition: 'achat' | 'donation' | 'succession' | 'echange';
   typeBien: 'principal' | 'secondaire' | 'locatif' | 'sci';
   estDemembre: boolean;
@@ -87,13 +90,13 @@ function FAQSection() {
           source: "Articles 150 V à 150 VH du CGI"
         },
         {
-          q: "Quels sont les abattements pour durée de détention en 2025 ?",
+          q: "Quels sont les abattements pour durée de détention en 2026 ?",
           r: "**Les abattements sont DIFFÉRENTS pour l'IR et les PS :**\n\n**🔹 IMPÔT SUR LE REVENU (19%) :**\n• < 6 ans : 0%\n• 6-21 ans : 6% par an (96% après 21 ans)\n• 22 ans : 4% supplémentaires\n• ✅ **Exonération totale après 22 ans**\n\n**🔹 PRÉLÈVEMENTS SOCIAUX (17,2%) :**\n• < 6 ans : 0%\n• 6-21 ans : 1,65% par an (26,4% après 21 ans)\n• 22 ans : 1,60%\n• 23-29 ans : 9% par an\n• ✅ **Exonération totale après 30 ans**\n\n**💡 Astuce :** Le calcul se fait au jour près. Une différence de quelques jours peut changer de tranche d'abattement !",
           source: "Article 150 VC du CGI"
         },
         {
           q: "Quel est le taux d'imposition de la plus-value immobilière ?",
-          r: "**📊 TAUX GLOBAL : 36,2%** (avant abattements)\n\n**Détail de la fiscalité :**\n• Impôt sur le revenu : **19%**\n• Prélèvements sociaux : **17,2%**\n  - CSG : 9,9%\n  - CRDS : 0,5%\n  - Prélèvement social : 4,5%\n  - Contribution additionnelle : 0,3%\n  - Prélèvement de solidarité : 2%\n\n**💰 TAXE ADDITIONNELLE** (si PV imposable > 50 000 €) :\n• De 50k à 60k : 2%\n• De 60k à 100k : 3%\n• De 100k à 110k : 4%\n• De 110k à 150k : 5%\n• Au-delà de 150k : 6%\n• Plafond : 10 600 €",
+          r: "IR : 19 %. Prélèvements sociaux ordinaires sur les plus-values immobilières : 17,2 % (CSG 9,2 %, CRDS 0,5 %, solidarité 7,5 %). Les affiliés éligibles à un régime étranger EEE/Suisse ou britannique peuvent relever de la seule solidarité de 7,5 %. La surtaxe des plus-values élevées débute au-delà de 50 000 € nets imposables à l’IR, avec taux de 2 à 6 % et mécanismes de lissage. Elle ne possède pas de plafond fixe de 10 600 €. Seuil par cédant physique, ou au niveau de la SCI cédante ; terrains à bâtir exclus.",
           source: "Articles 150 U et 1609 nonies G du CGI"
         }
       ]
@@ -108,7 +111,7 @@ function FAQSection() {
         },
         {
           q: "Comment transformer ma résidence secondaire en résidence principale ?",
-          r: "**⚠️ VIGILANCE : Le fisc contrôle de près !**\n\n**Conditions pour bénéficier de l'exonération :**\n• **Occupation effective** du logement comme résidence habituelle\n• Pas de durée minimum légale, mais **pratique : 1 an minimum**\n• Le logement doit être votre résidence **au jour de la vente**\n\n**🔍 Éléments vérifiés par l'administration fiscale :**\n• Domicile fiscal (impôts)\n• Lieu de travail\n• Scolarité des enfants\n• Consommations (eau, électricité, gaz)\n• Courrier reçu\n• Assurance habitation\n\n**💡 Conseil :** Changez tous vos documents officiels et conservez les preuves (factures, courriers, etc.)",
+          r: "La résidence principale doit correspondre à l’habitation habituelle et effective du cédant. Il n’existe pas de durée minimale générale d’un an garantissant l’exonération. L’appréciation dépend de la réalité de l’occupation et des circonstances de la vente ; un changement administratif ne suffit pas. Après libération du logement, les tolérances exigent notamment un délai normal de vente et le respect des conditions d’occupation. Les dépendances doivent être immédiates et nécessaires et leur cession respecter les conditions prévues.",
           source: "Doctrine fiscale BOI-RFPI-PVI-10-40-10"
         }
       ]
@@ -123,12 +126,12 @@ function FAQSection() {
         },
         {
           q: "Que se passe-t-il en cas de donation ou succession ?",
-          r: "**🎁 EN CAS DE DONATION :**\n• Le **donataire hérite de la date d'acquisition** du donateur\n• La durée de détention continue sans interruption\n• Le prix d'acquisition de référence reste celui du donateur\n• **Optimisation fiscale** : le démembrement peut être intéressant\n\n**💀 EN CAS DE SUCCESSION :**\n• L'**héritier repart à zéro** pour la durée de détention\n• Nouvelle date d'acquisition = date du décès\n• Prix d'acquisition = valeur vénale au jour du décès\n• Permet de \"purger\" une plus-value latente\n\n**💡 Conseil patrimonial :** En présence d'une forte plus-value latente, il peut être préférable d'attendre la succession plutôt que de donner le bien.",
+          r: "Pour une acquisition par donation, la date de détention repart normalement de la donation et la valeur d’acquisition est celle retenue pour les droits de mutation, et non le prix ancien payé par le donateur. Pour une succession, la date est normalement celle du décès et la valeur celle retenue dans la succession. Les frais et droits réellement supportés et admissibles peuvent majorer cette valeur ; aucun forfait de 7,5 % pour une acquisition gratuite. Les droits démembrés, réunions de propriété et acquisitions successives suivent des règles particulières. Le choix de transmettre suppose une étude civile et fiscale globale.",
           source: "Articles 150 VB-II et 150 VB-III du CGI"
         },
         {
           q: "Comment fonctionne la plus-value en démembrement de propriété ?",
-          r: "**👴👶 PRINCIPE DU DÉMEMBREMENT :**\n\n**En cas de vente du bien démembré :**\n• Usufruitier et nu-propriétaire vendent ensemble\n• La plus-value est calculée sur la **valeur en pleine propriété**\n• Chacun est taxé sur **sa quote-part** (selon barème fiscal)\n\n**Barème de l'usufruit (art. 669 CGI) :**\n• Moins de 21 ans : 90%\n• 21-30 ans : 80%\n• 31-40 ans : 70%\n• 41-50 ans : 60%\n• 51-60 ans : 50%\n• 61-70 ans : 40%\n• 71-80 ans : 30%\n• 81-90 ans : 20%\n• Plus de 90 ans : 10%\n\n**⚠️ Important :** En cas d'extinction de l'usufruit par décès, pas d'imposition sur la réunion de l'usufruit.",
+          r: "Chaque titulaire d’un droit démembré réalise sa propre plus-value. Le prix de vente doit être ventilé selon la valeur réelle des droits ; le barème 669 est admis comme règle pratique dans certains cas. Le prix d’acquisition d’un droit acquis isolément est normalement celui de l’acte, ou la valeur fiscale de la mutation gratuite : il n’est pas recalculé automatiquement à l’âge actuel. Les successions antérieures à 2004 et la réunion de propriété ont des règles spécifiques. Le seuil de cession de 15 000 € s’apprécie sur la pleine propriété reconstituée, puis sur la quote-part indivise.",
           source: "Articles 669 et 1133 du CGI"
         }
       ]
@@ -153,12 +156,12 @@ function FAQSection() {
       questions: [
         {
           q: "Comment déclarer et payer la plus-value immobilière ?",
-          r: "**📝 PROCÉDURE OBLIGATOIRE :**\n\n**1️⃣ DÉCLARATION :**\n• Formulaire **2048-IMM-SD** (si bien détenu en direct)\n• À remplir par le **notaire** lors de la signature de l'acte\n• Le notaire calcule et télédéclare automatiquement\n\n**2️⃣ PAIEMENT :**\n• **Prélèvement à la source** par le notaire\n• Déduit du prix de vente avant versement au vendeur\n• Versement à l'administration fiscale par le notaire\n\n**3️⃣ DÉCLARATION COMPLÉMENTAIRE :**\n• À reporter sur la déclaration de revenus (2042-C)\n• Case 3VZ (plus-values imposables)\n• **Uniquement à titre déclaratif** (déjà payé)\n\n**💡 Bon à savoir :** Si la plus-value est nulle ou négative, une déclaration doit quand même être déposée (formulaire 2048-IMM-M).",
+          r: "Lors d’une vente notariée imposable, le notaire établit la déclaration de plus-value et verse l’impôt sur le prix de cession. Le montant imposable est ensuite reporté dans la déclaration annuelle, sans paiement une seconde fois de cet impôt ; il peut toutefois intervenir dans le revenu fiscal de référence et les contributions sur les hauts revenus. Il existe des dispenses de déclaration 2048 selon la situation, notamment certaines exonérations ou l’absence de plus-value : le dépôt n’est pas systématique pour une plus-value nulle.",
           source: "Articles 150 VG et 150 VH du CGI - Formulaire 2048-IMM"
         },
         {
           q: "Que se passe-t-il en cas d'erreur de déclaration ?",
-          r: "**⚠️ EN CAS D'ERREUR OU OMISSION :**\n\n**Erreur en votre défaveur (trop payé) :**\n• **Réclamation possible** dans les 2 ans suivant le paiement\n• Formulaire de réclamation au Service des Impôts des Particuliers\n• Remboursement si justification apportée\n\n**Erreur en défaveur du fisc (sous-déclaration) :**\n• **Majoration de 10%** si déclaration spontanée\n• **Majoration de 40%** si contrôle (mauvaise foi)\n• **Majoration de 80%** si manœuvres frauduleuses\n• **Intérêts de retard** : 0,20% par mois\n\n**🔍 Contrôle fiscal :**\n• Prescription de **3 ans** (6 ans si pas de déclaration)\n• Documents à conserver : factures, actes, justificatifs\n\n**💡 En cas d'erreur :** Contactez rapidement votre notaire ou un fiscaliste pour régulariser.",
+          r: "Une erreur doit être signalée au notaire et au service fiscal compétent pour une déclaration rectificative ou une réclamation. Les délais de réclamation et de reprise, les intérêts et les pénalités dépendent de la nature de l’erreur, du dépôt de la déclaration et des circonstances de la régularisation. Une correction spontanée n’entraîne pas systématiquement une majoration de 10 %. Ne pas appliquer un délai unique à toutes les situations.",
           source: "Article L80 C du LPF et doctrine fiscale"
         }
       ]
@@ -304,6 +307,7 @@ function PlusValueContent() {
   const [results, setResults] = useState<Results | null>(null);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [showComparison, setShowComparison] = useState(false);
+  useEffect(()=>{setResults(null);setScenarios([]);setShowComparison(false);},[formData]);
 
   const calculerDureeDetention = (dateDebut: string, dateFin: string) => {
     const debut = new Date(dateDebut);
@@ -346,8 +350,8 @@ function PlusValueContent() {
       suggestions.push(`⏰ Dans ${anneesRestantes.toFixed(1)} ans, vous serez totalement exonéré de prélèvements sociaux.`);
     }
 
-    if (data.travaux === 'aucun' && data.modeAcquisition === 'achat' && duree > 5) {
-      const prixAcq = parseFloat(data.prixAcquisition.replace(/\s/g, '')) || 0;
+    if (data.travaux === 'aucun' && (data.natureImmeuble??'bati')==='bati' && plusDeCinqAns(data.dateAcquisition,data.dateVente)) {
+      const prixAcq = (data.estDemembre&&data.typeDroit!=='pleine'?Number(data.prixAcquisitionDroit??0):Number((data.modeAcquisition==='achat'?data.prixAcquisition:data.valeurVenale).replace(/\s/g,''))*(data.typeBien==='sci'?1:Number(data.pourcentageDetention)/100))||0;
       const travauxForfait = prixAcq * 0.15;
       suggestions.push(`🔨 Le forfait travaux de 15% (${travauxForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €) réduirait votre plus-value sans justificatif.`);
     }
@@ -356,22 +360,20 @@ function PlusValueContent() {
       suggestions.push("⚠️ Bien locatif: si vous déclarez des travaux réels, vérifiez qu'ils n'ont PAS été déduits de vos revenus fonciers. Sinon, préférez le forfait 15%.");
     }
 
-    if (!data.estDemembre && data.typeBien !== 'principal') {
-      suggestions.push("👥 Un démembrement de propriété pourrait optimiser la transmission.");
-    }
+
 
     if (data.typeBien === 'locatif') {
       suggestions.push("🏢 Une SCI familiale peut offrir des avantages de gestion patrimoniale.");
     }
 
     if (data.fraisAcquisition === 'forfait' && data.modeAcquisition === 'achat') {
-      const prixAcq = parseFloat(data.prixAcquisition.replace(/\s/g, '')) || 0;
+      const prixAcq = (data.estDemembre&&data.typeDroit!=='pleine'?Number(data.prixAcquisitionDroit??0):Number((data.modeAcquisition==='achat'?data.prixAcquisition:data.valeurVenale).replace(/\s/g,''))*(data.typeBien==='sci'?1:Number(data.pourcentageDetention)/100))||0;
       const fraisForfait = prixAcq * 0.075;
       suggestions.push(`📋 Si vos frais réels dépassent ${fraisForfait.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €, optez pour les frais réels.`);
     }
 
     if (data.typeBien === 'secondaire') {
-      suggestions.push("🏠 Si ce bien devient votre résidence principale avant la vente, exonération totale !");
+      suggestions.push("🏠 L’exonération de résidence principale exige une occupation habituelle et effective ; un changement de domiciliation de pure forme ne suffit pas.");
     }
 
     return suggestions;
@@ -384,11 +386,22 @@ function PlusValueContent() {
       return null;
     }
 
+    const nombre=(v:string|undefined)=>Number((v??'').replace(/\s/g,'').replace(',','.'));
+    const prixVenteBrut=nombre(formData.prixVente);
+    const quote=formData.typeBien==='sci'?1:nombre(formData.pourcentageDetention)/100;
+    const droitDemembre=formData.estDemembre&&formData.typeDroit!=='pleine';
+    const sci=formData.typeBien==='sci';
+    const nature=formData.natureImmeuble??'bati';
+    const dureeDet=calculerDureeDetention(formData.dateAcquisition,dateVenteUtilisee);
+    if(!Number.isFinite(dureeDet.annees)||!Number.isFinite(prixVenteBrut)||prixVenteBrut<=0||!Number.isFinite(quote)||quote<=0||quote>1)return null;
+    if(sci&&(droitDemembre||formData.ehpad||formData.retraite||formData.nonResident||formData.premiereVente))return null;
+    if((formData.typeBien==='principal'||formData.ehpad)&&nature!=='bati')return null;
+
     if (formData.typeBien === 'principal') {
       return {
         plusValueBrute: 0,
         prixAcquisitionCorrige: 0,
-        prixVenteCorrige: parseFloat(formData.prixVente.replace(/\s/g, '')),
+        prixVenteCorrige: droitDemembre?nombre(formData.prixVenteDroit):prixVenteBrut*quote,
         dureeDetention: 0,
         dureeDetentionJours: 0,
         abattementIR: 100,
@@ -411,7 +424,7 @@ function PlusValueContent() {
       return {
         plusValueBrute: 0,
         prixAcquisitionCorrige: 0,
-        prixVenteCorrige: parseFloat(formData.prixVente.replace(/\s/g, '')),
+        prixVenteCorrige: droitDemembre?nombre(formData.prixVenteDroit):prixVenteBrut*quote,
         dureeDetention: 0,
         dureeDetentionJours: 0,
         abattementIR: 100,
@@ -436,7 +449,7 @@ function PlusValueContent() {
         return {
           plusValueBrute: 0,
           prixAcquisitionCorrige: 0,
-          prixVenteCorrige: parseFloat(formData.prixVente.replace(/\s/g, '')),
+          prixVenteCorrige: droitDemembre?nombre(formData.prixVenteDroit):prixVenteBrut*quote,
           dureeDetention: 0,
           dureeDetentionJours: 0,
           abattementIR: 100,
@@ -460,7 +473,7 @@ function PlusValueContent() {
       return {
         plusValueBrute: 0,
         prixAcquisitionCorrige: 0,
-        prixVenteCorrige: parseFloat(formData.prixVente.replace(/\s/g, '')),
+        prixVenteCorrige: droitDemembre?nombre(formData.prixVenteDroit):prixVenteBrut*quote,
         dureeDetention: 0,
         dureeDetentionJours: 0,
         abattementIR: 100,
@@ -479,12 +492,11 @@ function PlusValueContent() {
       };
     }
 
-    const prixVenteBrut = parseFloat(formData.prixVente.replace(/\s/g, ''));
-    if (prixVenteBrut <= 15000) {
+    if (prixVenteBrut * quote <= 15000) {
       return {
         plusValueBrute: 0,
         prixAcquisitionCorrige: 0,
-        prixVenteCorrige: prixVenteBrut,
+        prixVenteCorrige: prixVenteBrut*quote,
         dureeDetention: 0,
         dureeDetentionJours: 0,
         abattementIR: 100,
@@ -496,99 +508,48 @@ function PlusValueContent() {
         taxeAdditionnelle: 0,
         totalFiscalite: 0,
         exoneration: true,
-        motifExoneration: 'Prix de vente ≤ 15 000 € (Art. 150 U II 6° CGI)',
+        motifExoneration: 'Valeur en pleine propriété de la quote-part cédée ≤ 15 000 € (Art. 150 U II 6° CGI)',
         notesExoneration: [],
         suggestions: [],
         economieAbattements: 0
       };
     }
 
-    let prixAcqBase = formData.modeAcquisition === 'achat' 
-      ? parseFloat(formData.prixAcquisition.replace(/\s/g, '')) || 0
-      : parseFloat(formData.valeurVenale.replace(/\s/g, '')) || 0;
-
-    if (formData.estDemembre && formData.typeDroit !== 'pleine' && formData.ageUsufruitier) {
-      const age = parseInt(formData.ageUsufruitier);
-      const valeurUsufruitPct = calculerValeurUsufruit(age);
-      
-      if (formData.typeDroit === 'usufruit') {
-        prixAcqBase = prixAcqBase * (valeurUsufruitPct / 100);
-      } else if (formData.typeDroit === 'nue') {
-        prixAcqBase = prixAcqBase * ((100 - valeurUsufruitPct) / 100);
-      }
-    }
-
-    if (formData.typeBien === 'sci' || parseInt(formData.nombreCoproprietaires) > 1) {
-      const pourcentage = parseFloat(formData.pourcentageDetention) / 100;
-      prixAcqBase = prixAcqBase * pourcentage;
-    }
-
-    let fraisAcq = 0;
-    if (formData.fraisAcquisition === 'forfait' && formData.modeAcquisition === 'achat') {
-      fraisAcq = prixAcqBase * 0.075;
-    } else if (formData.fraisAcquisition === 'reel' && formData.fraisAcquisitionMontant) {
-      fraisAcq = parseFloat(formData.fraisAcquisitionMontant.replace(/\s/g, ''));
-    }
-
-    const dureeDet = calculerDureeDetention(formData.dateAcquisition, dateVenteUtilisee);
-    const duree = dureeDet.annees;
-    if (!Number.isFinite(duree)) return null;
-    
-    let montantTravaux = travauxCustom !== undefined ? travauxCustom : 0;
-    
-    if (travauxCustom === undefined) {
-      if (formData.travaux === 'forfait' && plusDeCinqAns(formData.dateAcquisition, dateVenteUtilisee) && formData.modeAcquisition === 'achat') {
-        montantTravaux = prixAcqBase * 0.15;
-      } else if (formData.travaux === 'reel' && formData.travauxMontant) {
-        montantTravaux = parseFloat(formData.travauxMontant.replace(/\s/g, ''));
-      }
-    }
-
-    const prixAcquisitionCorrige = prixAcqBase + fraisAcq + montantTravaux;
-
-    const fraisVenteMontant = parseFloat(formData.fraisVente.replace(/\s/g, '') || '0');
-    let prixVenteCorrige = prixVenteBrut - fraisVenteMontant;
-
-    if (formData.estDemembre && formData.typeDroit !== 'pleine' && formData.ageUsufruitier) {
-      const age = parseInt(formData.ageUsufruitier);
-      const valeurUsufruitPct = calculerValeurUsufruit(age);
-      
-      if (formData.typeDroit === 'usufruit') {
-        prixVenteCorrige = prixVenteCorrige * (valeurUsufruitPct / 100);
-      } else if (formData.typeDroit === 'nue') {
-        prixVenteCorrige = prixVenteCorrige * ((100 - valeurUsufruitPct) / 100);
-      }
-    }
-
-    if (formData.typeBien === 'sci' || parseInt(formData.nombreCoproprietaires) > 1) {
-      const pourcentage = parseFloat(formData.pourcentageDetention) / 100;
-      prixVenteCorrige = prixVenteCorrige * pourcentage;
-    }
+    const onereux=formData.modeAcquisition==='achat'||formData.modeAcquisition==='echange';
+    const acquisition=nombre(formData.modeAcquisition==='achat'?formData.prixAcquisition:formData.valeurVenale);
+    if((!droitDemembre&&acquisition<=0)||droitDemembre&&(!formData.prixAcquisitionDroit?.trim()||!formData.prixVenteDroit?.trim()))return null;
+    const duree=dureeDet.annees;
+    const forfaitTravaux=(formData.travaux==='forfait'||travauxCustom!==undefined)&&nature==='bati'&&plusDeCinqAns(formData.dateAcquisition,dateVenteUtilisee);
+    let bases;
+    try { bases=basesPlusValue({acquisition,vente:prixVenteBrut,quotePart:quote*100,sci,demembre:droitDemembre,acquisitionDroit:droitDemembre?nombre(formData.prixAcquisitionDroit):undefined,venteDroit:droitDemembre?nombre(formData.prixVenteDroit):undefined,fraisAcquisition:formData.fraisAcquisition==='reel'?nombre(formData.fraisAcquisitionMontant):0,fraisVente:nombre(formData.fraisVente),travaux:formData.travaux==='reel'?nombre(formData.travauxMontant):0,forfaitAcquisition:formData.fraisAcquisition==='forfait'&&onereux,forfaitTravaux}); } catch { return null; }
+    const prixAcquisitionCorrige=bases.acquisitionCorrigee;
+    const prixVenteCorrige=bases.venteCorrigee;
 
     const plusValueBrute = Math.max(0, prixVenteCorrige - prixAcquisitionCorrige);
 
     let abattementIR = calculerAbattementIR(duree);
     let abattementPS = calculerAbattementPS(duree);
 
-    if (formData.zoneTendue) {
-      abattementIR = 100 - (100 - abattementIR) * 0.30;
-      abattementPS = 100 - (100 - abattementPS) * 0.30;
-    }
+    const exceptionnel=abattementExceptionnelPV(formData.zoneTendue,nombre(formData.tauxExceptionnel),formData.datePromesse??'',dateVenteUtilisee);
+    abattementIR=100-(100-abattementIR)*(1-exceptionnel/100);
+    abattementPS=100-(100-abattementPS)*(1-exceptionnel/100);
 
     // Plus-values nettes imposables (après abattement pour durée de détention)
     let plusValueIR = plusValueBrute * (1 - abattementIR / 100);
     let plusValuePS = plusValueBrute * (1 - abattementPS / 100);
 
     const notesExoneration: string[] = [];
+    if(duree>=30)notesExoneration.push('Exonération totale par la durée de détention de trente ans.');
+    if(formData.zoneTendue)notesExoneration.push(exceptionnel?`Abattement exceptionnel ${exceptionnel} % : conditions déclarées et dates compatibles.`:"Abattement exceptionnel non appliqué : taux ou dates non admissibles/non renseignés.");
 
     // Art. 150 U II 1° bis - Première cession d'un logement autre que la RP,
     // exonération de la fraction de plus-value correspondant au prix remployé
     // dans l'acquisition/construction d'une résidence principale sous 24 mois.
-    if (formData.premiereVente && (formData.typeBien === 'secondaire' || formData.typeBien === 'locatif')) {
+    if (formData.premiereVente && !droitDemembre && nature==='bati' && (formData.typeBien === 'secondaire' || formData.typeBien === 'locatif')) {
       const remploi = parseFloat(formData.remploiResidencePrincipale.replace(/\s/g, '')) || 0;
       // Aucun remploi présumé : le montant affecté doit être renseigné.
-      const proportionRemployee = prixVenteBrut > 0 && remploi > 0
-        ? Math.min(1, remploi / prixVenteBrut)
+      const proportionRemployee = prixVenteCorrige > 0 && remploi > 0
+        ? Math.min(1, remploi / prixVenteCorrige)
         : 0;
       if (proportionRemployee > 0) {
         plusValueIR = plusValueIR * (1 - proportionRemployee);
@@ -601,17 +562,17 @@ function PlusValueContent() {
 
     // Art. 150 U II 2° - Cession d'un logement en France par un non-résident UE/EEE,
     // exonération dans la limite de 150 000 € de plus-value nette imposable PAR CÉDANT.
-    const nbCedants = Math.max(1, parseInt(formData.nombreCedants) || 1);
+
     const nonResidentEligible =
       formData.nonResident &&
       formData.nonResidentConditions &&
       !formData.dejaBeneficieExoRPNonResident;
     if (nonResidentEligible) {
-      const plafond = 150000 * nbCedants;
+      const plafond = 150000;
       plusValueIR = Math.max(0, plusValueIR - plafond);
       plusValuePS = Math.max(0, plusValuePS - plafond);
       notesExoneration.push(
-        `Cession par un non-résident (Art. 150 U II 2° CGI) : exonération à hauteur de 150 000 € de plus-value nette imposable par cédant${nbCedants > 1 ? ` (${nbCedants} cédants → ${(150000 * nbCedants).toLocaleString('fr-FR')} €)` : ''}.`
+        `Cession par un non-résident (Art. 150 U II 2° CGI) : plafond de 150 000 € appliqué à la seule quote-part de ce cédant.`
       );
     } else if (formData.nonResident) {
       notesExoneration.push(
@@ -622,12 +583,13 @@ function PlusValueContent() {
     }
 
     const impotRevenu = plusValueIR * 0.19;
-    const prelevementsSociaux = plusValuePS * 0.172;
-    const taxeAdditionnelle = calculerTaxeAdditionnelle(plusValueIR);
+    const tauxPS=formData.affiliationEurope&&!sci?0.075:0.172;
+    const prelevementsSociaux = plusValuePS * tauxPS;
+    const taxeAdditionnelle = nature==='tab'?0:calculerTaxeAdditionnelle(plusValueIR);
 
     const totalFiscalite = impotRevenu + prelevementsSociaux + taxeAdditionnelle;
 
-    const fiscaliteSansAbattement = plusValueBrute * 0.362 + calculerTaxeAdditionnelle(plusValueBrute);
+    const fiscaliteSansAbattement = plusValueBrute * (.19+tauxPS) + (nature==='tab'?0:calculerTaxeAdditionnelle(plusValueBrute));
     const economieAbattements = fiscaliteSansAbattement - totalFiscalite;
 
     const resultats: Results = {
@@ -673,7 +635,7 @@ function PlusValueContent() {
       setResults(res);
       genererScenarios();
     } else {
-      alert('Veuillez remplir les champs obligatoires');
+      alert('Vérifiez les dates, montants et quote-part. Les droits démembrés nécessitent leurs prix propres. Pour une SCI, les exonérations personnelles et droits démembrés ne sont pas traités dans ce scénario global.');
     }
   };
 
@@ -717,8 +679,8 @@ function PlusValueContent() {
       }
     }
 
-    if (formData.travaux === 'aucun' && formData.modeAcquisition === 'achat') {
-      const prixAcq = parseFloat(formData.prixAcquisition.replace(/\s/g, '')) || 0;
+    if (formData.travaux === 'aucun' && (formData.natureImmeuble??'bati')==='bati' && plusDeCinqAns(formData.dateAcquisition,formData.dateVente)) {
+      const prixAcq=(formData.estDemembre&&formData.typeDroit!=='pleine'?Number(formData.prixAcquisitionDroit??0):Number((formData.modeAcquisition==='achat'?formData.prixAcquisition:formData.valeurVenale).replace(/\s/g,''))*(formData.typeBien==='sci'?1:Number(formData.pourcentageDetention)/100))||0;
       const travauxForfait = prixAcq * 0.15;
       const res4 = calculerPlusValue(undefined, travauxForfait);
       if (res4) {
@@ -793,7 +755,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Calculateur de Plus-Value Immobilière</h1>
-                  <p className="text-emerald-600 font-medium">Conforme CGI 2025</p>
+                  <p className="text-emerald-600 font-medium">Paramètres revus en septembre 2026</p>
                 </div>
               </div>
             </div>
@@ -857,7 +819,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       { value: 'principal', label: 'Rés. principale' },
                       { value: 'secondaire', label: 'Rés. secondaire' },
                       { value: 'locatif', label: 'Bien locatif' },
-                      { value: 'sci', label: 'SCI / Indivision' }
+                      { value: 'sci', label: 'SCI à l’IR' }
                     ].map((type) => (
                       <button
                         key={type.value}
@@ -943,7 +905,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                       {formData.typeDroit !== 'pleine' && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Âge de l&apos;usufruitier *</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Âge de l&apos;usufruitier — repère facultatif</label>
                           <input
                             type="number"
                             value={formData.ageUsufruitier}
@@ -952,7 +914,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           />
                           <p className="text-xs text-gray-600 mt-2">
-                            Nécessaire pour le barème Art. 669 CGI
+                            Barème 669 indicatif ; aucun prix historique n’est recalculé avec cet âge.
                           </p>
                         </div>
                       )}
@@ -960,12 +922,21 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   )}
                 </div>
 
+                <div className="rounded-xl border bg-blue-50 p-4 space-y-3 text-sm">
+                  <label className="block">Nature du bien<select aria-label="Nature du bien" className="block w-full border rounded p-2" value={formData.natureImmeuble??'bati'} onChange={e=>setFormData({...formData,natureImmeuble:e.target.value})}><option value="bati">Immeuble bâti</option><option value="tab">Terrain à bâtir (hors surtaxe des PV élevées)</option><option value="terrain">Autre terrain</option></select></label>
+                  <p>Calcul d’un seul cédant : en indivision ou communauté, saisir les prix et frais du bien entier puis la quote-part de ce cédant. Les résultats portent uniquement sur cette quote-part, y compris la surtaxe. Le seuil de 15 000 € utilise la valeur en pleine propriété de la quote-part indivise.</p>
+                  <p>SCI à l’IR : ce module calcule la vente de l’immeuble par la société à 100 %, avec tous les associés personnes physiques imposables aux mêmes conditions. Il ne simule ni la cession de parts ni les exonérations propres à certains associés. La surtaxe est liquidée au niveau de la société.</p>
+                  {formData.estDemembre&&formData.typeDroit!=='pleine'&&<><label className="block">Prix ou valeur fiscale d’acquisition du droit de ce cédant (€)<input type="number" min="0" className="block w-full border rounded p-2" value={formData.prixAcquisitionDroit??''} onChange={e=>setFormData({...formData,prixAcquisitionDroit:e.target.value})}/></label><label className="block">Prix de vente attribué au droit de ce cédant (€)<input type="number" min="0" className="block w-full border rounded p-2" value={formData.prixVenteDroit??''} onChange={e=>setFormData({...formData,prixVenteDroit:e.target.value})}/></label><p>En démembrement, ces deux montants sont déjà ceux du cédant : aucun second prorata. Les frais réels et travaux doivent aussi concerner ce seul droit. Conserver le prix de vente en pleine propriété pour le seuil de 15 000 €. Reprendre les actes et la base fiscale applicable ; successions antérieures à 2004, réunion de propriété, acquisition par fractions et usufruit temporaire exigent une détermination spécifique.</p></>}
+                  <label className="flex gap-2"><input type="checkbox" checked={formData.affiliationEurope??false} onChange={e=>setFormData({...formData,affiliationEurope:e.target.checked})}/>Affiliation obligatoire à un régime EEE/Suisse ou britannique ouvrant droit à exonération CSG/CRDS, sans charge du régime français : prélèvement de solidarité 7,5 % (conditions confirmées).</label>
+                  <p>Les frais admis doivent être justifiés et effectivement supportés. LMNP avec amortissements : utiliser le module dédié. Les exonérations de résidence principale exigent une occupation effective du cédant, y compris en démembrement. <a className="underline" href="https://bofip.impots.gouv.fr/bofip/309-PGP.html/identifiant=BOI-RFPI-PVI-20-10-20-10-20120912">Prix d’acquisition des droits</a> ; <a className="underline" href="https://bofip.impots.gouv.fr/bofip/4290-PGP.html/identifiant=BOI-RFPI-PVI-10-40-70-20140414">Seuil de 15 000 €</a> ; <a className="underline" href="https://bofip.impots.gouv.fr/bofip/8597-PGP.html/identifiant=BOI-RFPI-TPVIE-20-20170308">Surtaxe par cédant</a>.</p>
+                </div>
+                {(formData.modeAcquisition==='donation'||formData.modeAcquisition==='succession')&&<label className="block text-sm">Frais et droits de mutation effectivement supportés, admissibles pour ce bien (€)<input type="number" min="0" className="block w-full rounded border p-3" value={formData.fraisAcquisitionMontant} onChange={e=>setFormData({...formData,fraisAcquisition:'reel',fraisAcquisitionMontant:e.target.value})}/><span className="text-xs">Pas de forfait de 7,5 % pour une acquisition gratuite. Retenir la fraction relative au bien ou au droit cédé, selon la convention de montants ci-dessus.</span></label>}
                 {/* Copropriété / Indivision */}
-                {(formData.typeBien === 'sci' || formData.estDemembre) && (
+                {formData.typeBien !== 'sci' && (
                   <div className="border-2 border-purple-200 rounded-xl p-6 bg-purple-50">
                     <div className="flex items-center gap-3 mb-4">
                       <Users className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-semibold text-gray-900">Indivision / Copropriété</h3>
+                      <h3 className="font-semibold text-gray-900">Quote-part du seul cédant simulé</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1031,7 +1002,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   />
                 </div>
 
-                {formData.modeAcquisition === 'achat' && (
+                {(formData.modeAcquisition === 'achat'||formData.modeAcquisition==='echange') && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Frais d&apos;acquisition</label>
                     <div className="grid grid-cols-2 gap-4 mb-4">
@@ -1146,7 +1117,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                           <div className="flex items-start gap-2">
                             <span className="text-green-600 font-bold">✅</span>
                             <div>
-                              <p className="font-semibold mb-1">Forfait 15% : TOUJOURS applicable</p>
+                              <p className="font-semibold mb-1">Forfait 15 % : immeuble bâti détenu depuis plus de cinq ans</p>
                               <p className="text-xs">
                                 Vous pouvez appliquer le forfait 15% <strong>MÊME SI</strong> vous avez déjà déduit des travaux 
                                 de vos revenus fonciers ! C&apos;est un <strong>double avantage fiscal légal</strong>.
@@ -1198,7 +1169,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Travaux à déduire du prix d&apos;acquisition
+                    Travaux à ajouter au prix d&apos;acquisition
                   </label>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <button
@@ -1327,7 +1298,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
                         <li>• Ne pas avoir été propriétaire de sa RP au cours des 4 années précédentes</li>
                         <li>• Remploi du prix de cession dans une RP (acquisition/construction) sous 24 mois</li>
-                        <li>• Exonération proportionnelle à la fraction du prix effectivement remployée</li>
+                        <li>• Exonération proportionnelle à la fraction du prix de ce cédant, net des frais admis, effectivement remployée ; cession d’un droit démembré exclue de ce scénario</li>
                       </ul>
                     </div>
                   </div>
@@ -1591,22 +1562,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Nombre de cédants (plafond de 150 000 € apprécié par cédant)
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={formData.nombreCedants}
-                          onChange={(e) => setFormData({...formData, nombreCedants: e.target.value})}
-                          placeholder="1"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                        <p className="text-xs text-gray-600 mt-2">
-                          Concubins, indivisaires et époux sont chacun considérés comme un cédant distinct (plafond apprécié sur leur quote-part).
-                        </p>
-                      </div>
+                      <p className="text-sm">Un seul cédant est simulé. Le plafond de 150 000 € ne peut pas être multiplié sur sa quote-part ; calculer séparément chaque autre cédant.</p>
                     </div>
                   )}
                 </div>
@@ -1657,19 +1613,20 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   </div>
                 </div>
 
+                <div className="rounded-xl border bg-blue-50 p-4 space-y-3"><label className="block text-sm">Taux exceptionnel validé par le dossier<select aria-label="Taux exceptionnel" className="block w-full border rounded p-2" value={formData.tauxExceptionnel??''} onChange={e=>setFormData({...formData,tauxExceptionnel:e.target.value})}><option value="">Aucun</option><option value="60">60 %</option><option value="75">75 %</option><option value="85">85 %</option></select></label><label className="block text-sm">Date certaine de la promesse<input type="date" className="block w-full border rounded p-2" value={formData.datePromesse??''} onChange={e=>setFormData({...formData,datePromesse:e.target.value})}/></label></div>
                 {/* Zone tendue */}
                 <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
                   <div className="flex items-start gap-4 mb-4">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">Vente en zone tendue</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">Abattement exceptionnel sur opération éligible</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Simulation au taux exceptionnel de 70 %, uniquement si toutes les conditions du dispositif applicable à votre promesse et à votre cession sont vérifiées :
+                        Article 150 VE, rédaction 2026 : sélectionner le taux du dispositif et confirmer toutes les conditions :
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Zone A, A bis ou B1</li>
-                        <li>• Engagement démolition/reconstruction 4 ans</li>
-                        <li>• Dates, zonage, engagement et absence de lien familial à vérifier (CGI 150 VE). Les taux particuliers de 60 % et 85 % ne sont pas simulés.</li>
+                        <li>• 60 % : zonage réglementaire hors Corse ; 75 % : GOU/OIN/ORT ; 85 % : conditions renforcées de logements sociaux/intermédiaires/BRS.</li>
+                        <li>• Construction, démolition/reconstruction ou réhabilitation complète en immeuble neuf et achèvement sous quatre ans, gabarit minimal de 75 %.</li>
+                        <li>• Promesse à date certaine entre 2024 et 2027, cession avant fin de la deuxième année suivante ; périmètre, engagements dans l’acte, gabarit et absence de liens exclus à confirmer. Le seul zonage ne suffit pas. <a className="underline" href="https://www.legifrance.gouv.fr/loda/id/JORFTEXT000053508155">CGI 150 VE, modification par l’article 54 de la loi de finances 2026</a>.</li>
                       </ul>
                     </div>
                   </div>
@@ -2015,7 +1972,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-gray-100">
                     <div>
-                      <span className="text-gray-900 font-medium">Prélèvements sociaux (17,2%)</span>
+                      <span className="text-gray-900 font-medium">Prélèvements sociaux ({formData.affiliationEurope&&formData.typeBien!=='sci'?'7,5':'17,2'} %)</span>
                       <p className="text-xs text-gray-500">
                         Sur {results.plusValuePS.toLocaleString('fr-FR', {maximumFractionDigits: 0})} € de PV imposable
                       </p>
@@ -2096,7 +2053,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
               </h3>
               <div className="space-y-3 text-sm text-amber-900">
                 <p className="leading-relaxed">
-                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d&apos;évoluer.
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 8 septembre 2026 et sont susceptibles d&apos;évoluer.
                 </p>
                 
                 <p className="leading-relaxed">

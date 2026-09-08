@@ -313,3 +313,28 @@ test('assurance-vie : rendement effectif annuel, taux nul, perte et durée nulle
  assert.ok(Math.abs(a.projectionAssuranceVie(100000,0,-.1,1)[0].total-90000)<1e-7);
  assert.deepEqual(a.projectionAssuranceVie(100000,0,.03,0),[]);
 });
+
+test('plus-value : indivision, frais réels et travaux suivent la même quote-part',()=>{
+ const p=require('../src/lib/plusvalue.ts');
+ const r=p.basesPlusValue({acquisition:100000,vente:200000,quotePart:50,sci:false,demembre:false,fraisAcquisition:10000,fraisVente:5000,travaux:20000,forfaitAcquisition:false,forfaitTravaux:false});
+ assert.equal(r.acquisitionCorrigee,65000);assert.equal(r.venteCorrigee,97500);assert.equal(r.prixPourSeuil15000,100000);
+ const petit=p.basesPlusValue({acquisition:10000,vente:25000,quotePart:50,sci:false,demembre:false,fraisAcquisition:0,fraisVente:0,travaux:0,forfaitAcquisition:false,forfaitTravaux:false});assert.equal(petit.prixPourSeuil15000,12500);
+});
+test('plus-value : démembrement sans revalorisation historique ni double quote-part',()=>{
+ const p=require('../src/lib/plusvalue.ts');
+ const r=p.basesPlusValue({acquisition:200000,vente:300000,quotePart:50,sci:false,demembre:true,acquisitionDroit:60000,venteDroit:90000,fraisAcquisition:1000,fraisVente:2000,travaux:0,forfaitAcquisition:false,forfaitTravaux:false});
+ assert.equal(r.acquisitionCorrigee,61000);assert.equal(r.venteCorrigee,88000);assert.equal(r.prixPourSeuil15000,150000);
+});
+test('plus-value : SCI calculée sur la société, forfait travaux sur sa base',()=>{
+ const p=require('../src/lib/plusvalue.ts');
+ const r=p.basesPlusValue({acquisition:100000,vente:200000,quotePart:50,sci:true,demembre:false,fraisAcquisition:0,fraisVente:0,travaux:0,forfaitAcquisition:true,forfaitTravaux:true});
+ assert.equal(r.acquisitionCorrigee,122500);assert.equal(r.venteCorrigee,200000);
+});
+test('plus-value : abattement 150 VE nécessite confirmation, taux et dates valides',()=>{
+ const f=require('../src/lib/plusvalue.ts').abattementExceptionnelPV;
+ assert.equal(f(true,60,'2026-01-01','2028-12-31'),60);
+ assert.equal(f(true,75,'2027-12-31','2029-12-31'),75);
+ assert.equal(f(true,85,'2026-01-01','2029-01-01'),0);
+ assert.equal(f(true,70,'2026-01-01','2026-09-08'),0);
+ assert.equal(f(false,60,'2026-01-01','2026-09-08'),0);
+});
