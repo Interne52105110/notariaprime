@@ -227,7 +227,7 @@ function HomepageContent() {
     {
       title: 'Simulateur Viager',
       icon: HeartHandshake,
-      description: 'Calcul viager occupé/libre avec tables de mortalité officielles',
+      description: 'Scénarios viager occupé/libre et fiscalité de la rente',
       status: 'Disponible',
       features: ['Bouquet et rente', 'Tables INSEE officielles', 'Viager occupé/libre', '5 méthodes de calcul'],
       link: '/viager',

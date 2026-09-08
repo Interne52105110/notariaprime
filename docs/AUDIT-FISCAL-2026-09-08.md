@@ -55,3 +55,12 @@ Tests automatisés des règles et cas limites dans `tests/fiscal.test.cjs`, exé
 - Validation du lot : 70 tests de règles, compilation et contrôles TypeScript/lint réussis. La revue n’est pas encore terminée.
 
 Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006199108/2026-09-01), [actes successoraux A444-59 et suivants](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000032132076/), [DGFiP droits de succession](https://www.impots.gouv.fr/particulier/questions/comment-dois-je-calculer-les-droits-de-succession), [calendrier retraite septembre 2026](https://www.service-public.gouv.fr/particuliers/actualites/A18825), [paramètres Agirc-Arrco](https://www.agirc-arrco.fr/nous-connaitre/nos-etudes-et-publications/documentation-institutionnelle/parametres-et-donnees-statistiques/), [assurance-vie : règles d’imposition](https://bofip.impots.gouv.fr/bofip/11224-PGP.html/identifiant=BOI-RPPM-RCM-20-15-20191220).
+
+## Lot viager — 8 septembre 2026
+- Suppression des séries non sourcées présentées comme TGH05/TGF05 et des attributions à Daubry. Aucun calcul automatique de longévité n’est désormais annoncé.
+- Scénarios mensuels à terme échu : division linéaire, actualisation à taux effectif annuel (zéro accepté), coefficient actuariel annuel fourni et documenté par le professionnel.
+- Le taux imposable 70/50/40/30 % sert exclusivement à l’assiette IR de la rente personnelle, selon l’âge au premier versement. Il ne réduit plus le montant de la rente. Les réversions fiscales particulières restent hors liquidation automatique.
+- Valeur économique DUH/usufruit saisie séparément : retrait du coefficient fiscal de 60 % utilisé à tort comme règle de prix et du plafond arbitraire de décote de 70 %.
+- Comparaisons de bouquets, sensibilité à la durée, répartition de la taxe foncière et impression conservées. Validation d’un bouquet excessif et invalidation des résultats lors d’une modification.
+- Sources : https://www.service-public.gouv.fr/particuliers/vosdroits/F2762 ; https://www.service-public.gouv.fr/particuliers/vosdroits/F3173 ; CGI 762 bis, 1400, 158-6 ; Code civil 1975.
+- Validation : 73 tests unitaires réussis, compilation/lint/types, scénario navigateur à taux nul, fraction imposable, bouquet invalide, invalidation et viewport 390 px.

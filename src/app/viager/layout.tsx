@@ -8,8 +8,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CalculatorJsonLd
-        name="Calculateur viager — bouquet, rente, espérance de vie"
-        description="Calculez le bouquet et la rente viagère d'un bien immobilier : barème INSEE espérance de vie, valeur d'occupation, viager libre vs occupé, fiscalité de la rente."
+        name="Calculateur viager — bouquet, rente et fiscalité"
+        description="Comparez les scénarios de bouquet et de rente, la valeur d'occupation et la fiscalité. Calcul financier ou coefficient actuariel fourni par votre professionnel."
         path="/viager"
       />
       {children}

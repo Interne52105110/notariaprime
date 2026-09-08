@@ -140,3 +140,27 @@ test('Actes : délivrance de legs et certificat mobilier',()=>{
  assert.equal(pretaxe.calculerEmoluments(100000,actes.ACTES_SUCCESSORAUX.delivrance_legs_avec.tranches,'75',false).bruts,704.28);
  assert.equal(pretaxe.calculerEmoluments(100000,actes.ACTES_SUCCESSORAUX.delivrance_legs_sans.tranches,'75',false).bruts,352.11);
 });
+
+const viager = require('../src/lib/viager.ts');
+test('viager : taux nul et mensualités actualisées sont deux scénarios financiers cohérents', () => {
+  assert.equal(viager.facteurMensuelViager(10,0),120);
+  const p={valeur:300000,bouquet:90000,occupation:90000,horizon:10,taux:0,methode:'actualisee',coefficient:0};
+  assert.equal(viager.scenarioViager(p).rente,1000);
+  assert.equal(viager.scenarioViager(p).totalHorizon,210000);
+  const rate=3.5;
+  const r=viager.scenarioViager({...p,taux:rate}).rente;
+  const pv=Array.from({length:120},(_,i)=>r/(1+rate/100)**((i+1)/12)).reduce((a,b)=>a+b,0);
+  assert.ok(Math.abs(pv-120000)<1e-6);
+});
+test('viager : coefficient professionnel distinct de la durée du scénario', () => {
+  const p={valeur:300000,bouquet:90000,occupation:90000,horizon:10,taux:3.5,methode:'coefficient',coefficient:8};
+  assert.equal(viager.scenarioViager(p).rente,1250);
+  assert.equal(viager.scenarioViager({...p,horizon:30}).rente,1250);
+  assert.throws(()=>viager.scenarioViager({...p,coefficient:0}),RangeError);
+  assert.throws(()=>viager.scenarioViager({...p,bouquet:250000}),RangeError);
+  assert.throws(()=>viager.scenarioViager({...p,occupation:-1}),RangeError);
+  assert.throws(()=>viager.facteurMensuelViager(0,3.5),RangeError);
+});
+test('viager : la fraction imposable suit l’âge au premier versement sans réduire la rente', () => {
+  for(const [age,fraction] of [[49,.7],[50,.5],[59,.5],[60,.4],[69,.4],[70,.3]]) assert.equal(viager.fractionRenteImposable(age),fraction);
+});

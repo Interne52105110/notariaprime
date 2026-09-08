@@ -200,12 +200,12 @@ function FonctionnalitesContent() {
       quarter: 'T1 2026',
       icon: HeartHandshake,
       category: 'Immobilier & Fiscalité',
-      description: 'Calcul du bouquet et de la rente viagère selon tables officielles de mortalité. DPE et décote intégrés.',
+      description: 'Comparaison du bouquet et de la rente, selon vos hypothèses économiques ou un coefficient actuariel fourni.',
       features: [
         'Calcul bouquet et rente',
-        'Tables mortalité officielles',
+        'Coefficient actuariel personnalisé',
         'Optimisation fiscale',
-        'DPE et décote'
+        'Valeur économique de l’occupation'
       ]
     },
     {

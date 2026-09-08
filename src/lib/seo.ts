@@ -88,9 +88,9 @@ const PAGE_META: Record<string, PageMeta> = {
     keywords: ["statut juridique", "SAS vs SARL", "EURL", "SCI", "auto-entrepreneur", "comparateur statut"],
   },
   "/viager": {
-    title: "Calculateur viager — bouquet, rente, espérance de vie",
-    description: "Calculez le bouquet et la rente viagère d'un bien immobilier : barème INSEE espérance de vie, valeur d'occupation, viager libre vs occupé, fiscalité de la rente.",
-    keywords: ["viager", "bouquet viager", "rente viagère", "espérance de vie INSEE", "viager occupé"],
+    title: "Calculateur viager — bouquet, rente et fiscalité",
+    description: "Comparez les scénarios de bouquet et de rente, la valeur d'occupation et la fiscalité. Calcul financier ou coefficient actuariel fourni par votre professionnel.",
+    keywords: ["viager", "bouquet viager", "rente viagère", "fiscalité rente viagère", "viager occupé"],
   },
 
   // ---------- Pages éditoriales ----------
