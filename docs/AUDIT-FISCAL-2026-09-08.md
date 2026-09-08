@@ -32,7 +32,7 @@ Cette revue porte sur les règles et défauts listés ci-dessous. Elle ne consti
 
 ## Périmètre et limites concrètes
 
-- Succession : l’ancien onglet réutilisait le calcul de donation, sans liquidation successorale distincte. Il est désactivé explicitement pour empêcher un résultat présenté sous le mauvais régime.
+- Droits de succession (impôt dû à l’État, distinct des frais des actes notariaux) : l’ancien onglet réutilisait le calcul de donation, sans liquidation successorale distincte. Il est désactivé explicitement pour empêcher un résultat présenté sous le mauvais régime. Les actes notariaux de succession restent présents dans la prétaxe ; leurs émoluments, formalités, débours et taxes d’acte ne sont pas les droits de succession.
 - Donation : calcul par couple donateur/bénéficiaire, abattements disponibles à confirmer. Les historiques complexes et plafonds partiellement consommés de dons spéciaux nécessitent un calcul individualisé. La réduction de droits de 50 % de l’article 790 pour certaines donations Dutreil en pleine propriété avant 70 ans n’est pas calculée ; le formulaire le précise.
 - SCI transmission : valeur nette des parts saisie par l’utilisateur, un seul parent, partage égal entre enfants associés (un enfant si aucun), abattement intact. Ce calcul n’est pas une valorisation comptable de la société ni une liquidation successorale complète.
 - Prétaxe : estimation de frais. Débours/formalités restent dépendants du dossier. Neuf : assiette hors TVA immobilière. Tarifs Alsace-Moselle, actes composites, réductions locales spécifiques, exonérations personnelles et mutations complexes nécessitent une taxe adaptée.

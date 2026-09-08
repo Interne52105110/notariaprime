@@ -1024,7 +1024,7 @@ function DonationCalculatorContent() {
                 }`}
               >
                 <FileText className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-                <p className="font-semibold text-gray-900">Succession</p>
+                <p className="font-semibold text-gray-900">Droits de succession</p>
                 <p className="text-xs text-gray-600 mt-1">Simulation distincte non disponible</p>
               </button>
             </div>
