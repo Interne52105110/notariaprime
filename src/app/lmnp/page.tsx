@@ -6,6 +6,7 @@
 
 "use client";
 
+import { BAREME_IR_2026, surtaxePlusValue, abattementsPlusValue } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Home,
@@ -145,13 +146,7 @@ const PRELEVEMENTS_SOCIAUX = 0.186; // 18.6% LFSS 2026 (BIC meublé = revenus du
 const PS_PLUS_VALUE_IMMO = 0.172; // 17.2% pour PV immobilières des particuliers (non impactées LFSS 2026)
 const COTISATIONS_SSI = 0.40;
 
-const BAREME_IR_2025 = [
-  { min: 0, max: 11294, taux: 0 },
-  { min: 11294, max: 28797, taux: 0.11 },
-  { min: 28797, max: 82341, taux: 0.30 },
-  { min: 82341, max: 177106, taux: 0.41 },
-  { min: 177106, max: Infinity, taux: 0.45 }
-];
+const BAREME_IR_2025 = BAREME_IR_2026; // Impôt 2026 sur les revenus 2025
 
 const COMPOSANTS_AMORTISSEMENT = [
   { nom: 'Gros oeuvre', pourcentage: 0.50, duree: 50 },
@@ -172,7 +167,7 @@ const ABATTEMENTS_PV_IR = [
 const ABATTEMENTS_PV_PS = [
   { debut: 0, fin: 5, taux: 0 },
   { debut: 6, fin: 21, taux: 0.0165 },
-  { debut: 22, fin: 22, taux: 0.018 },
+  { debut: 22, fin: 22, taux: 0.016 },
   { debut: 23, fin: 30, taux: 0.09 }
   // Exoneration totale a partir de 30 ans
 ];
@@ -279,32 +274,8 @@ function calculerImpotTMI(resultatFiscal: number, tmi: number): number {
 }
 
 function calculerAbattementPVParticuliers(anneeDetention: number): { abattementIR: number; abattementPS: number } {
-  let abattementIR = 0;
-  let abattementPS = 0;
-
-  if (anneeDetention >= 22) {
-    abattementIR = 1; // 100% exoneration IR
-  } else if (anneeDetention >= 6) {
-    abattementIR = (anneeDetention - 5) * 0.06;
-    if (anneeDetention >= 22) abattementIR = 1;
-  }
-
-  if (anneeDetention >= 30) {
-    abattementPS = 1; // 100% exoneration PS
-  } else if (anneeDetention >= 23) {
-    abattementPS = (16 * 0.0165) + (1 * 0.018) + ((anneeDetention - 22) * 0.09);
-  } else if (anneeDetention >= 6) {
-    const anneesTrancheBase = Math.min(anneeDetention, 21) - 5;
-    abattementPS = anneesTrancheBase * 0.0165;
-    if (anneeDetention >= 22) {
-      abattementPS += 0.018;
-    }
-  }
-
-  return {
-    abattementIR: Math.min(abattementIR, 1),
-    abattementPS: Math.min(abattementPS, 1)
-  };
+  const abattements = abattementsPlusValue(anneeDetention);
+  return { abattementIR: abattements.ir / 100, abattementPS: abattements.ps / 100 };
 }
 
 function calculerPlusValueLMNP(
@@ -344,13 +315,7 @@ function calculerPlusValueLMNP(
   const impotPS = pvImposablePS * PS_PLUS_VALUE_IMMO; // PV immobilière = 17.2% (non impactée LFSS 2026)
 
   // Surtaxe pour PV > 50 000
-  let surtaxe = 0;
-  if (pvImposableIR > 260000) surtaxe = pvImposableIR * 0.06;
-  else if (pvImposableIR > 250000) surtaxe = pvImposableIR * 0.05;
-  else if (pvImposableIR > 200000) surtaxe = pvImposableIR * 0.04;
-  else if (pvImposableIR > 150000) surtaxe = pvImposableIR * 0.03;
-  else if (pvImposableIR > 100000) surtaxe = pvImposableIR * 0.02;
-  else if (pvImposableIR > 50000) surtaxe = pvImposableIR * 0.02;
+  const surtaxe = surtaxePlusValue(pvImposableIR);
 
   return {
     abattementIR: abattementIR * 100,

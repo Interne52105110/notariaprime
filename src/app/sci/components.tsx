@@ -282,6 +282,7 @@ export function PlusValueDisplay({ plusValue, regimeFiscal }: PlusValueDisplayPr
             <span className="font-bold text-lg">Fiscalité totale</span>
             <span className="font-bold text-2xl text-purple-900">{plusValue.IR.fiscaliteTotal.toLocaleString('fr-FR')} €</span>
           </div>
+          <p className="text-sm text-purple-900">Dont surtaxe sur les plus-values élevées : {plusValue.IR.taxeAdditionnelle.toLocaleString('fr-FR')} €.</p>
           {plusValue.anneeRevente >= 30 && (
             <p className="text-sm text-green-700 font-semibold">✅ Exonération totale après 30 ans !</p>
           )}

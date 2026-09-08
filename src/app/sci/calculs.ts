@@ -4,6 +4,7 @@
 // ============================================
 
 import type { FormData, ResultatsIR, ResultatsIS, ResultatsPlusValue, ResultatsTransmission, ResultatsIFI, ComparaisonResults, SimulationSauvegardee } from './types';
+import { BAREME_IR_2026, decoteIFI, surtaxePlusValue } from '@/lib/fiscal';
 
 // ============================================
 // CONSTANTES FISCALES 2025
@@ -28,13 +29,7 @@ export const TMO_2025 = 3.50;
 export const PLAFOND_TAUX_CCA = TMO_2025 + 1.31;
 
 // Barème IR 2025
-export const BAREME_IR = [
-  { max: 11294, taux: 0 },
-  { max: 28797, taux: 0.11 },
-  { max: 82341, taux: 0.30 },
-  { max: 177106, taux: 0.41 },
-  { max: Infinity, taux: 0.45 }
-];
+export const BAREME_IR = BAREME_IR_2026;
 
 // Barème IFI 2025
 export const BAREME_IFI = [
@@ -114,10 +109,13 @@ export const BAREME_DEMEMBREMENT = [
 // ============================================
 
 export function calculerEmprunt(montant: number, tauxAnnuel: number, dureeAnnees: number) {
+  if (montant < 0 || tauxAnnuel < 0 || dureeAnnees <= 0 || ![montant, tauxAnnuel, dureeAnnees].every(Number.isFinite)) {
+    throw new RangeError('Montant, taux ou durée de prêt invalide');
+  }
   const tauxMensuel = tauxAnnuel / 100 / 12;
   const nombreMois = dureeAnnees * 12;
   
-  const mensualite = montant * (tauxMensuel * Math.pow(1 + tauxMensuel, nombreMois)) / 
+  const mensualite = tauxMensuel === 0 ? montant / nombreMois : montant * (tauxMensuel * Math.pow(1 + tauxMensuel, nombreMois)) /
                      (Math.pow(1 + tauxMensuel, nombreMois) - 1);
   
   const coutTotal = mensualite * nombreMois;
@@ -335,7 +333,8 @@ export function calculerPlusValue(
   valeurAchat: number,
   anneeRevente: number
 ): ResultatsPlusValue {
-  const tauxValo = parseFloat(formData.tauxValorisationAnnuelle) / 100 || 0.01;
+  const tauxSaisi = parseFloat(formData.tauxValorisationAnnuelle) / 100;
+  const tauxValo = Number.isFinite(tauxSaisi) ? tauxSaisi : 0.01;
   const prixManuel = formData.prixReventeManuel ? 
     parseFloat(formData.prixReventeManuel.replace(/\s/g, '')) : null;
   
@@ -366,12 +365,13 @@ export function calculerPlusValue(
     }
   }
   
-  const plusValueImposableIR = plusValueBruteIR * (1 - abattementIR / 100);
-  const plusValueImposablePS = plusValueBruteIR * (1 - abattementPS / 100);
+  const plusValueImposableIR = Math.max(0, plusValueBruteIR) * (1 - abattementIR / 100);
+  const plusValueImposablePS = Math.max(0, plusValueBruteIR) * (1 - abattementPS / 100);
   
   const impotIR = plusValueImposableIR * 0.19;
   const impotPS = plusValueImposablePS * TAUX_PRELEVEMENTS_SOCIAUX;
-  const fiscaliteTotalIR = impotIR + impotPS;
+  const taxeAdditionnelle = surtaxePlusValue(plusValueImposableIR);
+  const fiscaliteTotalIR = impotIR + impotPS + taxeAdditionnelle;
   
   // PLUS-VALUE IS
   const dureeAmortissement = parseFloat(formData.dureeAmortissement) || 30;
@@ -382,7 +382,7 @@ export function calculerPlusValue(
   
   const valeurNetteComptable = valeurAchat - amortissementsCumules;
   const plusValueImposableIS = prixVenteEstime - valeurNetteComptable;
-  const impotIS = plusValueImposableIS * TAUX_IS_NORMAL;
+  const impotIS = Math.max(0, plusValueImposableIS) * TAUX_IS_NORMAL;
   
   const avantageIR = impotIS - fiscaliteTotalIR;
   
@@ -397,6 +397,7 @@ export function calculerPlusValue(
       plusValueImposablePS,
       impotIR,
       impotPS,
+      taxeAdditionnelle,
       fiscaliteTotal: fiscaliteTotalIR
     },
     IS: {
@@ -418,13 +419,9 @@ export function calculerPlusValue(
 export function calculerTransmission(formData: FormData): ResultatsTransmission {
   const valeurBiens = parseFloat(formData.valeurTransmission.replace(/\s/g, '')) || 0;
   
-  // Valorisation IS : inclut les réserves et plus-values latentes
-  let plusValueLatente = 0;
-  if (formData.regimeFiscal === 'IS') {
-    // Estimation : les réserves peuvent représenter 30-50% de plus que la valeur des biens
-    plusValueLatente = valeurBiens * 0.40;
-  }
-  
+  // Valeur nette des parts renseignée : aucune majoration forfaitaire liée à l'IS.
+  const plusValueLatente = 0;
+
   const valeurRevaluee = valeurBiens + plusValueLatente;
   
   // Démembrement
@@ -442,11 +439,11 @@ export function calculerTransmission(formData: FormData): ResultatsTransmission 
   }
   
   // Calcul par bénéficiaire (exemple : 2 enfants)
-  const nombreBeneficiaires = formData.associes.filter(a => a.lienFamilial === 'enfant').length || 2;
+  const nombreBeneficiaires = formData.associes.filter(a => a.lienFamilial === 'enfant').length || 1;
   const valeurParBeneficiaire = valeurTaxable / nombreBeneficiaires;
   
   // Abattements donation : 100k€ par parent et par enfant tous les 15 ans
-  const abattementTotal = 200000; // 100k × 2 parents
+  const abattementTotal = 100000; // Simulation : un seul parent, abattement intact.
   const baseImposable = Math.max(0, valeurParBeneficiaire - abattementTotal);
   
   // Droits de donation
@@ -500,7 +497,7 @@ export function calculerTransmission(formData: FormData): ResultatsTransmission 
 export function calculerIFI(valeurPatrimoine: number, dettes: number): ResultatsIFI {
   const assietteIFI = Math.max(0, valeurPatrimoine - dettes);
   
-  if (assietteIFI < 1300000) {
+  if (assietteIFI <= 1300000) {
     return {
       valeurPatrimoine,
       dettes,
@@ -522,6 +519,7 @@ export function calculerIFI(valeurPatrimoine: number, dettes: number): Resultats
     cumul = Math.min(assietteIFI, tranche.max);
   }
   
+  impotIFI = Math.max(0, impotIFI - decoteIFI(assietteIFI));
   const tauxMoyen = (impotIFI / assietteIFI) * 100;
   
   return {

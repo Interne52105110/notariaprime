@@ -5,6 +5,7 @@
 
 "use client";
 
+import { limiterDettesIFI } from '@/lib/fiscal';
 import React, { useState, useMemo } from 'react';
 import { 
   Home, 
@@ -126,12 +127,13 @@ function calculerIFI(
   let patrimoineTotal = 0;
   let dettesDeductibles = 0;
 
+  const residencePrincipale = biens.filter(b => b.type === 'residence_principale').sort((a,b) => parseNumber(b.valeur)-parseNumber(a.valeur))[0];
   biens.forEach(bien => {
     const valeur = parseNumber(bien.valeur);
     const dette = parseNumber(bien.dette);
 
     patrimoineTotal += valeur;
-    dettesDeductibles += dette;
+    dettesDeductibles += bien === residencePrincipale ? Math.min(dette, valeur * 0.7) : dette;
   });
 
   // Un seul logement peut etre la residence principale : l'abattement de 30 %
@@ -142,14 +144,15 @@ function calculerIFI(
     .reduce((max, bien) => Math.max(max, parseNumber(bien.valeur)), 0);
   const abattementRP = valeurRP * ABATTEMENT_RP;
 
+  dettesDeductibles = limiterDettesIFI(patrimoineTotal - abattementRP, dettesDeductibles);
   const patrimoineNetTaxable = Math.max(0, patrimoineTotal - abattementRP - dettesDeductibles);
   
   let ifi = 0;
   const details: DetailTranche[] = [];
 
-  // RÈGLE OFFICIELLE : IFI applicable uniquement si patrimoine ≥ 1 300 000 €
+  // CGI 964 : seuil strictement supérieur à 1 300 000 €.
   // Mais le calcul se fait sur la part au-dessus de 800 000 €
-  if (patrimoineNetTaxable >= 1300000) {
+  if (patrimoineNetTaxable > 1300000) {
     for (const tranche of BAREME_IFI) {
       if (patrimoineNetTaxable > tranche.min) {
         const base = Math.min(patrimoineNetTaxable, tranche.max) - tranche.min;
@@ -170,7 +173,7 @@ function calculerIFI(
   // Calcul de la décote pour patrimoine entre 1 300 000 € et 1 400 000 €
   let decote = 0;
   let ifiApresDecote = ifi;
-  if (patrimoineNetTaxable >= 1300000 && patrimoineNetTaxable <= 1400000) {
+  if (patrimoineNetTaxable > 1300000 && patrimoineNetTaxable <= 1400000) {
     decote = 17500 - (patrimoineNetTaxable * 0.0125);
     ifiApresDecote = Math.max(0, ifi - decote);
   }
@@ -188,7 +191,7 @@ function calculerIFI(
   // IFI servant de base au plafonnement = IFI après décote (IFI réellement dû)
   let reductionPlafonnement = 0;
   let ifiFinal = ifiApresDecote;
-  const plafonnementApplicable = revenusAnneePrecedente > 0;
+  const plafonnementApplicable = revenusStr.trim() !== '' && revenusAnneePrecedente >= 0;
 
   if (plafonnementApplicable) {
     const total = ifiApresDecote + irEtPsAnneePrecedente;
@@ -491,7 +494,7 @@ export default function CalculateurIFI() {
                 <p className="text-sm text-gray-600 mb-4">
                   Optionnel. La somme de l&apos;IFI et de l&apos;impôt sur le revenu + prélèvements sociaux
                   de l&apos;année précédente ne peut excéder 75 % de vos revenus mondiaux nets de
-                  l&apos;année précédente. Renseignez ces montants pour appliquer le plafonnement.
+                  l&apos;année précédente, pour un résident fiscal français. Renseignez ces montants pour appliquer le plafonnement ; saisissez 0 explicitement si vos revenus sont nuls.
                   Laissez vide pour ignorer ce mécanisme.
                 </p>
 
@@ -1068,7 +1071,7 @@ function FAQSection() {
         },
         {
           q: "Le plafonnement de l'IFI existe-t-il encore ?",
-          r: "Oui, un mécanisme de plafonnement existe mais il est très restrictif. Le total de l'IFI et des impôts dus au titre des revenus et gains de l'année précédente ne peut excéder 75% des revenus nets de l'année précédente. Le plafonnement s'applique rarement car il faut des revenus faibles par rapport au patrimoine. Les revenus exonérés ou soumis à prélèvement libératoire ne sont pas retenus. La demande de plafonnement se fait lors de la déclaration. (Article 979 du CGI)"
+          r: "Oui, un mécanisme de plafonnement existe mais il est très restrictif. Le total de l'IFI et des impôts dus au titre des revenus et gains de l'année précédente ne peut excéder 75% des revenus nets de l'année précédente. Le plafonnement s'applique rarement car il faut des revenus faibles par rapport au patrimoine. Les revenus exonérés et ceux soumis à un prélèvement libératoire doivent également être pris en compte selon les règles de l’article 979. La demande de plafonnement se fait lors de la déclaration. (Article 979 du CGI)"
         }
       ]
     },

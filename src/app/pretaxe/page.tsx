@@ -668,10 +668,13 @@ function PretaxeContent() {
     alert('Calcul sauvegardé !');
   };
 
-  // useEffect pour appliquer la config automatiquement
+  // Les valeurs par défaut ne remplacent pas les saisies lors d'un recalcul.
+  useEffect(() => {
+    if (selectedActe) appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes);
+  }, [selectedActe]);
+
   useEffect(() => {
     if (selectedActe) {
-      appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes);
       
       const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
       if (acte && acte.type !== 'non_tarife') {
@@ -711,7 +714,7 @@ function PretaxeContent() {
             // La CSI n'est due que pour les actes publiés au service de la
             // publicité foncière (CGI art. 879). Sinon elle reste à 0.
             const publie = configActe?.formalites?.publiciteFonciere?.defaut === true;
-            if (typeTaxe === 'dmto') {
+            if (typeTaxe === 'dmto' || typeTaxe === 'tva') {
               calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerTaxes(
                 montantActe,

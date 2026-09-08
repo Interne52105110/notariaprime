@@ -83,6 +83,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
+    <div className="text-center pb-6 text-sm"><a href="/methodologie-fiscale" className="underline">Calculs, sources et hypothèses fiscales</a></div>
     </footer>
   );
 }

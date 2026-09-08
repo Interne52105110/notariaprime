@@ -107,6 +107,7 @@ export interface ResultatsPlusValue {
     plusValueImposablePS: number;
     impotIR: number;
     impotPS: number;
+    taxeAdditionnelle: number;
     fiscaliteTotal: number;
   };
   IS: {

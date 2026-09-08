@@ -1142,28 +1142,7 @@ export default function SCISimulator() {
                                 <div className={`text-sm ${
                                   formData.regimeFiscal === 'IS' ? 'text-red-900' : 'text-green-900'
                                 }`}>
-                                  {formData.regimeFiscal === 'IS' ? (
-                                    <>
-                                      <p className="font-bold mb-2">⚠️ SCI à l&apos;IS : TRANSMISSION PLUS COÛTEUSE</p>
-                                      <ul className="space-y-1 ml-4">
-                                        <li>• Valorisation basée sur les fonds propres (capital + réserves)</li>
-                                        <li>• Plus-values latentes incluses dans la base taxable</li>
-                                        <li>• Valorisation souvent 30-50% plus élevée qu&apos;à l&apos;IR</li>
-                                      </ul>
-                                      <p className="mt-3 font-semibold text-red-800">
-                                        💡 Pour la transmission familiale, privilégiez la SCI à l&apos;IR !
-                                      </p>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <p className="font-bold mb-2">✅ SCI à l&apos;IR : TRANSMISSION OPTIMALE</p>
-                                      <ul className="space-y-1 ml-4">
-                                        <li>• Valorisation simple basée sur la valeur vénale</li>
-                                        <li>• Démembrement très efficace</li>
-                                        <li>• Donations progressives tous les 15 ans</li>
-                                      </ul>
-                                    </>
-                                  )}
+                                  <p>Simulation d’une transmission par un seul parent à parts égales aux enfants associés (un enfant si aucun n’est renseigné), sans donation antérieure depuis 15 ans. Saisissez la valeur vénale nette des parts transmises, après prise en compte des dettes et de la situation comptable. Aucun supplément forfaitaire n’est appliqué du seul fait de l’IS.</p>
                                 </div>
                               </div>
                             </div>
@@ -1173,7 +1152,7 @@ export default function SCISimulator() {
                               <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Résultats de la transmission</h3>
                               <div className="space-y-3">
                                 <div className="flex justify-between py-2 border-b border-blue-200">
-                                  <span className="text-gray-700">Valeur des biens</span>
+                                  <span className="text-gray-700">Valeur nette des parts</span>
                                   <span className="font-bold text-gray-900">
                                     {parseFloat(formData.valeurTransmission.replace(/\s/g, '')).toLocaleString('fr-FR')} €
                                   </span>
@@ -1218,8 +1197,8 @@ export default function SCISimulator() {
                                   <span className="font-bold text-gray-900">{transmission.nombreBeneficiaires}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-blue-200">
-                                  <span className="text-gray-700">Abattement (100k × 2 parents)</span>
-                                  <span className="font-bold text-green-600">- 200 000 €</span>
+                                  <span className="text-gray-700">Abattement par enfant (un parent)</span>
+                                  <span className="font-bold text-green-600">- 100 000 €</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b-2 border-blue-300 bg-blue-100 px-3 rounded">
                                   <span className="font-semibold text-gray-900">Base imposable par enfant</span>

@@ -1,5 +1,6 @@
 "use client";
 
+import { plusDeCinqAns, anneesRevolues, abattementsPlusValue, surtaxePlusValue } from '@/lib/fiscal';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
@@ -31,6 +32,7 @@ interface FormData {
   premiereVente: boolean;
   remploiResidencePrincipale: string;
   retraite: boolean;
+  retraiteConditions?: boolean;
   revenuFiscal: string;
   expropriation: boolean;
   zoneTendue: boolean;
@@ -308,23 +310,13 @@ function PlusValueContent() {
     const fin = new Date(dateFin);
     const diffMs = fin.getTime() - debut.getTime();
     const jours = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const annees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    const annees = anneesRevolues(dateDebut, dateFin);
     return { annees, jours };
   };
 
-  const calculerAbattementIR = (duree: number) => {
-    if (duree < 6) return 0;
-    if (duree < 22) return Math.min((duree - 5) * 6, 96);
-    return 100;
-  };
+  const calculerAbattementIR = (duree: number) => abattementsPlusValue(duree).ir;
 
-  const calculerAbattementPS = (duree: number) => {
-    if (duree < 6) return 0;
-    if (duree < 22) return Math.min((duree - 5) * 1.65, 26.4);
-    if (duree < 23) return 26.4;
-    if (duree < 30) return 26.4 + Math.floor(duree - 22) * 9;
-    return 100;
-  };
+  const calculerAbattementPS = (duree: number) => abattementsPlusValue(duree).ps;
 
   const calculerValeurUsufruit = (age: number) => {
     if (age < 21) return 90;
@@ -338,15 +330,7 @@ function PlusValueContent() {
     return 10;
   };
 
-  const calculerTaxeAdditionnelle = (plusValue: number) => {
-    if (plusValue <= 50000) return 0;
-    if (plusValue <= 60000) return (plusValue - 50000) * 0.02;
-    if (plusValue <= 100000) return 200 + (plusValue - 60000) * 0.03;
-    if (plusValue <= 110000) return 1400 + (plusValue - 100000) * 0.04;
-    if (plusValue <= 150000) return 1800 + (plusValue - 110000) * 0.05;
-    if (plusValue <= 260000) return 4000 + (plusValue - 150000) * 0.06;
-    return 10600;
-  };
+  const calculerTaxeAdditionnelle = surtaxePlusValue;
 
   const genererSuggestions = (data: FormData, res: Results) => {
     const suggestions: string[] = [];
@@ -448,7 +432,7 @@ function PlusValueContent() {
 
     if (formData.retraite && formData.revenuFiscal) {
       const rfr = parseFloat(formData.revenuFiscal.replace(/\s/g, ''));
-      if (rfr <= 12679) {
+      if (Number.isFinite(rfr) && formData.retraiteConditions) {
         return {
           plusValueBrute: 0,
           prixAcquisitionCorrige: 0,
@@ -464,7 +448,7 @@ function PlusValueContent() {
           taxeAdditionnelle: 0,
           totalFiscalite: 0,
           exoneration: true,
-          motifExoneration: 'Retraité modeste ou invalide - RFR ≤ 12 679€ (Art. 150 U III CGI)',
+          motifExoneration: 'Retraité : conditions de RFR et de non-assujettissement à l’IFI en N-2 confirmées (Art. 150 U III CGI)',
           notesExoneration: [],
           suggestions: [],
           economieAbattements: 0
@@ -548,11 +532,12 @@ function PlusValueContent() {
 
     const dureeDet = calculerDureeDetention(formData.dateAcquisition, dateVenteUtilisee);
     const duree = dureeDet.annees;
+    if (!Number.isFinite(duree)) return null;
     
     let montantTravaux = travauxCustom !== undefined ? travauxCustom : 0;
     
     if (travauxCustom === undefined) {
-      if (formData.travaux === 'forfait' && duree > 5 && formData.modeAcquisition === 'achat') {
+      if (formData.travaux === 'forfait' && plusDeCinqAns(formData.dateAcquisition, dateVenteUtilisee) && formData.modeAcquisition === 'achat') {
         montantTravaux = prixAcqBase * 0.15;
       } else if (formData.travaux === 'reel' && formData.travauxMontant) {
         montantTravaux = parseFloat(formData.travauxMontant.replace(/\s/g, ''));
@@ -586,8 +571,8 @@ function PlusValueContent() {
     let abattementPS = calculerAbattementPS(duree);
 
     if (formData.zoneTendue) {
-      abattementIR = Math.max(abattementIR, 70);
-      abattementPS = Math.max(abattementPS, 70);
+      abattementIR = 100 - (100 - abattementIR) * 0.30;
+      abattementPS = 100 - (100 - abattementPS) * 0.30;
     }
 
     // Plus-values nettes imposables (après abattement pour durée de détention)
@@ -601,10 +586,10 @@ function PlusValueContent() {
     // dans l'acquisition/construction d'une résidence principale sous 24 mois.
     if (formData.premiereVente && (formData.typeBien === 'secondaire' || formData.typeBien === 'locatif')) {
       const remploi = parseFloat(formData.remploiResidencePrincipale.replace(/\s/g, '')) || 0;
-      // À défaut de montant renseigné, on présume un remploi intégral du prix (exonération totale).
+      // Aucun remploi présumé : le montant affecté doit être renseigné.
       const proportionRemployee = prixVenteBrut > 0 && remploi > 0
         ? Math.min(1, remploi / prixVenteBrut)
-        : 1;
+        : 0;
       if (proportionRemployee > 0) {
         plusValueIR = plusValueIR * (1 - proportionRemployee);
         plusValuePS = plusValuePS * (1 - proportionRemployee);
@@ -1438,10 +1423,11 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                     </div>
                   </div>
 
+                  {formData.retraite && <label className="block text-sm mb-3"><input type="checkbox" checked={formData.retraiteConditions === true} onChange={e => setFormData({...formData, retraiteConditions: e.target.checked})} /> Je confirme respecter le plafond de RFR N-2 applicable à mon foyer et ne pas être passible de l’IFI en N-2 (CGI 150 U III). Sans cette confirmation, l’exonération n’est pas appliquée.</label>}
                   {formData.retraite && (
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Revenu fiscal de référence (RFR) N-1
+                        Revenu fiscal de référence (RFR) N-2
                       </label>
                       <input
                         type="text"
@@ -1451,7 +1437,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                       <p className="text-xs text-gray-600 mt-2">
-                        Visible sur votre avis d&apos;imposition
+                        Visible sur votre avis d&apos;imposition. Le plafond dépend de la date de vente et des parts fiscales.
                       </p>
                     </div>
                   )}
@@ -1678,12 +1664,12 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-2">Vente en zone tendue</h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Abattement exceptionnel 70-85% si:
+                        Simulation au taux exceptionnel de 70 %, uniquement si toutes les conditions du dispositif applicable à votre promesse et à votre cession sont vérifiées :
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
                         <li>• Zone A, A bis ou B1</li>
                         <li>• Engagement démolition/reconstruction 4 ans</li>
-                        <li>• ≥ 50% logement social</li>
+                        <li>• Dates, zonage, engagement et absence de lien familial à vérifier (CGI 150 VE). Les taux particuliers de 60 % et 85 % ne sont pas simulés.</li>
                       </ul>
                     </div>
                   </div>

@@ -201,29 +201,29 @@ export const MAJORATION_DOM_TOM: Record<string, number> = {
 // DÉPARTEMENTS
 // ============================================================================
 
-// Taux DMTO mis à jour selon LF 2025 art. 116 (hausse temporaire 01/04/2025 - 31/03/2028)
-// Sources : LegiFiscal, DGFiP, Service-Public.fr, Banque des Territoires
-// 83 départements à 5.00% | 14 départements à 4.50% | 2 à 3.80%
+// Taux de droit commun du tableau DGFiP au 01/06/2026, consulté le 08/09/2026.
+// https://www.impots.gouv.fr/sites/default/files/media/1_metier/3_partenaire/notaires/dmto/dmto_2026-06.pdf
+// Les abattements et réductions locaux particuliers doivent être vérifiés séparément.
 export const departements: Record<string, Departement> = {
-  // --- Départements restés à 4.50% ---
-  '01': { nom: 'Ain', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  // --- Départements (taux ordinaires à la date du tableau) ---
+  '01': { nom: 'Ain', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '05': { nom: 'Hautes-Alpes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '06': { nom: 'Alpes-Maritimes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '07': { nom: 'Ardèche', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '16': { nom: 'Charente', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '26': { nom: 'Drôme', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
-  '27': { nom: 'Eure', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '27': { nom: 'Eure', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '48': { nom: 'Lozère', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '60': { nom: 'Oise', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '65': { nom: 'Hautes-Pyrénées', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
   '71': { nom: 'Saône-et-Loire', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
-  '82': { nom: 'Tarn-et-Garonne', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '82': { nom: 'Tarn-et-Garonne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   // --- Département à 3.80% (taux réduit) ---
   '36': { nom: 'Indre', taux: 3.80, tauxTVA: 20.0, majoration: 0 },
-  // --- Départements passés à 5.00% (LF 2025) ---
+  // --- Suite des départements ---
   '02': { nom: 'Aisne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
-  '03': { nom: 'Allier', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
-  '04': { nom: 'Alpes-de-Haute-Provence', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '03': { nom: 'Allier', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
+  '04': { nom: 'Alpes-de-Haute-Provence', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '08': { nom: 'Ardennes', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '09': { nom: 'Ariège', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '10': { nom: 'Aube', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
@@ -251,9 +251,9 @@ export const departements: Record<string, Departement> = {
   '34': { nom: 'Hérault', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '35': { nom: 'Ille-et-Vilaine', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '37': { nom: 'Indre-et-Loire', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
-  '38': { nom: 'Isère', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '38': { nom: 'Isère', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '39': { nom: 'Jura', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
-  '40': { nom: 'Landes', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '40': { nom: 'Landes', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '41': { nom: 'Loir-et-Cher', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '42': { nom: 'Loire', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '43': { nom: 'Haute-Loire', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
@@ -268,7 +268,7 @@ export const departements: Record<string, Departement> = {
   '53': { nom: 'Mayenne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '54': { nom: 'Meurthe-et-Moselle', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '55': { nom: 'Meuse', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
-  '56': { nom: 'Morbihan', taux: 3.80, tauxTVA: 20.0, majoration: 0 },
+  '56': { nom: 'Morbihan', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '57': { nom: 'Moselle', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '58': { nom: 'Nièvre', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '59': { nom: 'Nord', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
@@ -298,7 +298,7 @@ export const departements: Record<string, Departement> = {
   '87': { nom: 'Haute-Vienne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '88': { nom: 'Vosges', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '89': { nom: 'Yonne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
-  '90': { nom: 'Territoire de Belfort', taux: 4.50, tauxTVA: 20.0, majoration: 0 },
+  '90': { nom: 'Territoire de Belfort', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '91': { nom: 'Essonne', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '92': { nom: 'Hauts-de-Seine', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   '93': { nom: 'Seine-Saint-Denis', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
@@ -306,7 +306,7 @@ export const departements: Record<string, Departement> = {
   '95': { nom: 'Val-d\'Oise', taux: 5.00, tauxTVA: 20.0, majoration: 0 },
   // --- DOM-TOM ---
   '971': { nom: 'Guadeloupe', taux: 4.50, tauxTVA: 8.5, majoration: 23 },
-  '972': { nom: 'Martinique', taux: 4.50, tauxTVA: 8.5, majoration: 24 },
+  '972': { nom: 'Martinique', taux: 5.00, tauxTVA: 8.5, majoration: 24 },
   '973': { nom: 'Guyane', taux: 5.00, tauxTVA: 0, majoration: 20 },
   '974': { nom: 'La Réunion', taux: 4.50, tauxTVA: 8.5, majoration: 36 },
   '976': { nom: 'Mayotte', taux: 3.80, tauxTVA: 0, majoration: 36 }

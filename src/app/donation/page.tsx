@@ -1,5 +1,7 @@
 "use client";
 
+import { BAREME_SUCCESSION, appliquerBareme } from '@/lib/donation';
+import { anneesRevolues } from '@/lib/fiscal';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
@@ -58,75 +60,6 @@ interface Results {
 }
 
 // Configuration des barèmes
-const BAREME_SUCCESSION = {
-  enfant: {
-    abattement: 100000,
-    tranches: [
-      { max: 8072, taux: 5 },
-      { max: 12109, taux: 10 },
-      { max: 15932, taux: 15 },
-      { max: 552324, taux: 20 },
-      { max: 902838, taux: 30 },
-      { max: 1805677, taux: 40 },
-      { max: Infinity, taux: 45 }
-    ]
-  },
-  'petit-enfant': {
-    abattement: 31865,
-    tranches: [
-      { max: 8072, taux: 5 },
-      { max: 12109, taux: 10 },
-      { max: 15932, taux: 15 },
-      { max: 552324, taux: 20 },
-      { max: 902838, taux: 30 },
-      { max: 1805677, taux: 40 },
-      { max: Infinity, taux: 45 }
-    ]
-  },
-  'arriere-petit-enfant': {
-    abattement: 5310,
-    tranches: [
-      { max: 8072, taux: 5 },
-      { max: 12109, taux: 10 },
-      { max: 15932, taux: 15 },
-      { max: 552324, taux: 20 },
-      { max: 902838, taux: 30 },
-      { max: 1805677, taux: 40 },
-      { max: Infinity, taux: 45 }
-    ]
-  },
-  conjoint: {
-    abattement: 80724,
-    tranches: [
-      { max: Infinity, taux: 0 }
-    ]
-  },
-  'partenaire-pacs': {
-    abattement: 80724,
-    tranches: [
-      { max: Infinity, taux: 0 }
-    ]
-  },
-  'frere-soeur': {
-    abattement: 15932,
-    tranches: [
-      { max: 24430, taux: 35 },
-      { max: Infinity, taux: 45 }
-    ]
-  },
-  'neveu-niece': {
-    abattement: 7967,
-    tranches: [
-      { max: Infinity, taux: 55 }
-    ]
-  },
-  autre: {
-    abattement: 1594,
-    tranches: [
-      { max: Infinity, taux: 60 }
-    ]
-  }
-};
 
 const BAREME_USUFRUIT = {
   '<21': 90,
@@ -153,23 +86,6 @@ function calculerValeurUsufruit(age: number): number {
 }
 
 // Applique le barème progressif sur une assiette taxable donnée (après abattement)
-function appliquerBareme(
-  base: number,
-  tranches: Array<{ max: number; taux: number }>
-): number {
-  let droits = 0;
-  let reste = Math.max(0, base);
-  let trancheInf = 0;
-  for (const tranche of tranches) {
-    if (reste <= 0) break;
-    const montantTranche = Math.min(reste, tranche.max - trancheInf);
-    droits += montantTranche * (tranche.taux / 100);
-    reste -= montantTranche;
-    trancheInf = tranche.max;
-  }
-  return droits;
-}
-
 // Composant FAQ
 function FAQSection() {
   const [openIndex, setOpenIndex] = useState<string | null>(null);
@@ -180,7 +96,7 @@ function FAQSection() {
       questions: [
         {
           q: "Quels sont les abattements fiscaux en 2025 pour les donations ?",
-          r: "**Il existe 3 types d'abattements CUMULABLES selon la nature de la donation :**\n\n**1️⃣ ABATTEMENT GÉNÉRAL (art. 779 CGI) - tous les 15 ans :**\n• Enfant : 100 000 €\n• Petit-enfant : 31 865 €\n• Arrière-petit-enfant : 5 310 €\n• Conjoint/PACS : 80 724 € (exonération totale)\n• Frère/Sœur : 15 932 €\n• Neveu/Nièce : 7 967 €\n• Autre : 1 594 €\n\n**2️⃣ DON DE SOMME D'ARGENT (art. 790 G CGI) - tous les 15 ans :**\n• 31 865 € supplémentaires pour dons en ESPÈCES\n• Conditions : donateur < 80 ans + donataire majeur\n• Déclaration obligatoire sous 1 mois\n\n**3️⃣ EXONÉRATION RÉSIDENCE PRINCIPALE 2025-2026 (art. 790 A bis CGI) :**\n• 100 000 € pour achat logement neuf/VEFA ou rénovation énergétique\n\n**💰 CUMUL TOTAL possible pour un enfant majeur :**\n100k (général) + 31 865€ (don argent) + 100k (résidence) = **231 865 €** sans impôt !",
+          r: "**Il existe 3 types d'abattements CUMULABLES selon la nature de la donation :**\n\n**1️⃣ ABATTEMENT GÉNÉRAL (art. 779 CGI) - tous les 15 ans :**\n• Enfant : 100 000 €\n• Petit-enfant : 31 865 €\n• Arrière-petit-enfant : 5 310 €\n• Conjoint/PACS : 80 724 € puis barème progressif\n• Frère/Sœur : 15 932 €\n• Neveu/Nièce : 7 967 €\n• Autre : aucun abattement personnel\n\n**2️⃣ DON DE SOMME D'ARGENT (art. 790 G CGI) - tous les 15 ans :**\n• 31 865 € supplémentaires pour dons en ESPÈCES\n• Conditions : donateur < 80 ans + donataire majeur\n• Déclaration obligatoire sous 1 mois\n\n**3️⃣ EXONÉRATION RÉSIDENCE PRINCIPALE 2025-2026 (art. 790 A bis CGI) :**\n• 100 000 € pour achat logement neuf/VEFA ou rénovation énergétique\n\n**💰 CUMUL TOTAL possible pour un enfant majeur :**\n100k (général) + 31 865€ (don argent) + 100k (résidence) = **231 865 €** sans impôt !",
           source: "Articles 779, 790 G et 790 A bis du CGI"
         },
         {
@@ -210,7 +126,7 @@ function FAQSection() {
         },
         {
           q: "Cette exonération temporaire se cumule-t-elle avec l'abattement classique ?",
-          r: "**OUI ! Les 3 dispositifs se CUMULENT INTÉGRALEMENT :**\n\n**Pour un enfant majeur recevant de l'argent de ses parents < 80 ans :**\n\n1️⃣ **Abattement général** : 100 000 € (art. 779)\n2️⃣ **Don familial argent** : + 31 865 € (art. 790 G)\n3️⃣ **Exo résidence principale** : + 100 000 € (art. 790 A bis)\n\n**= 231 865 € transmis sans impôt PAR PARENT** tous les 15 ans !\n\n**💰 Avec les 2 parents + 4 grands-parents :**\n• 2 parents × 231 865 € = 463 730 €\n• 4 grands-parents × 63 730 € = 254 920 €\n\n**TOTAL : 718 650 € en franchise d'impôt !**\n\n⚠️ **Attention :** L'exonération résidence principale nécessite :\n• Utilisation sous 6 mois pour achat/travaux\n• Conservation 5 ans\n• Don d'argent uniquement (pas d'immeuble direct)",
+          r: "**OUI ! Les 3 dispositifs se CUMULENT INTÉGRALEMENT :**\n\n**Pour un enfant majeur recevant de l'argent de ses parents < 80 ans :**\n\n1️⃣ **Abattement général** : 100 000 € (art. 779)\n2️⃣ **Don familial argent** : + 31 865 € (art. 790 G)\n3️⃣ **Exo résidence principale** : + 100 000 € (art. 790 A bis)\n\n**= 231 865 € transmis sans impôt PAR PARENT** sous réserve des conditions et des plafonds propres à chaque dispositif.\n\n**💰 Avec les 2 parents + 4 grands-parents :**\n• 2 parents × 231 865 € = 463 730 €\n• 4 grands-parents × 63 730 € = 254 920 €\n\n**TOTAL : 718 650 € en franchise d'impôt !**\n\n⚠️ **Attention :** L'exonération résidence principale nécessite :\n• Utilisation sous 6 mois pour achat/travaux\n• Conservation 5 ans\n• Don d'argent uniquement (pas d'immeuble direct)",
           source: "Articles 779, 790 G et 790 A bis du CGI cumulés"
         }
       ]
@@ -235,7 +151,7 @@ function FAQSection() {
       questions: [
         {
           q: "Qu'est-ce que le Pacte Dutreil et comment en bénéficier ?",
-          r: "Le Pacte Dutreil permet une **exonération de 75%** de la valeur d'une entreprise transmise par donation ou succession.\n\n**Conditions obligatoires :**\n\n1. **Engagement collectif** : conservation des titres pendant 2 ans minimum (avant transmission)\n2. **Engagement individuel** : conservation pendant 4 ans après transmission\n3. **Activité éligible** : industrielle, commerciale, artisanale, agricole, libérale ou holding animatrice\n4. **Fonction de direction** : exercée pendant toute la durée des engagements + 3 ans\n\n⚠️ Toute rupture d'engagement = perte de l'exonération",
+          r: "Le Pacte Dutreil permet une **exonération de 75%** de la valeur d'une entreprise transmise par donation ou succession.\n\n**Conditions obligatoires :**\n\n1. **Engagement collectif** : conservation des titres pendant 2 ans minimum (avant transmission)\n2. **Engagement individuel** : conservation pendant 6 ans à compter de la fin de l’engagement collectif (règles 2026)\n3. **Activité éligible** : industrielle, commerciale, artisanale, agricole, libérale ou holding animatrice\n4. **Fonction de direction** : exercée pendant toute la durée des engagements + 3 ans\n\n⚠️ Toute rupture d'engagement = perte de l'exonération",
           source: "Article 787 B du CGI"
         },
         {
@@ -377,12 +293,19 @@ function DonationCalculatorContent() {
 
   const [donationAnterieure, setDonationAnterieure] = useState('');
   const [dateDerniereDonation, setDateDerniereDonation] = useState('');
+  const [sansDescendant, setSansDescendant] = useState(false);
+  const [conditionsExoneration, setConditionsExoneration] = useState(false);
+  const [beneficiaireId, setBeneficiaireId] = useState(1);
+  const beneficiaire = donataires.find(d => d.id === beneficiaireId) ?? donataires[0];
   const [results, setResults] = useState<Results | null>(null);
   const [showOptimisation, setShowOptimisation] = useState(false);
   const [activeTab, setActiveTab] = useState('donation');
+  useEffect(() => { setResults(null); }, [donataires, beneficiaireId, demembrement, pacteDutreil, donationAnterieure, dateDerniereDonation, conditionsExoneration, sansDescendant]);
+
 
   const ajouterDonataire = () => {
     const newId = Math.max(...donataires.map(d => d.id), 0) + 1;
+    setResults(null);
     setDonataires([...donataires, { 
       id: newId, 
       nom: `Bénéficiaire ${newId}`, 
@@ -402,11 +325,11 @@ function DonationCalculatorContent() {
   };
 
   const calculerDroits = (): Results | null => {
-    const donataire = donataires[0];
+    const donataire = beneficiaire;
     if (!donataire.montant) return null;
 
     const montantBase = parseFloat(donataire.montant.replace(/\s/g, ''));
-    if (isNaN(montantBase)) return null;
+    if (!Number.isFinite(montantBase) || montantBase <= 0) return null;
 
     let valeurTaxable = montantBase;
     let reductionDutreil = 0;
@@ -415,7 +338,7 @@ function DonationCalculatorContent() {
     if (pacteDutreil.actif && pacteDutreil.valeurEntreprise && pacteDutreil.pourcentageTransmis) {
       const valeurEntreprise = parseFloat(pacteDutreil.valeurEntreprise.replace(/\s/g, ''));
       const pourcentage = parseFloat(pacteDutreil.pourcentageTransmis) / 100;
-      const valeurTransmise = valeurEntreprise * pourcentage;
+      const valeurTransmise = Math.max(0, Math.min(montantBase, valeurEntreprise * Math.min(1, Math.max(0, pourcentage))));
       
       if (pacteDutreil.engagementCollectif && pacteDutreil.engagementIndividuel) {
         reductionDutreil = valeurTransmise * 0.75;
@@ -429,22 +352,22 @@ function DonationCalculatorContent() {
       const valeurUsufruitPct = calculerValeurUsufruit(age);
       
       if (demembrement.typeOperation === 'donation-nue') {
-        valeurTaxable = montantBase * (100 - valeurUsufruitPct) / 100;
+        valeurTaxable *= (100 - valeurUsufruitPct) / 100;
       } else if (demembrement.typeOperation === 'donation-usufruit') {
-        valeurTaxable = montantBase * valeurUsufruitPct / 100;
+        valeurTaxable *= valeurUsufruitPct / 100;
       }
     }
 
     // ---- Exonérations spécifiques (s'imputent sur la valeur, hors barème) ----
     // Bénéficiaires éligibles aux dons familiaux : descendants, ou à défaut neveux/nièces
     const estDescendant = ['enfant', 'petit-enfant', 'arriere-petit-enfant'].includes(donataire.lien);
-    const eligibleDonFamilial = estDescendant || donataire.lien === 'neveu-niece';
+    const eligibleDonFamilial = estDescendant || (donataire.lien === 'neveu-niece' && sansDescendant);
     const ageDonataireNum = parseInt(donataire.ageDonataire);
     const donataireMajeur = !isNaN(ageDonataireNum) && ageDonataireNum >= 18;
 
     // Don familial de somme d'argent (art. 790 G) - 31 865 € : donateur < 80 ans ET donataire majeur
     let donFamilialArgent = 0;
-    if (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence') {
+    if (conditionsExoneration && (donataire.typeDon === 'argent' || donataire.typeDon === 'argent-residence')) {
       const ageDonateur = parseInt(donataire.ageDonateur);
       if (!isNaN(ageDonateur) && ageDonateur < 80 && eligibleDonFamilial && donataireMajeur) {
         donFamilialArgent = 31865;
@@ -455,7 +378,7 @@ function DonationCalculatorContent() {
     // 100 000 € par donateur, 300 000 € par donataire, réservé descendants
     // (ou neveux/nièces à défaut de descendance). Affectation logement neuf / rénovation.
     let exonerationResidence = 0;
-    if (donataire.typeDon === 'argent-residence' && eligibleDonFamilial) {
+    if (conditionsExoneration && donataire.typeDon === 'argent-residence' && eligibleDonFamilial && new Date() >= new Date('2025-02-15T00:00:00Z') && new Date() < new Date('2027-01-01T00:00:00Z')) {
       // Plafond par donateur (100 000 €) ; le plafond global 300 000 €/donataire
       // ne mord que si plusieurs donateurs interviennent (un seul ici).
       const plafondParDonateur = 100000;
@@ -478,10 +401,9 @@ function DonationCalculatorContent() {
     // se réapplique comme si la nouvelle donation se cumulait à l'antérieure.
     let donationsAnterieures = 0;
     if (donationAnterieure && dateDerniereDonation) {
-      const dateAnt = new Date(dateDerniereDonation);
       const maintenant = new Date();
-      const diffAnnees = (maintenant.getTime() - dateAnt.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-      if (diffAnnees < 15) {
+      const diffAnnees = anneesRevolues(dateDerniereDonation, maintenant.toISOString().slice(0, 10));
+      if (Number.isFinite(diffAnnees) && diffAnnees >= 0 && diffAnnees < 15) {
         const montantAnt = parseFloat(donationAnterieure.replace(/\s/g, ''));
         if (!isNaN(montantAnt)) donationsAnterieures = Math.max(0, montantAnt);
       }
@@ -621,7 +543,7 @@ function DonationCalculatorContent() {
       return;
     }
 
-    const donataire = donataires[0];
+    const donataire = beneficiaire;
     const dateExport = new Date().toLocaleDateString('fr-FR');
     
     // Créer le contenu HTML pour le PDF
@@ -876,7 +798,7 @@ function DonationCalculatorContent() {
     </div>
     <div class="info-row">
       <span class="info-label">Engagement individuel</span>
-      <span class="info-value">${pacteDutreil.engagementIndividuel ? '✅ OUI (4 ans)' : '❌ NON'}</span>
+      <span class="info-value">${pacteDutreil.engagementIndividuel ? '✅ OUI (6 ans)' : '❌ NON'}</span>
     </div>
     <div class="highlight-box">
       <div class="info-row">
@@ -1001,9 +923,9 @@ function DonationCalculatorContent() {
   };
 
   const scenariosComparaison = useMemo(() => {
-    if (!donataires[0]?.montant) return [];
+    if (!beneficiaire?.montant) return [];
     
-    const montantBase = parseFloat(donataires[0].montant.replace(/\s/g, ''));
+    const montantBase = parseFloat(beneficiaire.montant.replace(/\s/g, ''));
     if (isNaN(montantBase)) return [];
 
     const scenarios = [];
@@ -1022,14 +944,14 @@ function DonationCalculatorContent() {
     if (!demembrement.actif) {
       const valeurUsufruitPct = calculerValeurUsufruit(60);
       const valeurNue = montantBase * (100 - valeurUsufruitPct) / 100;
-      const abattement = BAREME_SUCCESSION[donataires[0].lien].abattement;
+      const abattement = BAREME_SUCCESSION[beneficiaire.lien].abattement;
       const baseImposable = Math.max(0, valeurNue - abattement);
       
       let droits = 0;
       let reste = baseImposable;
       let trancheInf = 0;
       
-      for (const tranche of BAREME_SUCCESSION[donataires[0].lien].tranches) {
+      for (const tranche of BAREME_SUCCESSION[beneficiaire.lien].tranches) {
         if (reste <= 0) break;
         const montantTranche = Math.min(reste, tranche.max - trancheInf);
         droits += montantTranche * (tranche.taux / 100);
@@ -1045,7 +967,7 @@ function DonationCalculatorContent() {
     }
 
     return scenarios;
-  }, [donataires, demembrement]);
+  }, [donataires, beneficiaireId, demembrement, pacteDutreil, donationAnterieure, dateDerniereDonation, sansDescendant, conditionsExoneration]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1058,7 +980,7 @@ function DonationCalculatorContent() {
                   <Gift className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Calculateur Donation / Succession</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">Calculateur de donation</h1>
                   <p className="text-rose-600 font-medium">Optimisation fiscale 2025</p>
                 </div>
               </div>
@@ -1094,7 +1016,7 @@ function DonationCalculatorContent() {
                 <p className="text-xs text-gray-600 mt-1">De votre vivant</p>
               </button>
               <button
-                onClick={() => setActiveTab('succession')}
+                disabled aria-disabled="true"
                 className={`flex-1 p-6 rounded-xl border-2 transition-all ${
                   activeTab === 'succession'
                     ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-md'
@@ -1103,7 +1025,7 @@ function DonationCalculatorContent() {
               >
                 <FileText className="w-8 h-8 mx-auto mb-2 text-purple-600" />
                 <p className="font-semibold text-gray-900">Succession</p>
-                <p className="text-xs text-gray-600 mt-1">Droits successoraux</p>
+                <p className="text-xs text-gray-600 mt-1">Simulation distincte non disponible</p>
               </button>
             </div>
           </div>
@@ -1126,6 +1048,17 @@ function DonationCalculatorContent() {
               </button>
             </div>
 
+            <p className="text-sm text-gray-700 mb-4">Calcul par bénéficiaire, pour un seul donateur. Les donations antérieures et options ci-dessous concernent uniquement le bénéficiaire sélectionné. Renseignez-les à nouveau pour chaque personne.</p>
+            <div className="text-sm space-y-3 mb-4">
+              <label className="block"><input type="checkbox" checked={sansDescendant} onChange={e => { setSansDescendant(e.target.checked); setResults(null); }} /> Le donateur n’a aucun descendant (nécessaire pour les exonérations de sommes d’argent à un neveu ou une nièce).</label>
+              <label className="block"><input type="checkbox" checked={conditionsExoneration} onChange={e => { setConditionsExoneration(e.target.checked); setResults(null); }} /> Je confirme que les plafonds spéciaux sont intégralement disponibles : 31 865 € sur 15 ans ; pour le don logement, 100 000 € par donateur et 300 000 € tous donateurs, affectation éligible sous 6 mois et conservation/occupation pendant 5 ans. À défaut, ces exonérations ne sont pas appliquées.</label>
+              <a href="https://www.impots.gouv.fr/particulier/dons-exoneres" target="_blank" rel="noreferrer" className="underline">Conditions des dons exonérés — DGFiP</a>
+            </div>
+            <label className="block mb-4 font-semibold">Bénéficiaire à calculer
+              <select aria-label="Bénéficiaire à calculer" value={beneficiaire.id} onChange={e => { setBeneficiaireId(Number(e.target.value)); setResults(null); setDonationAnterieure(''); setDateDerniereDonation(''); setConditionsExoneration(false); setSansDescendant(false); setDemembrement(prev => ({...prev, actif: false})); setPacteDutreil(prev => ({...prev, actif: false})); }} className="block border rounded p-2 mt-2">
+                {donataires.map(d => <option key={d.id} value={d.id}>{d.nom}</option>)}
+              </select>
+            </label>
             <div className="space-y-4">
               {donataires.map((donataire, index) => (
                 <div key={donataire.id} className="bg-white rounded-xl p-6 border-2 border-gray-200">
@@ -1167,11 +1100,11 @@ function DonationCalculatorContent() {
                         <option value="enfant">Enfant (abattement 100 000 €)</option>
                         <option value="petit-enfant">Petit-enfant (31 865 €)</option>
                         <option value="arriere-petit-enfant">Arrière-petit-enfant (5 310 €)</option>
-                        <option value="conjoint">Conjoint (exonéré)</option>
-                        <option value="partenaire-pacs">Partenaire PACS (exonéré)</option>
+                        <option value="conjoint">Conjoint (abattement 80 724 €)</option>
+                        <option value="partenaire-pacs">Partenaire PACS (abattement 80 724 €)</option>
                         <option value="frere-soeur">Frère / Sœur (15 932 €)</option>
                         <option value="neveu-niece">Neveu / Nièce (7 967 €)</option>
-                        <option value="autre">Autre (1 594 €)</option>
+                        <option value="autre">Autre (sans abattement)</option>
                       </select>
                     </div>
 
@@ -1191,7 +1124,7 @@ function DonationCalculatorContent() {
                         >
                           <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
                           <option value="argent">Somme d&apos;argent → Don familial +31 865€ (donateur &lt; 80 ans, donataire majeur)</option>
-                          <option value="argent-residence">Somme d&apos;argent pour le logement → Exo. jusqu&apos;à 100 000€/donateur (2025)</option>
+                          <option value="argent-residence">Somme d&apos;argent pour le logement → Exo. jusqu&apos;à 100 000€/donateur (2025–2026)</option>
                         </select>
                         <p className="text-xs text-gray-600 mt-1">
                           {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
@@ -1490,7 +1423,7 @@ function DonationCalculatorContent() {
                       <p className="font-semibold text-green-900 mb-2">Réduction fiscale de 75%</p>
                       <p className="text-sm text-green-800">
                         Le Pacte Dutreil permet une exonération de 75% de la valeur de l&apos;entreprise
-                        transmise, sous conditions d&apos;engagement collectif (2 ans) et individuel (4 ans).
+                        transmise, sous conditions d&apos;engagement collectif (2 ans) et individuel (6 ans). La réduction de droits de 50 % de l’article 790 (pleine propriété avant 70 ans) n’est pas comprise dans cette estimation ; les conditions d’activité et de direction doivent aussi être vérifiées.
                       </p>
                     </div>
                   </div>
@@ -1545,7 +1478,7 @@ function DonationCalculatorContent() {
                       className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      Engagement individuel de conservation (4 ans minimum)
+                      Engagement individuel de conservation (6 ans minimum)
                     </span>
                   </label>
                 </div>
@@ -1554,13 +1487,13 @@ function DonationCalculatorContent() {
           </div>
 
           {/* Boutons d'action */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4">
             <button
               onClick={handleCalculer}
               className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
             >
               <Calculator className="w-5 h-5" />
-              Calculer les droits
+              Calculer les droits du bénéficiaire sélectionné
             </button>
             <button
               onClick={exporterPDF}

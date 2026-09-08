@@ -5,6 +5,7 @@
 
 "use client";
 
+import { BAREME_IR_2026, repartirDeficitFoncier } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Home,
@@ -110,13 +111,7 @@ const PLAFOND_DEFICIT_REVENU_GLOBAL = 10700;
 const PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION = 21400;
 const FRAIS_GESTION_FORFAITAIRES_PAR_LOCAL = 20;
 
-const TRANCHES_IR_2025 = [
-  { min: 0, max: 11294, taux: 0 },
-  { min: 11294, max: 28797, taux: 0.11 },
-  { min: 28797, max: 82341, taux: 0.30 },
-  { min: 82341, max: 177106, taux: 0.41 },
-  { min: 177106, max: Infinity, taux: 0.45 }
-];
+const TRANCHES_IR_2025 = BAREME_IR_2026; // Impôt 2026 sur les revenus 2025
 
 const TMI_OPTIONS = [
   { value: 0, label: '0 %' },
@@ -240,7 +235,7 @@ function calculerComparaison(
     // Deficit foncier
     const montantDeficit = Math.abs(revenuImposableReel);
     // Le deficit hors interets d'emprunt est imputable sur le revenu global
-    const deficitHorsInterets = Math.abs(Math.min(0, revenusBruts - (totalChargesReelles - interetsEmprunt)));
+    const deficitHorsInterets = repartirDeficitFoncier(revenusBruts, interetsEmprunt, totalChargesReelles - interetsEmprunt, Infinity).imputation;
     const plafondImputation = renovationEnergetique
       ? PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION
       : PLAFOND_DEFICIT_REVENU_GLOBAL;
@@ -1329,8 +1324,7 @@ export default function RevenusFonciersPage() {
                             <span className="font-bold">
                               {formatEuros(results.deficitFoncier.imputationRevenuGlobal * (tmi / 100))}
                             </span>{' '}
-                            (TMI a {tmi} %) + {formatEuros(results.deficitFoncier.imputationRevenuGlobal * PRELEVEMENTS_SOCIAUX)} de
-                            prelevements sociaux.
+                            (TMI a {tmi} %). Cette imputation sur le revenu global ne procure pas de réduction supplémentaire de prélèvements sociaux.
                           </p>
                           <p className="mt-2 text-xs text-green-700">
                             Attention : l&apos;imputation du deficit foncier sur le revenu global impose le maintien en location du bien pendant 3 ans apres l&apos;imputation.

@@ -113,29 +113,31 @@ export function calculerTaxes(
   primoAccedant: boolean = false,
   valeurMobilier: number = 0
 ) {
-  if (!montantActe || typeBien === 'neuf' || typeBien === 'aucune') return;
+  if (!montantActe || typeBien === 'aucune') {
+    setTaxes(prev => ({ ...prev, departementale: 0, communale: 0, fraisAssiette: 0 }));
+    return;
+  }
 
-  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
   if (isNaN(montant)) return;
 
-  // Art. 1245 CGI : les meubles meublants justifiés par un inventaire
-  // détaillé sont exclus de l'assiette des DMTO. Tolérance ~5% du prix
-  // sans inventaire ; au-delà l'inventaire est requis.
+  // CGI 735 : prix distinct et désignation/estimation des meubles dans l’acte.
+  // Aucun forfait automatique de 5 % sans justification.
   const mobilier = Math.max(0, Math.min(valeurMobilier || 0, montant));
   const assietteDMTO = montant - mobilier;
 
   // LF 2025 art. 116 : les primo-accédants en résidence principale échappent à la
   // hausse votée par les départements et restent au taux plafond historique de 4.50%.
   const tauxDepartementalBase = departements[selectedDepartement]?.taux || 4.50;
-  const tauxDepartemental = primoAccedant ? Math.min(tauxDepartementalBase, 4.50) : tauxDepartementalBase;
-  const tauxCommunal = 1.20;
+  const tauxDepartemental = typeBien === 'neuf' ? 0.70 : primoAccedant ? Math.min(tauxDepartementalBase, 4.50) : tauxDepartementalBase;
+  const tauxCommunal = typeBien === 'neuf' ? 0 : 1.20;
   
   // Les droits payés au Trésor sont arrondis à l'euro le plus proche (CGI art. 1724).
   const roundEuro = (n: number) => Math.round(n);
   const taxeDepartementale = roundEuro(assietteDMTO * (tauxDepartemental / 100));
   const taxeCommunale = roundEuro(assietteDMTO * (tauxCommunal / 100));
   // Art. 1647-V CGI : prélèvement de 2,37% sur la seule taxe départementale
-  const fraisAssiette = roundEuro(taxeDepartementale * 0.0237);
+  const fraisAssiette = roundEuro(taxeDepartementale * (typeBien === 'neuf' ? 0.0214 : 0.0237));
 
   setTaxes(prev => ({
     ...prev,
@@ -163,7 +165,7 @@ export function calculerCSI(
 ) {
   if (!montantActe) return;
 
-  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
   if (isNaN(montant)) return;
 
   // Pour une sûreté, l'assiette est le capital majoré des accessoires (cf.
@@ -187,7 +189,7 @@ export function calculerTPF(
   baseOverride?: number
 ) {
   if (!montantActe) return;
-  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
   if (isNaN(montant)) return;
 
   // Assiette = capital garanti majoré des accessoires (baseOverride). TPF
@@ -216,7 +218,7 @@ export function calculerDroitPartage(
   setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
 ) {
   if (!montantActe) return;
-  const montant = parseFloat(montantActe.replace(/\s/g, ''));
+  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
   if (isNaN(montant)) return;
 
   const taux = regime === 'divorce' ? 1.10 : 2.50;
@@ -578,7 +580,7 @@ export function exporterPDF(
     y += lineHeight + 2;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    if (taxes.typeBien === 'ancien') {
+    if (taxes.typeBien === 'ancien' || taxes.typeBien === 'neuf') {
       doc.text(`Taxe départementale :`, 20, y);
       doc.text(`${taxes.departementale.toFixed(2)} €`, pageWidth - 60, y);
       y += lineHeight;

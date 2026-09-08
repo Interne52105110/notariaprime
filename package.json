@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --require ./tests/register.cjs --test tests/fiscal.test.cjs"
   },
   "dependencies": {
     "@radix-ui/react-navigation-menu": "^1.2.14",

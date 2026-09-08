@@ -24,7 +24,7 @@ export default function TaxesTab({
   const mobilier = Number(taxes.valeurMobilier) || 0;
   const assietteDMTO = Math.max(0, prix - mobilier);
   const ratioMobilier = prix > 0 ? (mobilier / prix) * 100 : 0;
-  const mobilierExcedeTolerance = ratioMobilier > 5;
+
   return (
     <div className="space-y-6">
       {/* Taxe de publicité foncière (hypothèque) */}
@@ -169,12 +169,14 @@ export default function TaxesTab({
                 />
                 <div>
                   <span className="font-medium text-gray-900">Bien neuf (VEFA)</span>
-                  <p className="text-sm text-gray-600">Soumis à la TVA uniquement</p>
+                  <p className="text-sm text-gray-600">Vente soumise à TVA : taxe de publicité foncière réduite en complément</p>
                 </div>
               </label>
             </div>
           </div>
 
+          <p className="text-xs text-gray-600">Taux départementaux : tableau DGFiP au 1er juin 2026, vérifié le 8 septembre 2026. Les réductions locales conditionnelles nécessitent un calcul adapté. <a href="https://www.impots.gouv.fr/droits-denregistrement" className="underline">Source DGFiP</a></p>
+          {taxes.typeBien === 'neuf' && <div className="p-4 bg-blue-50 rounded-xl text-sm">Assiette à renseigner hors TVA immobilière. TPF : {taxes.departementale.toLocaleString('fr-FR')} € ; frais d’assiette : {taxes.fraisAssiette.toLocaleString('fr-FR')} €. La TVA du prix immobilier n’est pas ajoutée aux frais de notaire.</div>}
           {taxes.typeBien === 'ancien' && (
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Droits de mutation</h3>
@@ -211,15 +213,15 @@ export default function TaxesTab({
                   className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base"
                 />
                 <p className="text-xs text-amber-800 mt-2">
-                  <strong>Art. 1245 CGI</strong> — Les meubles meublants vendus avec le bien
+                  <strong>Art. 735 CGI</strong> — Les meubles meublants vendus avec le bien
                   (cuisine équipée, électroménager, etc.) sont déduits de l&apos;assiette des DMTO.
-                  Tolérance administrative : jusqu&apos;à 5 % du prix sans justificatif. Au-delà, un
+                  Prix distinct et estimation des meubles dans l’acte (CGI 735). Un
                   inventaire détaillé et estimatif est requis.
                 </p>
                 {prix > 0 && mobilier > 0 && (
-                  <p className={`text-xs mt-2 font-medium ${mobilierExcedeTolerance ? 'text-red-700' : 'text-amber-900'}`}>
+                  <p className={`text-xs mt-2 font-medium text-amber-900`}>
                     Mobilier = {ratioMobilier.toFixed(1)} % du prix
-                    {mobilierExcedeTolerance && ' — inventaire détaillé requis !'}
+                    {' — estimation détaillée requise'}
                   </p>
                 )}
               </div>

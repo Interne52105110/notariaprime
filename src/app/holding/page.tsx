@@ -5,6 +5,7 @@
 
 "use client";
 
+import { BAREME_IR_2026 } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Building2, TrendingUp, Calculator, PieChart as PieChartIcon,
@@ -59,13 +60,7 @@ interface FormData {
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#e0e7ff'];
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
-const BAREME_IR = [
-  { min: 0, max: 11294, taux: 0 },
-  { min: 11294, max: 28797, taux: 0.11 },
-  { min: 28797, max: 82341, taux: 0.30 },
-  { min: 82341, max: 177106, taux: 0.41 },
-  { min: 177106, max: Infinity, taux: 0.45 }
-];
+const BAREME_IR = BAREME_IR_2026; // Impôt 2026 sur les revenus 2025
 
 const TAUX_PS_FONCIER = 0.172; // PS revenus fonciers (non impactés LFSS 2026)
 const FLAT_TAX_IR = 0.128;
