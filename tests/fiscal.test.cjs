@@ -409,3 +409,41 @@ test('meublé : revente réintègre seulement le montant fiscal fourni, exceptio
  assert.equal(f({...p,exceptionResidence:true}).brute,10000);
  assert.equal(f({...p,dateVente:'2052-01-01'}).total,0);
 });
+
+const cessionCas={regime:'ir',nature:'amortissable',cession:80000,acquisition:100000,amortissements:40000,frais:0,detention:6,activite:6,secteur:'services',recettes:100000,valeurEntreprise:600000,exoneration:'aucune',confirme151:false,confirme238:false,retraite:false,confirmeRetraite:false,immobilierB:false,confirmeB:false,tmi:30,resultatIS:0,isReduit:false,abattementTitres:false,confirmeTitres:false,soldeAbattementTitres:500000,baremeTitres:false};
+test('cession pro : VNC, cotisations manquantes signalées, moins-value sans crédit fictif',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ const r=f(cessionCas);assert.equal(r.vnc,60000);assert.equal(r.courtTerme,20000);assert.equal(r.total,6000);assert.equal(r.cotisationsManquantes,true);
+ assert.equal(f({...cessionCas,cotisations:0}).cotisationsManquantes,false);
+ assert.equal(f({...cessionCas,cession:50000}).gain,-10000);assert.equal(f({...cessionCas,cession:50000}).total,0);
+ assert.throws(()=>f({...cessionCas,amortissements:100001}));
+});
+test('cession pro : activité distincte de détention, exonération fiscale ne supprime pas SSI',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ assert.throws(()=>f({...cessionCas,exoneration:'151',confirme151:true,activite:4}));
+ assert.throws(()=>f({...cessionCas,exoneration:'151',recettes:0}));
+ const r=f({...cessionCas,exoneration:'151',confirme151:true,recettes:90000,cotisations:3000});assert.equal(r.ir,0);assert.equal(r.total,3000);
+});
+test('cession pro : long terme pas option2OP, immobilier B puis151, exclusion238',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ const p={...cessionCas,nature:'immeuble',cession:200000,detention:10,immobilierB:true,confirmeB:true,exoneration:'151',confirme151:true,recettes:108000,cotisations:0,baremeTitres:true};
+ const r=f(p);assert.equal(r.courtTerme,40000);assert.equal(r.longTerme,100000);assert.equal(r.baseLT,25000);assert.equal(r.basePS,25000);assert.equal(r.ir,9200);assert.equal(r.social,4650);
+ assert.throws(()=>f({...p,exoneration:'238',confirme238:true}));assert.throws(()=>f({...p,retraite:true,confirmeRetraite:true}));
+});
+test('cession pro : retraite et238 combinés, prélèvements LT sur fraction non exonérée',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ const r=f({...cessionCas,cession:200000,retraite:true,confirmeRetraite:true,exoneration:'238',confirme238:true,valeurEntreprise:750000,cotisations:1000});
+ assert.equal(r.ir,0);assert.equal(r.social,9300);assert.equal(r.total,10300);
+});
+test('cession titres : ni CT à moins2ans ni exonération pro, abattement retraite IR seulement',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ const r=f({...cessionCas,regime:'titres',cession:200000,detention:1});assert.equal(r.courtTerme,0);assert.equal(r.total,31400);
+ const p={...cessionCas,regime:'titres',cession:700000,abattementTitres:true,confirmeTitres:true};
+ const a=f(p);assert.equal(a.abattementTitres,500000);assert.equal(a.ir,12800);assert.equal(a.social,111600);
+ assert.throws(()=>f({...p,detention:1}));
+});
+test('cession IS : tranche réduite seulement disponible, aucune fiscalité personnelle',()=>{
+ const f=require('../src/lib/plusvalue-pro.ts').liquidationCessionPro;
+ const r=f({...cessionCas,regime:'is',resultatIS:40000,isReduit:true});assert.equal(r.impotSociete,4750);assert.equal(r.ir,0);assert.equal(r.social,0);
+ assert.equal(f({...cessionCas,regime:'is'}).impotSociete,5000);
+});

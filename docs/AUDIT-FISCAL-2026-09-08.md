@@ -146,3 +146,15 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Limites explicites : périmètre annuel, une catégorie sans activité mixte/para-hôtelière/usage privé, IR au TMI, pas d’imputation globale LMP, pas de projection 20 ans répétant à tort la première année. Cession professionnelle orientée vers son module, dont revue approfondie reste à terminer. Sauvegarde locale versionnée, impression/PDF.
 - Validation : 109 tests, build/types/lint, parcours Chromium annuel/social/revente/invalidation/mobile sans erreur JS.
 - Sources : CGI 50-0 version 01/07/2026 ; BOI-BAREME-000044-20260819 ; BOI-BIC-CHAMP-40-20-20260819 ; DGFiP régimes d’imposition, prélèvements sociaux et plus-values ; outil Urssaf économie collaborative. Liens détaillés dans l’onglet Règles et sources.
+
+
+## Lot plus-values professionnelles — 115 tests
+
+- Séparation actif professionnel IR / actif société IS / titres privés. VNC et frais de cession ; pas de CT fictif sur des titres privés détenus moins de deux ans.
+- Durée d’activité distincte de détention. Exonérations soumises à confirmation des conditions complètes ; seuils 151 septies services90/126k ou ventes250/350k, 238 quindecies500k/1M avec valeur globale séparée. Immobilier exclu de238 et retraite151A.
+- Cumuls compatibles B puis A puis151 ou238 ; jamais151+238 sur la même plus-value. Abattement B uniquementLT. PSLT maintenus sous151A ; cotisationsCT non annulées par exonération fiscale, montant explicite ou résultat signalé provisoire.
+- Suppression de l’option barème fictive sur PV professionnelleLT. Titres privés : optionTMI limitéeexplicitement, abattement retraite500k solde restant, titres2ans et direction/participation5ans, PS sur totalité.
+- IS calculé marginalement selon bénéfice déjà réalisé et tranche15% disponible, sinon25%. Net conservé dans société, distribution non incluse.
+- Suppression des projections/suggestions qui assimilaient automatiquement attendre5ans à une exonération. Pas de recommandation de régime sans qualification du dossier.
+- Limites : un actif homogène, pas de compensation multi-actifs/MV reportées, pas de crédit fiscal fictif sur pertes ; activités agricoles et cas internationaux/spéciaux hors périmètre ; IR auTMI ; cotisations issues d’estimation externe.
+- Validation :115tests, build/types/lint ; ChromiumIR/conditions/IS/titresmoins2ans/mobile sans erreurJS. SourcesDGFiPjuin-août2026, SP F33162 (18,6%LT confirmé), BOFiP6156/6230/11406/3610, liens sur page.
