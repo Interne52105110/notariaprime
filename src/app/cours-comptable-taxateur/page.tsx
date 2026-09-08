@@ -333,7 +333,7 @@ function CoursContent() {
                     L&apos;émolument de la déclaration de succession ne se calcule <strong>pas sur l&apos;actif net</strong>. La base de perception retient :
                   </p>
                   <div className="bg-rose-50 rounded-lg p-4 text-sm text-gray-800 font-medium mb-3">
-                    Actif brut de succession + forfait mobilier + assurances-vie taxables + donations rapportées
+                    Actif brut total déclaré, y compris la totalité des biens communs, de participation ou de société d’acquêts (A444-63). Évaluer le mobilier selon la règle applicable ; ne pas ajouter deux fois une valeur déjà comprise.
                   </div>
                   <p className="text-sm text-gray-700">
                     Pour les biens de communauté, on intègre l&apos;actif brut de communauté, les biens propres et l&apos;abattement résidence principale selon les règles d&apos;assiette. À vérifier au cas par cas dans le JurisClasseur — c&apos;est une source fréquente d&apos;erreur de taxation.
@@ -410,7 +410,7 @@ function CoursContent() {
               </h2>
               <div className="space-y-4">
                 <div className="bg-white rounded-xl border-2 border-indigo-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Réforme du tarif — arrêté du 25 février 2026</h4><p className="text-sm text-gray-700">Nouveau tarif fixé jusqu&apos;au 29 février 2028. Remise portée de 10 % à 20 %, seuil abaissé de 150 000 € à 100 000 €. Barème proportionnel à 4 tranches inchangé dans sa structure.</p></div>
-                <div className="bg-white rounded-xl border-2 border-indigo-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Loi de finances 2025 — DMTO (art. 116)</h4><p className="text-sm text-gray-700">Les départements peuvent relever leur droit de +0,5 point (jusqu&apos;à 5,00 %), du 1ᵉʳ avril 2025 au 30 avril 2028 (mesure temporaire). Frais d&apos;achat ancien vers ~6,3 %.</p></div>
+                <div className="bg-white rounded-xl border-2 border-indigo-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Loi de finances 2025 — DMTO (art. 116)</h4><p className="text-sm text-gray-700">Les départements peuvent relever leur droit de +0,5 point (jusqu&apos;à 5,00 %), du 1ᵉʳ avril 2025 au 30 avril 2028 (mesure temporaire). Droits de mutation pouvant atteindre environ 6,32 %, avant CSI, émoluments et débours.</p></div>
                 <div className="bg-white rounded-xl border-2 border-emerald-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Exonération primo-accédants</h4><p className="text-sm text-gray-700">L&apos;acquéreur non propriétaire de sa résidence principale dans les 2 ans précédents, achetant sa RP, échappe à la hausse. Les départements peuvent en plus réduire/exonérer les DMTO, sous engagement d&apos;occupation ≥ 5 ans. Le statut reste flou (achat conjoint avec un seul primo) → vigilance du taxateur.</p></div>
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6"><h4 className="font-bold text-gray-900 mb-2">Maniement des fonds &amp; intérêts (2025)</h4><p className="text-sm text-gray-700">Rappel renforcé sur le traitement des sommes maniées et des intérêts produits par les fonds clients (régime spécifique, pas l&apos;office). Sujet sensible en inspection.</p></div>
               </div>

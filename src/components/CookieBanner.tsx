@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Script from "next/script";
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
 
   useEffect(() => {
     const consent = localStorage.getItem("notariaprime-cookie-consent");
@@ -14,13 +16,7 @@ export function CookieBanner() {
     }
   }, []);
 
-  function grantConsent() {
-    if (typeof window !== "undefined" && typeof window.gtag === "function") {
-      window.gtag("consent", "update", {
-        analytics_storage: "granted",
-      });
-    }
-  }
+  function grantConsent() { setAnalyticsEnabled(true); }
 
   function handleAccept() {
     localStorage.setItem("notariaprime-cookie-consent", "accepted");
@@ -33,7 +29,14 @@ export function CookieBanner() {
     setVisible(false);
   }
 
-  if (!visible) return null;
+  const analytics = analyticsEnabled ? <><Script id="gtag-init" strategy="afterInteractive">{`
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){window.dataLayer.push(arguments);};
+    gtag('consent','default',{analytics_storage:'granted'});
+    gtag('js',new Date());
+    gtag('config','G-YBC8WDQD0W',{anonymize_ip:true});
+  `}</Script><Script id="gtag-script" src="https://www.googletagmanager.com/gtag/js?id=G-YBC8WDQD0W" strategy="afterInteractive"/></> : null;
+  if (!visible) return analytics;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 md:p-6">

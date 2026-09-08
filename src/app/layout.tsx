@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { CookieBanner } from "@/components/CookieBanner";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/JsonLd";
@@ -71,25 +70,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <WebSiteJsonLd />
       </head>
       <body className={`${inter.variable} antialiased`}>
-        {/* Google Analytics - chargé uniquement après consentement via CookieBanner */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-YBC8WDQD0W"
-          strategy="afterInteractive"
-          id="gtag-script"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('consent', 'default', {
-              'analytics_storage': 'denied'
-            });
-            gtag('config', 'G-YBC8WDQD0W', {
-              anonymize_ip: true
-            });
-          `}
-        </Script>
         <CookieBanner />
         <ServiceWorkerRegister />
         {children}

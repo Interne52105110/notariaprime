@@ -6,7 +6,7 @@
 "use client";
 
 import { limiterDettesIFI } from '@/lib/fiscal';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home, 
   Building2, 
@@ -282,6 +282,8 @@ export default function CalculateurIFI() {
     ));
   };
 
+  useEffect(()=>{setResults(null);},[biens,revenusAnneePrecedente,irEtPsAnneePrecedente]);
+
   const calculer = () => {
     const result = calculerIFI(biens, revenusAnneePrecedente, irEtPsAnneePrecedente);
     setResults(result);
@@ -345,7 +347,7 @@ export default function CalculateurIFI() {
                     Calculateur IFI
                   </h1>
                   <p className="text-gray-600 font-medium mt-1">
-                    Impôt sur la Fortune Immobilière • Barème 2025
+                    Impôt sur la Fortune Immobilière • Barème 2026
                   </p>
                 </div>
               </div>
@@ -556,7 +558,7 @@ export default function CalculateurIFI() {
               <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Percent className="w-6 h-6 text-emerald-600" />
-                  Barème IFI 2025
+                  Barème IFI 2026
                 </h3>
                 
                 <div className="bg-blue-50 p-3 rounded-lg mb-4">
@@ -964,7 +966,7 @@ export default function CalculateurIFI() {
                 <p className="font-semibold text-lg">Avertissement légal</p>
                 <p>
                   Ce calculateur est fourni à titre informatif uniquement et ne constitue pas un conseil fiscal. 
-                  Les résultats sont des estimations basées sur les informations fournies et le barème IFI 2025. 
+                  Les résultats sont des estimations basées sur les informations fournies et le barème IFI 2026. 
                 </p>
                 <p>
                   L&apos;IFI est un impôt complexe avec de nombreuses règles spécifiques (exonérations
@@ -1023,7 +1025,7 @@ function FAQSection() {
           r: "Sont soumis à l'IFI : les immeubles bâtis et non bâtis détenus directement, les parts de SCI et sociétés immobilières, les parts de SCPI et OPCI pour leur quote-part immobilière, les immeubles ou droits immobiliers détenus indirectement via des structures, et les immeubles en cours de construction. La valeur à retenir est la valeur vénale au 1er janvier, c'est-à-dire le prix qui pourrait être obtenu dans des conditions normales de marché. (Article 965 du CGI)"
         },
         {
-          q: "Quel est le barème de l'IFI en 2025 ?",
+          q: "Quel est le barème de l'IFI en 2026 ?",
           r: "Le seuil d'imposition de l'IFI est de 1 300 000 €. Si votre patrimoine dépasse ce seuil, l'IFI est calculé sur toute la part au-dessus de 800 000 € selon le barème progressif suivant : de 800 001 € à 1 300 000 € : 0,5%, de 1 300 001 € à 2 570 000 € : 0,7%, de 2 570 001 € à 5 000 000 € : 1%, de 5 000 001 € à 10 000 000 € : 1,25%, au-delà de 10 000 000 € : 1,5%. Une décote s'applique pour les patrimoines entre 1 300 000 € et 1 400 000 € : 17 500 € - (1,25% × patrimoine net taxable). Exemple : avec 1 350 000 € de patrimoine, IFI brut = 2 850 €, décote = 625 €, IFI net = 2 225 €. (Article 977 du CGI)"
         }
       ]

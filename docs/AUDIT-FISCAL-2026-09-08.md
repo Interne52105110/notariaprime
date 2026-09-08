@@ -1,6 +1,6 @@
 # NotariaPrime — revue des calculs du 8 septembre 2026
 
-État intermédiaire : revue encore en cours, 99 tests réussis au lot plus-values immobilières `d1d8216`, déploiement confirmé.
+État intermédiaire : 124 tests réussis, tous les moteurs principaux relus et plusieurs lots de correction déployés. Dernier lot confirmé avant la revue éditoriale : `2db0567` (prétaxe). La liste chronologique ci-dessous documente les corrections ; les derniers lots remplacent les limites et hypothèses des premiers lorsque le module a été refondu.
 
 Cette revue porte sur les règles et défauts listés ci-dessous. Elle ne constitue pas une certification exhaustive de tous les actes notariés, régimes spéciaux ou simulateurs du site. Les projections supposent la stabilité des règles choisies ; elles ne prédisent pas les lois futures.
 
@@ -189,3 +189,12 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Effacement d’une assiette : remise à zéro des montants dépendants, conservation du forfait mariage sans apport.
 - Validation : 124 tests, build/types/lint, navigateur mariage 0/40 000/effacement, PACS, bail 843,94 € HT et CSI 150 €, mobile.
 - Sources : [A444-82](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041684332/2026-04-28), [A444-104](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041684408), [CGI 847](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041466151), [CGI 809–811](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000006197331/), [PACS](https://www.service-public.gouv.fr/particuliers/vosdroits/F21539), [CGI 636](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000006199077), [bail construction TPF](https://bofip.impots.gouv.fr/bofip/267-PGP.html/identifiant=BOI-ENR-JOMI-30-20210324).
+
+
+## Cohérence éditoriale, Dutreil et consentement
+- Pages fonctionnalités, documentation et feuille de route alignées sur les modules réellement accessibles. Suppression des promesses de couverture totale et exemples d’API non disponible.
+- Méthodologie actualisée pour SCI, LMNP, prêt, revenus fonciers, assurance-vie et plus-value professionnelle. Frais des actes et droits successoraux expliqués séparément.
+- Dutreil : valeur éligible après exclusions, confirmation de l’activité/direction/seuils/démembrement, refus des montants non finis et pourcentages hors limites. FAQ corrigée sur la période de direction et suppression de l’économie non justifiée de 400 000 €. Source : [CGI 787 B](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053542700/2026-04-29).
+- IFI : résultat invalidé lors d’une modification des données ; mentions 2026.
+- Analytics : aucun script Google chargé avant accord, ni après refus et rechargement ; activation contrôlée après acceptation.
+- Contrôles : 124 tests, build/types/lint, neuf pages éditoriales et fiscales en navigateur et mobile, absence d’erreur JavaScript, scénarios de consentement.

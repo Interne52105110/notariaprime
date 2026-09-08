@@ -39,6 +39,7 @@ interface PacteDutreil {
   pourcentageTransmis: string;
   engagementCollectif: boolean;
   ageDonateur?: string;
+  conditionsEligibles?: boolean;
   engagementIndividuel: boolean;
 }
 
@@ -98,7 +99,7 @@ function FAQSection() {
       category: "Abattements et barèmes",
       questions: [
         {
-          q: "Quels sont les abattements fiscaux en 2025 pour les donations ?",
+          q: "Quels sont les abattements fiscaux en 2026 pour les donations ?",
           r: "**Il existe 3 types d'abattements CUMULABLES selon la nature de la donation :**\n\n**1️⃣ ABATTEMENT GÉNÉRAL (art. 779 CGI) - tous les 15 ans :**\n• Enfant : 100 000 €\n• Petit-enfant : 31 865 €\n• Arrière-petit-enfant : 5 310 €\n• Conjoint/PACS : 80 724 € puis barème progressif\n• Frère/Sœur : 15 932 €\n• Neveu/Nièce : 7 967 €\n• Autre : aucun abattement personnel\n\n**2️⃣ DON DE SOMME D'ARGENT (art. 790 G CGI) - tous les 15 ans :**\n• 31 865 € supplémentaires pour dons en ESPÈCES\n• Conditions : donateur < 80 ans + donataire majeur\n• Déclaration obligatoire sous 1 mois\n\n**3️⃣ EXONÉRATION RÉSIDENCE PRINCIPALE 2025-2026 (art. 790 A bis CGI) :**\n• 100 000 € pour achat logement neuf/VEFA ou rénovation énergétique\n\n**💰 CUMUL TOTAL possible pour un enfant majeur :**\n100k (général) + 31 865€ (don argent) + 100k (résidence) = **231 865 €** sans impôt !",
           source: "Articles 779, 790 G et 790 A bis du CGI"
         },
@@ -154,12 +155,12 @@ function FAQSection() {
       questions: [
         {
           q: "Qu'est-ce que le Pacte Dutreil et comment en bénéficier ?",
-          r: "Le Pacte Dutreil permet une **exonération de 75%** de la valeur d'une entreprise transmise par donation ou succession.\n\n**Conditions obligatoires :**\n\n1. **Engagement collectif** : conservation des titres pendant 2 ans minimum (avant transmission)\n2. **Engagement individuel** : conservation pendant 6 ans à compter de la fin de l’engagement collectif (règles 2026)\n3. **Activité éligible** : industrielle, commerciale, artisanale, agricole, libérale ou holding animatrice\n4. **Fonction de direction** : exercée pendant toute la durée des engagements + 3 ans\n\n⚠️ Toute rupture d'engagement = perte de l'exonération",
+          r: "Le Pacte Dutreil permet une **exonération de 75%** de la valeur d'une entreprise transmise par donation ou succession.\n\n**Conditions obligatoires :**\n\n1. **Engagement collectif** : conservation des titres pendant 2 ans minimum, avec exceptions légales (engagement réputé acquis ou post mortem)\n2. **Engagement individuel** : conservation pendant 6 ans à compter de la fin de l’engagement collectif (règles 2026)\n3. **Activité éligible** : industrielle, commerciale, artisanale, agricole, libérale ou holding animatrice\n4. **Fonction de direction** : exercée pendant l’engagement collectif et les 3 années suivant la transmission\n\nLe non-respect des conditions peut entraîner une reprise, sous réserve des exceptions légales.",
           source: "Article 787 B du CGI"
         },
         {
           q: "Peut-on cumuler Pacte Dutreil et démembrement ?",
-          r: "**Oui, c'est possible et très avantageux !**\n\nExemple pour une entreprise de 1 000 000 € (donateur 65 ans) :\n\n1. Réduction Dutreil : -75% = **250 000 €**\n2. Donation nue-propriété (60%) : 250 000 × 60% = **150 000 €**\n3. Abattement enfant : -100 000 €\n4. **Base imposable finale : 50 000 €**\n\n**Économie fiscale massive** par rapport à une donation classique (environ 400 000 € d'impôt évité)",
+          r: "**Oui, c'est possible et très avantageux !**\n\nExemple pour une entreprise de 1 000 000 € (donateur 65 ans) :\n\n1. Réduction Dutreil : -75% = **250 000 €**\n2. Donation nue-propriété (60%) : 250 000 × 60% = **150 000 €**\n3. Abattement enfant : -100 000 €\n4. **Base imposable finale : 50 000 €**\n\nCet exemple suppose des abattements intacts et une valeur entièrement éligible. La donation en nue-propriété ne bénéficie pas de la réduction de droits de 50 % de l’article 790.",
           source: "Article 787 B du CGI + Article 669 du CGI"
         }
       ]
@@ -339,11 +340,13 @@ function DonationCalculatorContent() {
 
     // Pacte Dutreil
     if (pacteDutreil.actif && pacteDutreil.valeurEntreprise && pacteDutreil.pourcentageTransmis) {
-      const valeurEntreprise = parseFloat(pacteDutreil.valeurEntreprise.replace(/\s/g, ''));
-      const pourcentage = parseFloat(pacteDutreil.pourcentageTransmis) / 100;
+      const valeurEntreprise = Number(pacteDutreil.valeurEntreprise.replace(/\s/g, '').replace(',', '.'));
+      if(!Number.isFinite(valeurEntreprise)||valeurEntreprise<0)return null;
+      const pourcentage = Number(pacteDutreil.pourcentageTransmis.replace(',', '.')) / 100;
+      if(!Number.isFinite(pourcentage)||pourcentage<0||pourcentage>1)return null;
       const valeurTransmise = Math.max(0, Math.min(montantBase, valeurEntreprise * Math.min(1, Math.max(0, pourcentage))));
       
-      if (pacteDutreil.engagementCollectif && pacteDutreil.engagementIndividuel) {
+      if (pacteDutreil.engagementCollectif && pacteDutreil.engagementIndividuel && pacteDutreil.conditionsEligibles) {
         reductionDutreil = valeurTransmise * 0.75;
         valeurTaxable = montantBase - reductionDutreil;
       }
@@ -890,7 +893,7 @@ function DonationCalculatorContent() {
   <div class="warning-box">
     <strong>⚠️ Informations Légales</strong><br><br>
     Cette simulation est fournie à titre indicatif et ne constitue pas un conseil juridique ou fiscal personnalisé.
-    Les barèmes appliqués sont ceux en vigueur au 1er janvier 2025.<br><br>
+    Les barèmes appliqués sont ceux en vigueur au 8 septembre 2026.<br><br>
     <strong>Références légales :</strong><br>
     • Code Général des Impôts, articles 777 à 779<br>
     • Barème de l'usufruit : Article 669 du CGI<br>
@@ -987,7 +990,7 @@ function DonationCalculatorContent() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Calculateur de donation</h1>
-                  <p className="text-rose-600 font-medium">Optimisation fiscale 2025</p>
+                  <p className="text-rose-600 font-medium">Simulation fiscale 2026</p>
                 </div>
               </div>
             </div>
@@ -1438,7 +1441,7 @@ function DonationCalculatorContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Valeur de l&apos;entreprise *
+                      Valeur éligible de l’entreprise après exclusions *
                     </label>
                     <input
                       type="text"
@@ -1492,6 +1495,7 @@ function DonationCalculatorContent() {
             )}
           </div>
 
+          {pacteDutreil.actif && <div className="mb-5 rounded-xl bg-amber-50 p-4 text-sm space-y-3"><p>La valeur éligible doit exclure la fraction représentative des actifs visés au CGI 787 B sans affectation exclusive à l’activité dans les délais requis. Le simulateur applique le pourcentage transmis à cette valeur ; les autres biens restent dans le montant total de la donation. Pour une réserve d’usufruit, les droits de vote de l’usufruitier doivent être statutairement limités aux décisions sur l’affectation des bénéfices.</p><label className="flex gap-3"><input type="checkbox" checked={pacteDutreil.conditionsEligibles??false} onChange={e=>setPacteDutreil({...pacteDutreil,conditionsEligibles:e.target.checked})}/>Je confirme la valeur éligible, les conditions d’activité, les seuils de détention, la direction et, le cas échéant, les conditions de démembrement du régime Dutreil.</label><p>Sans cette confirmation et les engagements cochés, aucune exonération Dutreil n’est appliquée.</p></div>}
           {pacteDutreil.actif && <label className="block mb-5 text-sm">Âge du donateur au jour de l’acte (article 790)<input type="number" min="0" max="120" value={pacteDutreil.ageDonateur ?? ''} onChange={e=>setPacteDutreil({...pacteDutreil,ageDonateur:e.target.value})} className="block border rounded p-3 mt-2" /><span>Pour une donation mixte, abattement imputé d’abord aux autres biens et fraction éligible dans les tranches supérieures. Les transmissions démembrées n’ouvrent pas cette réduction.</span></label>}
           {/* Boutons d'action */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-4">
@@ -1748,7 +1752,7 @@ function DonationCalculatorContent() {
               </h3>
               <div className="space-y-3 text-sm text-amber-900">
                 <p className="leading-relaxed">
-                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d&apos;évoluer.
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 8 septembre 2026 et sont susceptibles d&apos;évoluer.
                 </p>
                 
                 <p className="leading-relaxed">

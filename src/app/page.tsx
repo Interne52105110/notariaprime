@@ -181,17 +181,17 @@ function HomepageContent() {
     },
     {
       icon: Shield,
-      title: '100% Confidentiel',
-      description: 'Calculs locaux dans votre navigateur. Aucune donnée envoyée',
+      title: 'Calculs locaux',
+      description: 'Montants calculés dans votre navigateur ; audience mesurée avec consentement',
       metric: '0',
-      metricLabel: 'Donnée collectée'
+      metricLabel: 'Montant envoyé'
     },
     {
       icon: Scale,
-      title: 'Conforme 2026',
-      description: 'Tous les barèmes et taux fiscaux officiels à jour',
-      metric: '100%',
-      metricLabel: 'Réglementaire'
+      title: 'Références fiscales',
+      description: 'Hypothèses, sources et limites précisées dans chaque outil',
+      metric: '2026',
+      metricLabel: 'Sources à consulter'
     },
     {
       icon: Brain,
