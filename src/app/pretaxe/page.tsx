@@ -27,6 +27,8 @@ import {
   getTauxTVA,
   getMajorationDOMTOM,
   calculerEmoluments,
+  calculerEmolumentsMariage,
+  calculerEmolumentsBail,
   calculerTaxes,
   calculerCSI,
   calculerTPF,
@@ -202,12 +204,9 @@ const categoriesActes: Record<string, CategorieActes> = {
         ]
       },
       'bail_construction': {
-        label: 'Bail à construction (composante principale)',
+        label: 'Bail à construction (trois composantes)',
         type: 'proportionnel',
-        // A444-104 : émolument composite. Composante 1° (versements des 5
-        // premières années + valeur des constructions remises). S'y ajoutent
-        // la composante 2° (1,258/0,692/0,472/0,346) et la 3° valeur résiduelle
-        // (2,322/1,277/0,871/0,639), non gérées ici.
+        // A444-104 : première composante ; les deux autres sont ajoutées par le calculateur dédié.
         tranches: [
           { min: 0, max: 6500, taux: 3.289 },
           { min: 6500, max: 17000, taux: 1.809 },
@@ -238,9 +237,8 @@ const categoriesActes: Record<string, CategorieActes> = {
     icon: Users,
     actes: {
       'contrat_mariage': {
-        label: 'Contrat de mariage (valeur > 30 800 €)',
+        label: 'Contrat de mariage',
         type: 'proportionnel',
-        droitFixeEnreg: 125, // CGI art. 847 1° (minimum de perception)
         // A444-82 2° : au-delà de 30 800 €. En deçà : émolument fixe 188,68 €.
         tranches: [
           { min: 0, max: 6500, taux: 1.290 },
@@ -250,9 +248,8 @@ const categoriesActes: Record<string, CategorieActes> = {
         ]
       },
       'changement_regime': {
-        label: 'Changement de régime matrimonial (valeur > 30 800 €)',
+        label: 'Changement de régime matrimonial',
         type: 'proportionnel',
-        droitFixeEnreg: 125, // CGI art. 847 1°
         // A444-82 : même barème que le contrat de mariage.
         tranches: [
           { min: 0, max: 6500, taux: 1.290 },
@@ -264,7 +261,8 @@ const categoriesActes: Record<string, CategorieActes> = {
       'pacs': { 
         label: 'PACS',
         type: 'fixe',
-        montant: 84.51
+        montant: 84.51,
+        droitFixeEnreg: 125 // CGI 680
       },
       'divorce_consentement': { 
         label: 'Dépôt convention divorce par consentement mutuel',
@@ -272,7 +270,7 @@ const categoriesActes: Record<string, CategorieActes> = {
         montant: 41.20
       },
       'liquidation_regime': { 
-        label: 'Liquidation de régime matrimonial',
+        label: 'Projet de liquidation du régime matrimonial (A444-83)',
         type: 'proportionnel',
         tranches: [
           { min: 0, max: 6500, taux: 2.515 },
@@ -312,8 +310,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'testament': {
         label: 'Testament authentique',
         type: 'fixe',
-        montant: 113.19,
-        droitFixeEnreg: 125 // CGI art. 848 5° (libéralités à cause de mort)
+        montant: 113.19 // Enregistrement après décès : CGI 636, non dû à la rédaction.
       },
       'notoriete': {
         label: 'Acte de notoriété',
@@ -338,13 +335,13 @@ const categoriesActes: Record<string, CategorieActes> = {
         type: 'fixe',
         // A444-155 : acte d'inventaire = émolument fixe.
         montant: 75.46,
-        droitFixeEnreg: 125 // CGI art. 848 2° (par vacation)
+        droitFixeEnreg: 125 // CGI 680 : acte innommé, pas de multiplication par vacation
       },
       'renonciation': {
         label: 'Renonciation à succession (honoraires à convenir)',
         type: 'non_tarife',
         description: 'Prestation à convenir avec le notaire ; pas d’assimilation au tarif de notoriété.',
-        droitFixeEnreg: 125 // CGI art. 847 2° (renonciation pure et simple)
+        droitFixeEnreg: 125 // CGI 680 : renonciation pure et simple reçue par notaire
       },
       'declaration_succession': {
         label: 'Déclaration de succession',
@@ -439,7 +436,6 @@ const categoriesActes: Record<string, CategorieActes> = {
       'constitution_societe': {
         label: 'Constitution de société — apport en publicité foncière',
         type: 'proportionnel',
-        droitFixeSociete: true, // CGI art. 810 : 375 € (<225k) / 500 € (≥225k)
         // A444-158 : en matière de sociétés, actes relatifs à des biens soumis
         // à publicité foncière (apport immobilier). Sans bien immobilier, la
         // constitution relève des honoraires libres.
@@ -453,8 +449,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'augmentation_capital': {
         label: 'Augmentation de capital',
         type: 'non_tarife',
-        droitFixeSociete: true, // CGI art. 812 : 375 € (<225k) / 500 € (≥225k)
-        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Droit fixe d\'enregistrement 375/500 € selon le capital (CGI art. 812) ; apports purs et simples enregistrés gratuitement (art. 810).',
+        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Incorporation de bénéfices, réserves ou provisions : enregistrement gratuit (CGI 812). Apports purs et simples : CGI 810, sous réserve des mutations taxables visées à 809 et des apports à titre onéreux.',
         honorairesEstimes: '500-1 500€ HT'
       },
       'cession_parts': {
@@ -466,8 +461,7 @@ const categoriesActes: Record<string, CategorieActes> = {
       'dissolution': {
         label: 'Dissolution de société',
         type: 'non_tarife',
-        droitFixeSociete: true, // CGI art. 811 : 375 € (<225k) / 500 € (≥225k) si sans transmission
-        description: 'Honoraires libres. Dissolution sans transmission de biens : droit fixe 375/500 € selon le capital (CGI art. 811). En cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
+        description: 'Honoraires libres. Dissolution sans transmission de biens : enregistrement gratuit (CGI 811). En cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
         honorairesEstimes: '500-1 500€ HT'
       },
       'transformation': {
@@ -544,6 +538,7 @@ function PretaxeContent() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedActe, setSelectedActe] = useState('');
   const [montantActe, setMontantActe] = useState('');
+  const [bailBases, setBailBases] = useState({suite:0, residuelle:0, publication:0});
   const [selectedDepartement, setSelectedDepartement] = useState('75');
   const [activeTab, setActiveTab] = useState('emoluments');
   
@@ -673,6 +668,8 @@ function PretaxeContent() {
   // Les valeurs par défaut ne remplacent pas les saisies lors d'un recalcul.
   useEffect(() => {
     if (selectedActe) appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes);
+    setTaxes(t=>({...t,complement:0}));
+    setBailBases({suite:0,residuelle:0,publication:0});
   }, [selectedActe]);
 
   useEffect(()=>{
@@ -683,6 +680,13 @@ function PretaxeContent() {
     if (selectedActe) {
       
       const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
+      const baseSaisie=Number(montantActe.replace(/\s/g,'').replace(',','.'));
+      if(acte?.type==='proportionnel'&&(!Number.isFinite(baseSaisie)||baseSaisie<0||(montantActe.trim()===''&&!['contrat_mariage','changement_regime'].includes(selectedActe)))){
+        setEmoluments(0);setEmolumentsDetail({bruts:0,majoration:0,avantRemise:0,remise10:0,remise20:0,nets:0});
+        setDebours(d=>({...d,csi:0}));
+        setTaxes(t=>({...t,departementale:0,communale:0,fraisAssiette:0,tpf:0,droitPartage:0,droitFixe:acte.droitFixeEnreg??0}));
+        return;
+      }
       if (acte && acte.type !== 'non_tarife') {
         if (acte.type === 'fixe' && acte.montant) {
           const detail = {
@@ -695,10 +699,13 @@ function PretaxeContent() {
           };
           setEmolumentsDetail(detail);
           setEmoluments(detail.nets);
-        } else if (acte.type === 'proportionnel' && montantActe && acte.tranches) {
-          const montant = parseFloat(montantActe.replace(/\s/g, ''));
-          if (!isNaN(montant)) {
-            const detailBase = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
+        } else if (acte.type === 'proportionnel' && acte.tranches) {
+          const montant = Number(montantActe.replace(/\s/g, '').replace(',', '.'));
+          if (Number.isFinite(montant) && montant >= 0) {
+            const detailBase = ['contrat_mariage','changement_regime'].includes(selectedActe)
+              ? calculerEmolumentsMariage(montant, selectedDepartement, appliquerRemise)
+              : selectedActe === 'bail_construction' ? calculerEmolumentsBail([montant,bailBases.suite,bailBases.residuelle],selectedDepartement,appliquerRemise)
+              : calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
             if(actesConfig[selectedActe]?.taxes?.type==='partage'&&(taxes.reprisesNaturePartage??0)>0){
               const supplement=calculerEmoluments(taxes.reprisesNaturePartage!,[{min:0,max:Infinity,taux:.484}],selectedDepartement,appliquerRemise);
               for(const k of ['bruts','majoration','avantRemise','remise20','nets'] as const)detailBase[k]=Math.round((detailBase[k]+supplement[k])*100)/100;
@@ -750,6 +757,9 @@ function PretaxeContent() {
               if(immobilier>0)calculerCSI(String(immobilier),setDebours);
               else setDebours(prev=>({...prev,csi:0}));
               calculerDroitPartage(String(Math.max(0,taxes.actifNetPartage??montant)), taxes.regimePartage ?? 'standard', setTaxes);
+            } else if (selectedActe === 'bail_construction') {
+              if(bailBases.publication>0)calculerCSI(String(bailBases.publication),setDebours);
+              else setDebours(prev=>({...prev,csi:0}));
             } else if (publie || selectedActe === 'attestation_propriete') {
               calculerCSI(montantActe, setDebours);
             }
@@ -757,17 +767,10 @@ function PretaxeContent() {
         }
       }
 
-      // Droit fixe d'enregistrement (CGI art. 674/680/846 bis/847/848/811…)
-      let droitFixe = 0;
-      if (acte?.droitFixeSociete) {
-        const capital = parseFloat((montantActe || '').replace(/\s/g, ''));
-        droitFixe = (!isNaN(capital) && capital >= 225000) ? 500 : 375;
-      } else if (acte?.droitFixeEnreg) {
-        droitFixe = acte.droitFixeEnreg;
-      }
+      const droitFixe = acte?.droitFixeEnreg ?? 0;
       setTaxes(prev => ({ ...prev, droitFixe }));
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.actifNetPartage, taxes.valeurImmoPartage, taxes.reprisesNaturePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
+  }, [selectedActe, montantActe, bailBases, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.actifNetPartage, taxes.valeurImmoPartage, taxes.reprisesNaturePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -810,7 +813,7 @@ function PretaxeContent() {
 
   const totalTaxes = round2(
     taxes.departementale + taxes.communale + taxes.fraisAssiette +
-    (taxes.tpf || 0) + (taxes.droitPartage || 0) + (taxes.droitFixe || 0)
+    (taxes.tpf || 0) + (taxes.droitPartage || 0) + (taxes.droitFixe || 0) + (taxes.complement || 0)
   );
 
   // Écrêtement (art. R.444-6 et A.444-175 du Code de commerce) : pour une
@@ -964,6 +967,7 @@ function PretaxeContent() {
                 <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
+                  aria-label="Assiette des émoluments"
                   value={montantActe}
                   onChange={(e) => setMontantActe(e.target.value)}
                   placeholder="450 000"
@@ -981,6 +985,18 @@ function PretaxeContent() {
             <label className="mt-4 block text-sm font-semibold">Reprises en nature (€), émolument complémentaire de 0,484 % HT<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.reprisesNaturePartage??0} onChange={e=>setTaxes(t=>({...t,reprisesNaturePartage:Math.max(0,Number(e.target.value))}))}/></label>
             <p className="mt-3 text-sm">Le droit de partage porte sur l’actif net après passif admissible (CGI 747), au taux de 2,5 % ou 1,1 % dans les cas prévus de divorce, séparation de corps ou rupture de PACS. Si le champ net est laissé vide, aucun passif distinct n’est déduit. Les émoluments utilisent leur propre assiette brute (A444-121). La CSI n’est calculée que sur les droits immobiliers publiés ; un partage uniquement mobilier ne produit pas de CSI. Minimum de perception du droit proportionnel : 25 € (CGI 674), sauf exonération particulière.</p>
             <p className="mt-2 text-sm">Ce calcul vise un partage pur et simple. Les soultes, attributions à des tiers et rapports et régimes particuliers nécessitent une liquidation complémentaire ; le régime de faveur des partages successoraux ne s’applique pas à toute indivision.</p>
+          </div>}
+          {['contrat_mariage','changement_regime'].includes(selectedActe)&&<p className="mt-4 rounded-xl bg-blue-50 p-4 text-sm">Sans apport ou jusqu’à 30 800 € : 188,68 € HT ; au-delà, barème sur la valeur entière (A444-82). Enregistrement gratuit en l’absence d’imposition proportionnelle ou progressive (CGI 847). Donations, liquidation, partage et mutations immobilières éventuelles nécessitent leurs calculs propres.</p>}
+          {selectedActe==='testament'&&<p className="mt-4 rounded-xl bg-blue-50 p-4 text-sm">Cette estimation porte sur la rédaction du testament authentique. L’enregistrement intervient après le décès (CGI 636) : le droit de 125 € prévu par le CGI 680 sera alors à distinguer des frais de rédaction.</p>}
+          {selectedActe==='liquidation_regime'&&<p className="mt-4 rounded-xl bg-blue-50 p-4 text-sm">Tarif du projet de liquidation (A444-83), pas celui de l’acte de partage définitif. Pour un partage, sélectionner « Partage » (A444-121). En cas de désignation judiciaire au titre du 10° de l’article 255 du code civil, l’émolument du projet s’impute sur celui du partage ensuite reçu par le même notaire.</p>}
+          {selectedActe==='constitution_societe'&&<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm">Émoluments de l’apport immobilier uniquement. L’enregistrement gratuit des apports purs et simples (CGI 810) ne couvre pas toutes les opérations : apport d’un non-assujetti à une société à l’IS, passif repris et apport à titre onéreux peuvent entraîner des droits proportionnels. Ces droits doivent être liquidés selon le dossier et ajoutés dans Taxes : le total reste partiel tant que cette qualification n’est pas établie.</p>}
+          {selectedActe==='bail_construction'&&<div className="mt-4 rounded-xl bg-blue-50 p-4 space-y-3 text-sm">
+            <p>Assiette principale ci-dessus : versements, constructions et droits remis au cours des cinq premières années, hors entretien et réparations (A444-104, 1°).</p>
+            <label className="block">Assiette pondérée des années suivantes (€)<input aria-label="Bail : assiette des années suivantes" type="number" min="0" className="block w-full border rounded p-2" value={bailBases.suite} onChange={e=>setBailBases(b=>({...b,suite:Math.max(0,Number(e.target.value))}))}/></label>
+            <p>Pour le 2° : montant entier des années 6 à 20, moitié des années 21 à 60, quart au-delà. Inclure les constructions et droits remis dans ces périodes.</p>
+            <label className="block">Valeur résiduelle en fin de bail appréciée au jour de l’acte (€)<input aria-label="Bail : valeur résiduelle" type="number" min="0" className="block w-full border rounded p-2" value={bailBases.residuelle} onChange={e=>setBailBases(b=>({...b,residuelle:Math.max(0,Number(e.target.value))}))}/></label>
+            <label className="block">Assiette de publication pour la CSI (€)<input aria-label="Bail : assiette CSI" type="number" min="0" className="block w-full border rounded p-2" value={bailBases.publication} onChange={e=>setBailBases(b=>({...b,publication:Math.max(0,Number(e.target.value))}))}/></label>
+            <p>Renseigner les trois assiettes selon le bail. Exonération de TPF du bail à construction (CGI 743, 1°) ; CSI distincte, à partir de l’assiette de publication, qui ne se réduit pas aux cinq premières années. Sans cette assiette, la CSI reste à compléter.</p>
           </div>}
           {ASSIETTES_SUCCESSORALES[selectedActe] && <p className="mt-4 p-4 bg-blue-50 rounded-xl text-sm">{ASSIETTES_SUCCESSORALES[selectedActe]} Les formalités et débours sont à ajuster aux prestations effectivement réalisées. <a className="underline" href="/succession">Calcul des droits de succession à l’État</a></p>}
           {getMajorationDOMTOM(selectedDepartement) > 0 && (

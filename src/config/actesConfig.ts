@@ -228,8 +228,7 @@ export const actesConfig: Record<string, ConfigActe> = {
       copiesAuthentiques: 2,
       copiesHypothecaires: 0
     },
-    // Le bail à construction relève de la taxe de publicité foncière (0,715 %),
-    // PAS des DMTO. Calcul automatique désactivé en attendant un type 'tpf'.
+    // Bail à construction exonéré de TPF (CGI 743, 1°). CSI distincte.
     taxes: {
       applicable: false,
       type: 'aucune',

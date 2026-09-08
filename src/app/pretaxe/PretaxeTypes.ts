@@ -25,14 +25,9 @@ export interface ActeConfig {
   relatif?: boolean;
   /**
    * Droit fixe d'enregistrement applicable à l'acte (en €) : 25 € ou 125 €
-   * selon la nature (CGI art. 846 bis, 680, 847, 848…).
+   * selon la nature (CGI art. 846 bis, 680…).
    */
   droitFixeEnreg?: number;
-  /**
-   * Acte de société soumis au droit fixe de 375 € (capital < 225 000 €) ou
-   * 500 € (capital ≥ 225 000 €) — CGI art. 810, 811, 812…
-   */
-  droitFixeSociete?: boolean;
 }
 
 export interface CategorieActes {
@@ -161,12 +156,10 @@ export interface Taxes {
   /** Valeur des droits immobiliers effectivement publiés au SPF. */
   valeurImmoPartage?: number;
   reprisesNaturePartage?: number;
-  /**
-   * Droit fixe d'enregistrement (CGI art. 674, 680, 846 bis, 847, 848, 811…) :
-   * 25 € (procuration, mainlevée, notoriété), 125 € (acte innomé, testament,
-   * inventaire, attestation après décès…), 375/500 € (actes de société).
-   */
+  /** Droit fixe selon CGI 680 ou 846 bis. */
   droitFixe?: number;
+  /** Droits complémentaires liquidés selon le dossier, sans doubler les taxes automatiques. */
+  complement?: number;
   /**
    * Quote-part d'accessoires (intérêts, frais, indemnités) ajoutée au capital
    * pour constituer l'assiette de la TPF (0,715 %) et de la CSI d'une sûreté.

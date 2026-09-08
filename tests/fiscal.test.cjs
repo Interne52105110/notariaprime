@@ -486,3 +486,17 @@ test('SCI revente : fraisIR et valeur bruteIS distincts, amortissements réels, 
  const r=f(p);assert.equal(r.gainIR,75000);assert.equal(r.vnc,90000);assert.equal(r.gainIS,107500);assert.equal(r.impotIS,26875);assert.ok(Math.abs(r.impotIR-22485.75)<1e-7);
  assert.equal(f({...p,annees:30}).impotIR,0);assert.equal(f({...p,vente:50000}).impotIS,0);
 });
+
+
+test('contrat de mariage : forfait sans apport et jusqu’à 30 800 €, puis valeur entière',()=>{
+  for(const base of [0,100,30800])assert.equal(pretaxe.calculerEmolumentsMariage(base,'75',true).nets,188.68);
+  assert.equal(pretaxe.calculerEmolumentsMariage(40000,'75',false).nets,221.36);
+  assert.throws(()=>pretaxe.calculerEmolumentsMariage(-1,'75',false));
+});
+test('bail à construction : trois assiettes et trois barèmes, sans TPF',()=>{
+  const r=pretaxe.calculerEmolumentsBail([10000,20000,30000],'75',false);
+  // 213,785 + 63,315 ; 81,77 + 72,66 + 14,16 ; 150,93 + 134,085 + 113,23
+  assert.equal(r.nets,277.10+168.59+398.25);
+  assert.equal(pretaxe.calculerEmolumentsBail([0,0,0],'75',false).nets,0);
+  assert.equal(require('../src/config/actesConfig.ts').actesConfig.bail_construction.taxes.type,'aucune');
+});

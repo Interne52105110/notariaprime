@@ -178,3 +178,14 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Micro-foncier traité par associé et orienté vers modulefoncier, plus d’éligibilité automatique sur seuls loyersSCI. IFI orienté versfoyer (suppression calcul erroné surSCIentière), transmission versdonation/succession aprèsvalorisationparts ; fraisnotariés séparés.
 - Limites visibles : absence de déficits/pertes/réserves antérieurs ; mêmesTMIassociés, chargescommunes éligibles, aucuneimputationglobalefoncierautomatique ; annuel, pasdeprojectionpatrimonialegarantissantunrégimeoptimal. Les anciens composantsSCI ne sont plus utilisés parlapage.
 - Validation122tests, build/types/lint, Chromiumcash/annéedeprêtà0/dividendesnuls/revente/mobile. SourcesDGFiPSCI, BOI-BIC-CHG-50-50-30-20260805, SPCCA.
+
+
+## Prétaxe : droits fixes et actes composites — 124 tests
+- Contrat/changement de régime : forfait 188,68 € HT jusqu’à 30 800 €, barème entier ensuite (A444-82). Suppression de l’ancien droit fixe 125 € (CGI 847 depuis 2020), hors mutations proportionnelles particulières.
+- PACS : ajout du droit CGI 680 de 125 €. Testament authentique : rédaction distincte de l’enregistrement après décès (CGI 636). Inventaire/renonciation : références abrogées remplacées par CGI 680 ; pas de droit automatique par vacation d’inventaire.
+- Sociétés : anciens 375/500 € retirés (CGI 810 à 812 depuis 2019). Apports immobiliers : fiscalité conditionnelle explicitement à compléter ; champ de droits complémentaires ajouté sans doublonner les taxes automatiques.
+- Projet de liquidation A444-83 identifié comme tel, distinct du partage définitif A444-121.
+- Bail à construction A444-104 : trois assiettes distinctes, barèmes complets, assiette CSI indépendante ; exonération TPF CGI 743. Les assiettes sont qualifiées par l’utilisateur à partir du bail.
+- Effacement d’une assiette : remise à zéro des montants dépendants, conservation du forfait mariage sans apport.
+- Validation : 124 tests, build/types/lint, navigateur mariage 0/40 000/effacement, PACS, bail 843,94 € HT et CSI 150 €, mobile.
+- Sources : [A444-82](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041684332/2026-04-28), [A444-104](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041684408), [CGI 847](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000041466151), [CGI 809–811](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000006197331/), [PACS](https://www.service-public.gouv.fr/particuliers/vosdroits/F21539), [CGI 636](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000006199077), [bail construction TPF](https://bofip.impots.gouv.fr/bofip/267-PGP.html/identifiant=BOI-ENR-JOMI-30-20210324).

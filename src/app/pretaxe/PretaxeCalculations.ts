@@ -54,12 +54,8 @@ export function calculerEmoluments(
     }
   });
 
-  // Émolument minimum (art. A444-58, al. 2) : pour une assiette inférieure au
-  // seuil de 500 €, la prestation donne lieu à un émolument fixe égal au produit
-  // de ce seuil par le taux de la première tranche du barème. (Les actes à
-  // minimum particulier — contrat de mariage, convention d'indivision,
-  // servitude, certificat de propriété — ne sont pas distingués ici, sans
-  // incidence pour une assiette réaliste.)
+  // A444-58 : minimum général 500 €. Les seuils spéciaux sont traités
+  // par leurs calculateurs dédiés (mariage, certificat, servitude).
   if (montant > 0 && montant < 500 && tranches.length > 0) {
     emolumentsBruts = 500 * (tranches[0].taux / 100);
   }
@@ -99,6 +95,29 @@ export function calculerEmoluments(
     remise20: round2(remise20),
     nets: round2(emolumentsNets)
   };
+}
+
+/** A444-82 : forfait jusqu'au seuil, barème sur TOUTE l'assiette au-delà. */
+export function calculerEmolumentsMariage(montant:number, departement:string, remise:boolean):EmolumentsDetail {
+  if(!Number.isFinite(montant)||montant<0)throw new RangeError('Assiette invalide');
+  if(montant<=30800){
+    const bruts=188.68, majoration=Math.round(bruts*getMajorationDOMTOM(departement))/100;
+    const nets=Math.round((bruts+majoration)*100)/100;
+    return {bruts,majoration,avantRemise:nets,remise10:0,remise20:0,nets};
+  }
+  return calculerEmoluments(montant,[{min:0,max:6500,taux:1.29},{min:6500,max:17000,taux:.532},{min:17000,max:60000,taux:.355},{min:60000,max:Infinity,taux:.266}],departement,remise);
+}
+/** A444-104 : trois assiettes distinctes définies par l'acte. */
+export function calculerEmolumentsBail(bases:[number,number,number],departement:string,remise:boolean):EmolumentsDetail {
+  if(bases.some(n=>!Number.isFinite(n)||n<0))throw new RangeError('Assiette invalide');
+  const taux=[[3.289,1.809,1.234,.905],[1.258,.692,.472,.346],[2.322,1.277,.871,.639]];
+  const limites=[0,6500,17000,30000,Infinity];
+  const total:EmolumentsDetail={bruts:0,majoration:0,avantRemise:0,remise10:0,remise20:0,nets:0};
+  bases.forEach((base,i)=>{
+    const detail=calculerEmoluments(base,taux[i].map((t,j)=>({min:limites[j],max:limites[j+1],taux:t})),departement,remise);
+    for(const key of Object.keys(total) as (keyof EmolumentsDetail)[])total[key]=Math.round((total[key]+detail[key])*100)/100;
+  });
+  return total;
 }
 
 // ============================================================================

@@ -16,7 +16,7 @@ export const ASSIETTES_SUCCESSORALES: Record<string,string> = {
   delivrance_legs_avec:'Valeur des biens délivrés. Tarif A444-64 1°.',
   delivrance_legs_sans:'Valeur des biens délivrés. Tarif A444-64 2°.',
   cantonnement:'Somme cantonnée (A444-62).',
-  inventaire:'Émolument fixe de l’inventaire (A444-155). Prisée et vacations éventuelles à distinguer. Le droit fixe d’enregistrement est dû par vacation selon le dossier.',
+  inventaire:'Émolument fixe de l’inventaire (A444-155). Prisée et vacations éventuelles à distinguer. Droit fixe de 125 € par acte au titre du CGI 680, sans multiplication automatique par le nombre de vacations.',
   notoriete:'Acte constatant la dévolution successorale : 56,60 € HT (A444-66), avant formalités, copies et droit fixe.',
   partage:'Actif brut partagé pour les émoluments (A444-121). Le droit de partage utilise l’actif net partagé, à renseigner séparément.',
 };

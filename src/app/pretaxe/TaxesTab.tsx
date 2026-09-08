@@ -281,8 +281,7 @@ export default function TaxesTab({
             <span className="font-medium">{(taxes.droitFixe || 0).toFixed(2)} €</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Droit fixe perçu par l&apos;État sur cet acte (CGI art. 674, 680, 846 bis,
-            847, 848, 810-812 selon la nature de l&apos;acte).
+            Droit fixe perçu par l&apos;État sur cet acte (CGI 680 ou 846 bis selon sa nature).
           </p>
         </div>
       )}
@@ -298,6 +297,10 @@ export default function TaxesTab({
         </div>
       )}
 
+      <label className="block text-sm font-medium">Droits complémentaires liquidés selon le dossier (€)
+        <input aria-label="Droits complémentaires" type="number" min="0" step="1" className="mt-2 block w-full rounded-lg border p-3" value={taxes.complement??0} onChange={e=>setTaxes(t=>({...t,complement:Math.max(0,Math.round(Number(e.target.value)))}))}/>
+        <span className="mt-2 block text-xs text-gray-500">Ajouter uniquement les droits non inclus ci-dessus : donation, succession, apport ou cession de parts, par exemple. Éviter de compter deux fois une même taxe. Montant à justifier par la liquidation du dossier.</span>
+      </label>
       <div className="border-t-2 border-gray-200 pt-4">
         <div className="flex justify-between items-center">
           <span className="font-bold text-xl">Total des taxes</span>
