@@ -192,3 +192,29 @@ test('holding : amortissement plafonné au bâti et report des déficits avant I
  assert.equal(a.reduce((s,x)=>s+x.amort,0),20000);
  assert.equal(holding.impotSociete(50000,true),8250);assert.equal(holding.impotSociete(50000,false),12500);
 });
+
+const statuts = require('../src/lib/statuts.ts');
+test('Urssaf TI juillet 2026 : cas rapproché de l’API officielle',()=>{
+ const r=statuts.social2026({brut:60000,activite:'commerciale',dividendesSSI:5000,dividendesPS:1000});
+ assert.equal(r.net,38976);assert.equal(r.cotisations,21024);
+ assert.equal(r.psDividendes,186);assert.equal(r.irDividendes,768);
+});
+test('statuts : coût rémunération + IS + dividendes respecte le budget à forte rémunération',()=>{
+ for(const statut of ['EURL_IS','SARL','SASU','SAS','SA']){
+ const r=statuts.calculStatut2026(statut,60000,100000,10000,'commerciale');
+ assert.ok(Math.abs(r.remunerationNette+r.cotisationsSociales+r.is+r.dividendesBruts-60000)<2,statut);
+ assert.ok(r.dividendesBruts<2,statut);
+ }
+});
+test('statuts : dividendes SSI sans cumul des PS du capital sur la même fraction',()=>{
+ const r=statuts.calculStatut2026('EURL_IS',60000,30000,10000,'commerciale');
+ const base=statuts.social2026({net:30000,activite:'commerciale',ir:false});
+ const complet=statuts.social2026({brut:base.brut,activite:'commerciale',dividendesPS:1000,dividendesSSI:r.dividendesBruts-1000});
+ assert.ok(Math.abs(r.fiscaliteDividendes-(complet.cotisations-base.cotisations+186+r.dividendesBruts*.128))<1e-8);
+});
+test('statuts : SCI location nue inclut 17,2 % et EI ne prend pas l’abattement salaire',()=>{
+ const sci=statuts.calculStatut2026('SCI',60000,30000,10000,'immobiliere');assert.equal(sci.cotisationsSociales,10320);
+ const ei=statuts.calculStatut2026('EI',60000,30000,10000,'commerciale');
+ const ir=statuts.social2026({entrepriseIR:true,brut:60000,activite:'commerciale'});
+ assert.equal(ei.irEstime,ir.ir);assert.equal(ei.revenuNetGlobal,ir.net-ir.ir);
+});

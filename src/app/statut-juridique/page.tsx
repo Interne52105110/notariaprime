@@ -5,6 +5,7 @@
 
 "use client";
 
+import { calculStatut2026, social2026 } from '@/lib/statuts';
 import { BAREME_IR_2026 } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -42,6 +43,9 @@ interface FormData {
   nombreAssocies: '1' | '2+';
   objectif: Objectif;
   capitalSocial: string;
+  primesEmission?: string;
+  compteCourantMoyen?: string;
+  tauxReduitIS?: boolean;
 }
 
 interface ResultatStatut {
@@ -69,7 +73,7 @@ interface ResultatStatut {
 // CONSTANTES
 // ============================================
 
-const PASS = 46368; // Plafond Annuel Securite Sociale 2025
+const PASS = 48060; // Plafond annuel 2026
 
 const BAREME_IR = BAREME_IR_2026; // Impôt 2026 sur les revenus 2025
 
@@ -149,112 +153,6 @@ function calculerIR(revenuImposable: number, parts: number = 1): number {
   return impotParPart * parts;
 }
 
-function calculerCotisationsSSI(benefice: number): number {
-  if (benefice <= 0) return 0;
-
-  // Maladie-maternite: progressif 0-6.5%
-  let maladie = 0;
-  if (benefice <= 16454) {
-    maladie = benefice * 0.005;
-  } else if (benefice <= PASS) {
-    maladie = benefice * 0.04;
-  } else {
-    maladie = benefice * 0.065;
-  }
-
-  // Retraite de base: 17.75% plafonne au PASS + 0.6% deplafonne
-  const retraiteBase = Math.min(benefice, PASS) * 0.1775 + benefice * 0.006;
-
-  // Retraite complementaire: 7% plafonne a 4xPASS
-  const retraiteCompl = Math.min(benefice, 4 * PASS) * 0.07;
-
-  // Invalidite-deces: 1.3%
-  const invalidite = Math.min(benefice, PASS) * 0.013;
-
-  // Allocations familiales: 0 a 3.1%
-  let af = 0;
-  if (benefice > PASS * 1.1) {
-    af = benefice * 0.031;
-  } else if (benefice > PASS) {
-    af = benefice * 0.031 * ((benefice - PASS) / (PASS * 0.1));
-  }
-
-  // CSG/CRDS: 9.7% sur benefice + cotisations
-  const baseCsgTemp = benefice + maladie + retraiteBase + retraiteCompl + invalidite + af;
-  const csgCrds = baseCsgTemp * 0.097;
-
-  // Formation: 0.25%
-  const formation = benefice * 0.0025;
-
-  return maladie + retraiteBase + retraiteCompl + invalidite + af + csgCrds + formation;
-}
-
-// Part CSG/CRDS des cotisations SSI (meme formule que calculerCotisationsSSI).
-// Necessaire pour l'ACRE, qui exonere 50% des cotisations SAUF la CSG/CRDS.
-function calculerCsgCrdsSSI(benefice: number): number {
-  if (benefice <= 0) return 0;
-
-  let maladie = 0;
-  if (benefice <= 16454) {
-    maladie = benefice * 0.005;
-  } else if (benefice <= PASS) {
-    maladie = benefice * 0.04;
-  } else {
-    maladie = benefice * 0.065;
-  }
-
-  const retraiteBase = Math.min(benefice, PASS) * 0.1775 + benefice * 0.006;
-  const retraiteCompl = Math.min(benefice, 4 * PASS) * 0.07;
-  const invalidite = Math.min(benefice, PASS) * 0.013;
-
-  let af = 0;
-  if (benefice > PASS * 1.1) {
-    af = benefice * 0.031;
-  } else if (benefice > PASS) {
-    af = benefice * 0.031 * ((benefice - PASS) / (PASS * 0.1));
-  }
-
-  const baseCsgTemp = benefice + maladie + retraiteBase + retraiteCompl + invalidite + af;
-  return baseCsgTemp * 0.097;
-}
-
-function calculerCotisationsSSIIteratif(remunerationNette: number): { cotisations: number; brut: number } {
-  // Les cotisations SSI sont calculees sur le benefice (qui inclut les cotisations)
-  // On cherche le benefice B tel que B - cotisations(B) = remunerationNette
-  let benefice = remunerationNette * 1.6;
-  for (let i = 0; i < 20; i++) {
-    const cot = calculerCotisationsSSI(benefice);
-    const netCalc = benefice - cot;
-    const ecart = remunerationNette - netCalc;
-    benefice += ecart * 0.5;
-    if (Math.abs(ecart) < 1) break;
-  }
-  const cotisations = calculerCotisationsSSI(benefice);
-  return { cotisations, brut: benefice };
-}
-
-function calculerIS(resultat: number): number {
-  if (resultat <= 0) return 0;
-  if (resultat <= 42500) return resultat * 0.15;
-  return 42500 * 0.15 + (resultat - 42500) * 0.25;
-}
-
-function calculerChargesAssimileSalarie(remunerationNette: number): { cotisations: number; coutTotal: number; brut: number } {
-  // Net -> Brut: brut = net / 0.78 (environ 22% charges salariales)
-  const brut = remunerationNette / 0.78;
-  // Charges patronales: ~45% du brut
-  const chargesPatronales = brut * 0.45;
-  // Charges salariales: ~22% du brut
-  const chargesSalariales = brut * 0.22;
-  const cotisationsTotal = chargesPatronales + chargesSalariales;
-  const coutTotal = brut + chargesPatronales;
-  return { cotisations: cotisationsTotal, coutTotal, brut };
-}
-
-function calculerFlatTax(dividendesBruts: number): number {
-  return dividendesBruts * 0.314; // PFU 31.4% depuis LFSS 2026 (12.8% IR + 18.6% PS)
-}
-
 // ============================================
 // CALCUL PRINCIPAL PAR STATUT
 // ============================================
@@ -266,7 +164,8 @@ function calculerStatut(
   remuSouhaitee: number,
   capitalSocial: number,
   typeActivite: TypeActivite,
-  nombreAssocies: '1' | '2+'
+  nombreAssocies: '1' | '2+',
+  tauxReduitIS = false
 ): ResultatStatut {
   const resultatBrut = ca - chargesExpl;
   const disponible = isStatutDisponible(statut, typeActivite, nombreAssocies);
@@ -294,218 +193,8 @@ function calculerStatut(
 
   if (!disponible || resultatBrut <= 0) return base;
 
-  switch (statut) {
-    case 'EI': {
-      // IR - cotisations SSI sur le benefice
-      // Le benefice = resultatBrut, on calcule les cotisations SSI dessus
-      const cotisations = calculerCotisationsSSI(resultatBrut);
-      const beneficeApresCharges = resultatBrut - cotisations;
-      const ir = calculerIR(beneficeApresCharges);
-      const netFinal = beneficeApresCharges - ir;
-
-      return {
-        ...base,
-        remunerationNette: netFinal,
-        cotisationsSociales: cotisations,
-        tauxCotisations: resultatBrut > 0 ? (cotisations / resultatBrut) * 100 : 0,
-        irEstime: ir,
-        revenuNetGlobal: netFinal,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'SSI (TNS)',
-        regimeFiscal: 'IR (bareme progressif)'
-      };
-    }
-
-    case 'EURL_IR': {
-      // Similaire a EI, gerant associe unique = SSI
-      const cotisations = calculerCotisationsSSI(resultatBrut);
-      const beneficeApresCharges = resultatBrut - cotisations;
-      const ir = calculerIR(beneficeApresCharges);
-      const netFinal = beneficeApresCharges - ir;
-
-      return {
-        ...base,
-        remunerationNette: netFinal,
-        cotisationsSociales: cotisations,
-        tauxCotisations: resultatBrut > 0 ? (cotisations / resultatBrut) * 100 : 0,
-        irEstime: ir,
-        revenuNetGlobal: netFinal,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'SSI (TNS)',
-        regimeFiscal: 'IR (bareme progressif)'
-      };
-    }
-
-    case 'EURL_IS': {
-      // IS - gerant associe unique = SSI sur sa remuneration
-      const remuNette = Math.min(remuSouhaitee, resultatBrut * 0.8);
-      const { cotisations, brut: remuBrute } = calculerCotisationsSSIIteratif(remuNette);
-      const coutRemu = remuBrute;
-      const resultatApresRemu = resultatBrut - coutRemu;
-      const is = calculerIS(Math.max(0, resultatApresRemu));
-      const beneficeApresIS = Math.max(0, resultatApresRemu) - is;
-
-      // Dividendes: part > 10% du capital soumise a SSI
-      const seuilSSIDividendes = capitalSocial * 0.10;
-      const dividendesBruts = beneficeApresIS;
-      let fiscDividendes = 0;
-
-      // La TOTALITE des dividendes supporte la flat tax (31,4%).
-      // La part > 10% du capital supporte EN PLUS les cotisations SSI.
-      if (dividendesBruts > seuilSSIDividendes) {
-        const partSSI = dividendesBruts - seuilSSIDividendes;
-        const cotSSIDiv = calculerCotisationsSSI(partSSI) * 0.5; // Approximation
-        fiscDividendes = cotSSIDiv + calculerFlatTax(dividendesBruts);
-      } else {
-        fiscDividendes = calculerFlatTax(dividendesBruts);
-      }
-
-      const dividendesNets = dividendesBruts - fiscDividendes;
-      const ir = calculerIR(remuNette);
-
-      return {
-        ...base,
-        remunerationNette: remuNette,
-        cotisationsSociales: cotisations,
-        tauxCotisations: remuNette > 0 ? (cotisations / remuNette) * 100 : 0,
-        is,
-        dividendesBruts,
-        fiscaliteDividendes: fiscDividendes,
-        dividendesNets,
-        revenuNetGlobal: remuNette - ir + dividendesNets,
-        irEstime: ir,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'SSI (TNS)',
-        regimeFiscal: 'IS (15%/25%)'
-      };
-    }
-
-    case 'SARL': {
-      // IS - gerant majoritaire = SSI
-      const remuNette = Math.min(remuSouhaitee, resultatBrut * 0.8);
-      const { cotisations, brut: remuBrute } = calculerCotisationsSSIIteratif(remuNette);
-      const coutRemu = remuBrute;
-      const resultatApresRemu = resultatBrut - coutRemu;
-      const is = calculerIS(Math.max(0, resultatApresRemu));
-      const beneficeApresIS = Math.max(0, resultatApresRemu) - is;
-
-      const dividendesBruts = beneficeApresIS;
-      // SARL: dividendes > 10% capital soumis SSI
-      const seuilSSIDividendes = capitalSocial * 0.10;
-      let fiscDividendes = 0;
-
-      // La TOTALITE des dividendes supporte la flat tax (31,4%).
-      // La part > 10% du capital supporte EN PLUS les cotisations SSI.
-      if (dividendesBruts > seuilSSIDividendes) {
-        const partSSI = dividendesBruts - seuilSSIDividendes;
-        const cotSSIDiv = calculerCotisationsSSI(partSSI) * 0.5;
-        fiscDividendes = cotSSIDiv + calculerFlatTax(dividendesBruts);
-      } else {
-        fiscDividendes = calculerFlatTax(dividendesBruts);
-      }
-
-      const dividendesNets = dividendesBruts - fiscDividendes;
-      const ir = calculerIR(remuNette);
-
-      return {
-        ...base,
-        remunerationNette: remuNette,
-        cotisationsSociales: cotisations,
-        tauxCotisations: remuNette > 0 ? (cotisations / remuNette) * 100 : 0,
-        is,
-        dividendesBruts,
-        fiscaliteDividendes: fiscDividendes,
-        dividendesNets,
-        revenuNetGlobal: remuNette - ir + dividendesNets,
-        irEstime: ir,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'SSI (gerant majoritaire)',
-        regimeFiscal: 'IS (15%/25%)'
-      };
-    }
-
-    case 'SAS':
-    case 'SASU': {
-      // IS - president = assimile salarie
-      const remuNette = Math.min(remuSouhaitee, resultatBrut * 0.6);
-      const { cotisations, coutTotal } = calculerChargesAssimileSalarie(remuNette);
-      const resultatApresRemu = resultatBrut - coutTotal;
-      const is = calculerIS(Math.max(0, resultatApresRemu));
-      const beneficeApresIS = Math.max(0, resultatApresRemu) - is;
-
-      // Dividendes SAS: flat tax 31,4% uniquement (pas de SSI)
-      const dividendesBruts = beneficeApresIS;
-      const fiscDividendes = calculerFlatTax(dividendesBruts);
-      const dividendesNets = dividendesBruts - fiscDividendes;
-      const ir = calculerIR(remuNette);
-
-      return {
-        ...base,
-        remunerationNette: remuNette,
-        cotisationsSociales: cotisations,
-        tauxCotisations: remuNette > 0 ? (cotisations / remuNette) * 100 : 0,
-        is,
-        dividendesBruts,
-        fiscaliteDividendes: fiscDividendes,
-        dividendesNets,
-        revenuNetGlobal: remuNette - ir + dividendesNets,
-        irEstime: ir,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'Assimile salarie',
-        regimeFiscal: 'IS (15%/25%)'
-      };
-    }
-
-    case 'SCI': {
-      // IR par defaut - pas de cotisations sociales (location nue)
-      const ir = calculerIR(resultatBrut);
-      const netFinal = resultatBrut - ir;
-
-      return {
-        ...base,
-        remunerationNette: netFinal,
-        cotisationsSociales: 0,
-        tauxCotisations: 0,
-        irEstime: ir,
-        revenuNetGlobal: netFinal,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'Aucun (revenus fonciers)',
-        regimeFiscal: 'IR (transparence fiscale)'
-      };
-    }
-
-    case 'SA': {
-      // IS - PDG = assimile salarie, min 37 000 EUR capital
-      const remuNette = Math.min(remuSouhaitee, resultatBrut * 0.6);
-      const { cotisations, coutTotal } = calculerChargesAssimileSalarie(remuNette);
-      const resultatApresRemu = resultatBrut - coutTotal;
-      const is = calculerIS(Math.max(0, resultatApresRemu));
-      const beneficeApresIS = Math.max(0, resultatApresRemu) - is;
-
-      const dividendesBruts = beneficeApresIS;
-      const fiscDividendes = calculerFlatTax(dividendesBruts);
-      const dividendesNets = dividendesBruts - fiscDividendes;
-      const ir = calculerIR(remuNette);
-
-      return {
-        ...base,
-        remunerationNette: remuNette,
-        cotisationsSociales: cotisations,
-        tauxCotisations: remuNette > 0 ? (cotisations / remuNette) * 100 : 0,
-        is,
-        dividendesBruts,
-        fiscaliteDividendes: fiscDividendes,
-        dividendesNets,
-        revenuNetGlobal: remuNette - ir + dividendesNets,
-        irEstime: ir,
-        coutTotalEntreprise: ca,
-        regimeSocial: 'Assimile salarie',
-        regimeFiscal: 'IS (15%/25%)'
-      };
-    }
-  }
-
-  return base;
+  const chiffres=calculStatut2026(statut,resultatBrut,remuSouhaitee,capitalSocial,typeActivite,tauxReduitIS);
+  return {...base,...chiffres,regimeSocial:statut==='SCI'?'Prélèvements sociaux fonciers':(['SAS','SASU','SA'].includes(statut)?'Assimilé salarié':'Indépendant (Urssaf)'),regimeFiscal:['EI','EURL_IR','SCI'].includes(statut)?'IR':'IS'};
 }
 
 function isStatutDisponible(statut: StatutKey, typeActivite: TypeActivite, nombreAssocies: '1' | '2+'): boolean {
@@ -860,12 +549,12 @@ export default function ComparateurStatutJuridique() {
     const ca = parseNumber(formData.chiffreAffaires);
     const charges = parseNumber(formData.chargesExploitation);
     const remu = parseNumber(formData.remunerationSouhaitee);
-    const capital = parseNumber(formData.capitalSocial);
+    const capital = parseNumber(formData.capitalSocial) + parseNumber(formData.primesEmission ?? '0') + parseNumber(formData.compteCourantMoyen ?? '0');
 
     const statuts: StatutKey[] = ['EI', 'EURL_IR', 'EURL_IS', 'SARL', 'SAS', 'SASU', 'SCI', 'SA'];
 
     return statuts.map(s =>
-      calculerStatut(s, ca, charges, remu, capital, formData.typeActivite, formData.nombreAssocies)
+      calculerStatut(s, ca, charges, remu, capital, formData.typeActivite, formData.nombreAssocies, formData.tauxReduitIS === true)
     );
   }, [formData]);
 
@@ -995,20 +684,15 @@ export default function ComparateurStatutJuridique() {
   const optimisationMix = useMemo(() => {
     const ca = parseNumber(formData.chiffreAffaires);
     const charges = parseNumber(formData.chargesExploitation);
-    const capital = parseNumber(formData.capitalSocial);
+    const capital = parseNumber(formData.capitalSocial) + parseNumber(formData.primesEmission ?? '0') + parseNumber(formData.compteCourantMoyen ?? '0');
     const resultatBrut = ca - charges;
     if (resultatBrut <= 0) return [];
 
     const paliers: { pctRemu: number; remuNette: number; dividendesNets: number; total: number; label: string }[] = [];
 
     for (let pct = 0; pct <= 100; pct += 10) {
-      const remuNetteCible = resultatBrut * 0.5 * (pct / 100);
-      const { cotisations: _, coutTotal } = calculerChargesAssimileSalarie(remuNetteCible);
-      const resultatApresRemu = resultatBrut - coutTotal;
-      const is = calculerIS(Math.max(0, resultatApresRemu));
-      const divBruts = Math.max(0, resultatApresRemu - is);
-      const divNets = divBruts * 0.686; // net apres flat tax 31,4% (LFSS 2026)
-      const ir = calculerIR(remuNetteCible);
+      const r=calculStatut2026('SASU',resultatBrut,resultatBrut*(pct/100),capital,formData.typeActivite,formData.tauxReduitIS===true);
+      const remuNetteCible=r.remunerationNette, ir=r.irEstime, divNets=r.dividendesNets;
 
       paliers.push({
         pctRemu: pct,
@@ -1027,25 +711,15 @@ export default function ComparateurStatutJuridique() {
     const results: { benefice: number; netIR: number; netIS: number }[] = [];
 
     for (let b = 10000; b <= 200000; b += 5000) {
-      const cotSSI = calculerCotisationsSSI(b);
-      const netAvantIR_EI = b - cotSSI;
-      const irEI = calculerIR(netAvantIR_EI);
-      const netIR = netAvantIR_EI - irEI;
-
-      // Pour IS: on prend 60% en remuneration, le reste en dividendes
-      const remuNette = b * 0.5;
-      const { coutTotal } = calculerChargesAssimileSalarie(remuNette);
-      const resultatIS = b - coutTotal;
-      const is = calculerIS(Math.max(0, resultatIS));
-      const divNets = Math.max(0, resultatIS - is) * 0.686; // net apres flat tax 31,4% (LFSS 2026)
-      const ir2 = calculerIR(remuNette);
-      const netIS = (remuNette - ir2) + divNets;
+      const capital=parseNumber(formData.capitalSocial)+parseNumber(formData.primesEmission??'0')+parseNumber(formData.compteCourantMoyen??'0');
+      const netIR=calculStatut2026('EI',b,b,capital,formData.typeActivite,formData.tauxReduitIS===true).revenuNetGlobal;
+      const netIS=calculStatut2026('SASU',b,b*.5,capital,formData.typeActivite,formData.tauxReduitIS===true).revenuNetGlobal;
 
       results.push({ benefice: b, netIR, netIS });
     }
 
     return results;
-  }, []);
+  }, [formData]);
 
   const acreImpact = useMemo(() => {
     const ca = parseNumber(formData.chiffreAffaires);
@@ -1053,12 +727,8 @@ export default function ComparateurStatutJuridique() {
     const resultatBrut = ca - charges;
     if (resultatBrut <= 0) return null;
 
-    const cotisationsNormales = calculerCotisationsSSI(resultatBrut);
-    // L'ACRE exonere 50% des cotisations SAUF la CSG/CRDS (qui reste due a 100%).
-    // On recalcule la part CSG/CRDS avec la meme formule que calculerCotisationsSSI.
-    const partCsgCrds = calculerCsgCrdsSSI(resultatBrut);
-    const partHorsCsgCrds = cotisationsNormales - partCsgCrds;
-    const cotisationsACRE = partHorsCsgCrds * 0.5 + partCsgCrds; // 50% reduction 1ere annee, hors CSG/CRDS
+    const cotisationsNormales = social2026({brut:resultatBrut,activite:formData.typeActivite,ir:false}).cotisations;
+    const cotisationsACRE = social2026({brut:resultatBrut,activite:formData.typeActivite,acre:true,ir:false}).cotisations;
     const economie = cotisationsNormales - cotisationsACRE;
 
     return {
@@ -1112,19 +782,19 @@ export default function ComparateurStatutJuridique() {
     },
     {
       q: "Quand la societe a l'IS est-elle plus interessante ?",
-      r: "La societe a l'IS devient generalement plus avantageuse a partir de 40 000-50 000 EUR de benefice annuel. En effet, le taux d'IS reduit de 15% (jusqu'a 42 500 EUR) est bien inferieur aux tranches IR de 30% ou 41%. De plus, vous pouvez optimiser le mix remuneration/dividendes pour minimiser la charge globale. Cependant, il faut tenir compte de la double imposition (IS + flat tax sur les dividendes ou IR sur la remuneration)."
+      r: "Aucun seuil unique de bénéfice ne rend l’IS plus avantageux : le résultat dépend de la rémunération, des dividendes, du foyer fiscal et des frais. En effet, le taux d'IS reduit de 15% (jusqu'a 42 500 EUR) est bien inferieur aux tranches IR de 30% ou 41%. De plus, vous pouvez optimiser le mix remuneration/dividendes pour minimiser la charge globale. Cependant, il faut tenir compte de la double imposition (IS + flat tax sur les dividendes ou IR sur la remuneration)."
     },
     {
       q: "Comment optimiser le mix remuneration/dividendes ?",
-      r: "L'optimisation consiste a trouver le bon equilibre entre remuneration (soumise a charges sociales mais deductible du resultat) et dividendes (soumis a la flat tax de 30% en SAS, ou SSI + flat tax en SARL). En SAS/SASU, il est souvent optimal de se verser une remuneration moderee (pour valider les trimestres retraite) et de completer avec des dividendes non soumis aux cotisations SSI. En SARL, les dividendes > 10% du capital sont soumis aux cotisations SSI, reduisant l'interet de cette strategie."
+      r: "L'optimisation consiste a trouver le bon equilibre entre remuneration (soumise a charges sociales mais deductible du resultat) et dividendes (soumis a la PFU de 31,4% en SAS ; en SARL majoritaire, IR de 12,8% et cotisations sur la part excédant le seuil social, sans cumul des prélèvements sociaux du capital sur cette part). En SAS/SASU, il est souvent optimal de se verser une remuneration moderee (pour valider les trimestres retraite) et de completer avec des dividendes non soumis aux cotisations SSI. En SARL, les dividendes > 10% du capital sont soumis aux cotisations SSI, reduisant l'interet de cette strategie."
     },
     {
       q: "Qu'est-ce que l'ACRE ?",
-      r: "L'ACRE (Aide a la Creation ou a la Reprise d'Entreprise) offre une exoneration partielle de cotisations sociales pendant la premiere annee d'activite. L'exoneration est de 50% des cotisations (sauf CSG/CRDS) si vos revenus sont inferieurs a 46 368 EUR (PASS). Elle est degressive entre 1 et 1,4 PASS, et nulle au-dela. L'ACRE est accordee automatiquement aux createurs d'entreprise sans demande prealable depuis 2020."
+      r: "Depuis le 1er janvier 2026, l’ACRE est soumise à des conditions d’éligibilité et à une demande. L’exonération est partielle, concerne certaines cotisations et dépend du revenu. La simulation illustre une création au 1er janvier 2026 avec éligibilité acquise ; elle ne constitue pas une attribution de l’aide. Référence : urssaf.fr, ACRE nouvelles règles et démarches 2026."
     },
     {
       q: "Peut-on changer de statut juridique ?",
-      r: "Oui, il est possible de changer de statut, mais les modalites varient. L'EI peut etre transformee en societe par un apport de fonds de commerce. L'EURL peut devenir SARL en accueillant des associes. La SARL peut etre transformee en SAS (et vice-versa) par decision unanime des associes. Chaque transformation implique des formalites juridiques et des consequences fiscales (droits d'enregistrement, imposition des plus-values latentes). Il est conseille de se faire accompagner par un professionnel."
+      r: "Oui, il est possible de changer de statut, mais les modalites varient. L'EI peut etre transformee en societe par un apport de fonds de commerce. L'EURL peut devenir SARL en accueillant des associes. La transformation d’une SARL en SAS requiert l’unanimité ; la transformation inverse suit ses propres conditions légales et statutaires. Chaque transformation implique des formalites juridiques et des consequences fiscales (droits d'enregistrement, imposition des plus-values latentes). Il est conseille de se faire accompagner par un professionnel."
     },
     {
       q: "Quels sont les couts de creation d'une societe ?",
@@ -1136,7 +806,7 @@ export default function ComparateurStatutJuridique() {
     },
     {
       q: "Quel statut pour un investissement immobilier ?",
-      r: "Pour de la location nue, la SCI a l'IR est le choix classique (transparence fiscale, transmission facilitee). Pour de la location meublee professionnelle, une SARL ou SAS de famille peut etre envisagee. Pour un patrimoine important avec peu de besoin de revenus, la SCI a l'IS permet d'amortir les biens et de capitaliser. Pour un investissement unique, l'achat en nom propre (avec regime micro-foncier si revenus < 15 000 EUR/an) reste la solution la plus simple. Le choix depend de vos objectifs : rendement, transmission, plus-value."
+      r: "Pour de la location nue, la SCI a l'IR est le choix classique (transparence fiscale, transmission facilitee). Pour de la location meublee professionnelle, une SARL de famille peut, sous conditions, opter pour l’IR ; il n’existe pas de régime fiscal spécifique de SAS de famille. Pour un patrimoine important avec peu de besoin de revenus, la SCI a l'IS permet d'amortir les biens et de capitaliser. Pour un investissement unique, l'achat en nom propre (avec micro-foncier si revenus bruts fonciers ≤ 15 000 EUR/an et autres conditions remplies) reste la solution la plus simple. Le choix depend de vos objectifs : rendement, transmission, plus-value."
     }
   ];
 
@@ -1146,6 +816,17 @@ export default function ComparateurStatutJuridique() {
 
   return (
     <MainLayout showFeedback={true}>
+      <div className="mx-auto mt-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+        <p>Calcul social : modèles Urssaf / Mon-entreprise de juillet 2026, appliqués au 8 septembre 2026. Hypothèses : métropole, année complète, célibataire sans enfant ni autres revenus, sans exonération dans la comparaison principale. Activité libérale non réglementée ; les professions réglementées et leurs caisses particulières nécessitent un calcul adapté.</p>
+        <p className="mt-2">Gérant majoritaire pour SARL/EURL ; président assimilé salarié pour SAS/SASU/SA, sans chômage, mutuelle facultative ni avantages en nature, AT/MP à 1 %, effectif inférieur à 11, entreprise assujettie à TVA. Les coûts de structure, CFE, réserves légales et décalages de distribution ne sont pas chiffrés. Les cotisations minimales restent à vérifier en cas de résultat nul ou déficitaire. La comparaison SCI vise la location nue.</p>
+        <div className="my-4 grid gap-4 md:grid-cols-3">
+          <label>Primes d’émission détenues (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.primesEmission??'0'} onChange={e=>setFormData(f=>({...f,primesEmission:e.target.value}))}/></label>
+          <label>Compte courant moyen annuel détenu (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.compteCourantMoyen??'0'} onChange={e=>setFormData(f=>({...f,compteCourantMoyen:e.target.value}))}/></label>
+          <label><input type="checkbox" checked={formData.tauxReduitIS===true} onChange={e=>setFormData(f=>({...f,tauxReduitIS:e.target.checked}))}/> Conditions du taux réduit IS remplies : CA ≤ 10 M€, capital libéré et détenu à 75 % par personnes physiques ou société éligible.</label>
+        </div>
+        <p>Le seuil social des dividendes prend 10 % du capital, des primes et du compte courant détenus par le dirigeant et son groupe familial concerné. Au-delà, les cotisations remplacent les prélèvements sociaux du capital ; l’IR de 12,8 % reste dû. En SARL, renseignez les montants revenant au dirigeant simulé : le modèle suppose ici qu’il reçoit tout le bénéfice distribué.</p>
+        <p className="mt-2">Le montant disponible est plafonné au budget de l’entreprise. Les notes du radar sont des appréciations éditoriales, pas un classement officiel. <a className="underline" href="https://mon-entreprise.urssaf.fr/simulateurs/comparaison-régimes-sociaux">Comparer sur le simulateur Urssaf</a>.</p>
+      </div>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
 
@@ -1731,10 +1412,10 @@ export default function ComparateurStatutJuridique() {
               <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                   <Lightbulb className="w-7 h-7 text-indigo-600" />
-                  Mix remuneration / dividendes optimal (SAS/SASU a l&apos;IS)
+                  Scénarios de rémunération et dividendes (SAS/SASU a l&apos;IS)
                 </h2>
                 <p className="text-gray-600 mb-6 text-sm">
-                  Repartition optimale de la remuneration du dirigeant entre salaire et dividendes pour une SAS/SASU.
+                  Comparaison de cibles de rémunération nette exprimées en pourcentage du bénéfice avant rémunération. Le budget social limite la cible effectivement atteignable ; le solde après IS est distribué.
                   Le resultat brut utilise est de {formatEuros(parseNumber(formData.chiffreAffaires) - parseNumber(formData.chargesExploitation))}.
                 </p>
 
@@ -1761,10 +1442,10 @@ export default function ComparateurStatutJuridique() {
                                 className={`border-b border-gray-100 ${isBest ? 'bg-green-50 font-semibold' : i % 2 === 0 ? 'bg-gray-50/50' : ''}`}
                               >
                                 <td className="py-2 px-3 text-gray-700">
-                                  {p.pctRemu}% remu / {100 - p.pctRemu}% div.
+                                  Cible nette : {p.pctRemu}% du bénéfice
                                   {isBest && (
                                     <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                                      Optimal
+                                      Maximum simulé
                                     </span>
                                   )}
                                 </td>
@@ -1875,7 +1556,7 @@ export default function ComparateurStatutJuridique() {
                   Impact de l&apos;ACRE (1ere annee)
                 </h2>
                 <p className="text-gray-600 mb-6 text-sm">
-                  L&apos;ACRE (Aide a la Creation ou Reprise d&apos;Entreprise) offre une exoneration de 50% des cotisations sociales
+                  L&apos;ACRE est simulée ici pour un créateur éligible ayant commencé le 1er janvier 2026. Le moteur applique les exonérations propres à chaque cotisation
                   la premiere annee pour les createurs d&apos;entreprise. Estimation basee sur votre resultat brut.
                 </p>
 
@@ -1924,8 +1605,8 @@ export default function ComparateurStatutJuridique() {
                       <ul className="list-disc pl-4 space-y-1">
                         <li>Creer ou reprendre une activite economique</li>
                         <li>Ne pas en avoir beneficie dans les 3 dernieres annees</li>
-                        <li>Exoneration de 50% des cotisations (sauf CSG/CRDS) pendant 12 mois</li>
-                        <li>Plafonnee aux revenus inferieurs a {formatEuros(PASS)}</li>
+                        <li>Exonération partielle selon les cotisations, le revenu et la date de création</li>
+                        <li>Conditions d’éligibilité et demande à vérifier auprès de l’Urssaf ; PASS 2026 : {formatEuros(PASS)}</li>
                       </ul>
                     </div>
                   </div>

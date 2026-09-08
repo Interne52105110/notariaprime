@@ -17,6 +17,8 @@ export default function MethodologieFiscale() {
     <p>SCI transmission : valeur nette des parts renseignée, un seul parent, répartition égale entre les enfants associés et abattements intacts. Ce modèle ne constitue pas une liquidation successorale complète.</p>
     <p>Prétaxe : les formalités et débours dépendent du dossier. Le neuf utilise une assiette hors TVA immobilière. Les réductions départementales conditionnelles, tarifs locaux et actes composites nécessitent un calcul adapté.</p>
     <p>IFI : plafonnement pour les résidents fiscaux français, avec revenus mondiaux et impôts de l’année précédente. Prêts in fine ou familiaux, exceptions à la limitation des dettes et déduction de l’IFI lui-même ne sont pas automatisés.</p>
+    <p>Viager : scénarios financiers à horizon choisi ou coefficient actuariel fourni par votre professionnel, sans table de mortalité intégrée. La fraction imposable de la rente est séparée de sa tarification.</p>
+    <p>Holding : SCI et mère IS distinctes, remboursements du capital compris dans la trésorerie, quote-part mère-fille après frais, distributions plafonnées. La comparaison n’inclut pas la fiscalité de revente. Statuts : modèles sociaux Urssaf publiés en juillet 2026, avec les hypothèses de foyer et d’activité précisées dans le module.</p>
     <p>Les exonérations complexes de plus-value, les droits démembrés et les opérations à plusieurs cédants doivent être vérifiés à partir des actes. Les autres simulateurs, les régimes sociaux et les projections de rendement n’ont pas fait l’objet d’une validation juridique exhaustive dans cette revue.</p>
     <Link href="/" className="inline-block underline">Retour aux simulateurs</Link>
   </article></MainLayout>;
