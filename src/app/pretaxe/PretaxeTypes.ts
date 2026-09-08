@@ -156,6 +156,11 @@ export interface Taxes {
   droitPartage?: number;
   /** Régime du partage : standard (2,50 %) ou divorce/séparation/PACS (1,10 %). */
   regimePartage?: 'standard' | 'divorce';
+  /** Actif net partagé, distinct de l’assiette des émoluments. */
+  actifNetPartage?: number;
+  /** Valeur des droits immobiliers effectivement publiés au SPF. */
+  valeurImmoPartage?: number;
+  reprisesNaturePartage?: number;
   /**
    * Droit fixe d'enregistrement (CGI art. 674, 680, 846 bis, 847, 848, 811…) :
    * 25 € (procuration, mainlevée, notoriété), 125 € (acte innomé, testament,

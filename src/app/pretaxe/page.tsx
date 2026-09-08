@@ -675,6 +675,10 @@ function PretaxeContent() {
     if (selectedActe) appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes);
   }, [selectedActe]);
 
+  useEffect(()=>{
+    if(actesConfig[selectedActe]?.taxes?.type==='partage')setFormalites(prev=>({...prev,publiciteFonciere:{...prev.publiciteFonciere,actif:(taxes.valeurImmoPartage??0)>0}}));
+  },[selectedActe,taxes.valeurImmoPartage]);
+
   useEffect(() => {
     if (selectedActe) {
       
@@ -695,6 +699,10 @@ function PretaxeContent() {
           const montant = parseFloat(montantActe.replace(/\s/g, ''));
           if (!isNaN(montant)) {
             const detailBase = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
+            if(actesConfig[selectedActe]?.taxes?.type==='partage'&&(taxes.reprisesNaturePartage??0)>0){
+              const supplement=calculerEmoluments(taxes.reprisesNaturePartage!,[{min:0,max:Infinity,taux:.484}],selectedDepartement,appliquerRemise);
+              for(const k of ['bruts','majoration','avantRemise','remise20','nets'] as const)detailBase[k]=Math.round((detailBase[k]+supplement[k])*100)/100;
+            }
             if (selectedActe === 'certificat_propriete' && montant <= 3120) {
               detailBase.bruts = 15.09; detailBase.majoration = Math.round(15.09 * getMajorationDOMTOM(selectedDepartement)) / 100;
               detailBase.avantRemise = Math.round((detailBase.bruts + detailBase.majoration)*100)/100; detailBase.nets = detailBase.avantRemise; detailBase.remise20 = 0;
@@ -738,8 +746,10 @@ function PretaxeContent() {
               calculerCSI(montantActe, setDebours, 0.5, baseSurete); // inscription hypo : CSI 0,05 %
               calculerTPF(montantActe, setTaxes, baseSurete);
             } else if (typeTaxe === 'partage') {
-              calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
-              calculerDroitPartage(montantActe, taxes.regimePartage ?? 'standard', setTaxes);
+              const immobilier=Math.max(0,taxes.valeurImmoPartage??0);
+              if(immobilier>0)calculerCSI(String(immobilier),setDebours);
+              else setDebours(prev=>({...prev,csi:0}));
+              calculerDroitPartage(String(Math.max(0,taxes.actifNetPartage??montant)), taxes.regimePartage ?? 'standard', setTaxes);
             } else if (publie || selectedActe === 'attestation_propriete') {
               calculerCSI(montantActe, setDebours);
             }
@@ -757,7 +767,7 @@ function PretaxeContent() {
       }
       setTaxes(prev => ({ ...prev, droitFixe }));
     }
-  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
+  }, [selectedActe, montantActe, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.actifNetPartage, taxes.valeurImmoPartage, taxes.reprisesNaturePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -949,7 +959,7 @@ function PretaxeContent() {
 
           {selectedActe && !estActeNonTarife && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
             <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de l&apos;opération</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{actesConfig[selectedActe]?.taxes?.type==='partage'?'Assiette des émoluments : actif brut, déduction faite des legs particuliers':'Montant de l’opération'}</label>
               <div className="relative">
                 <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -963,6 +973,15 @@ function PretaxeContent() {
             </div>
           )}
           
+          {actesConfig[selectedActe]?.taxes?.type==='partage'&&<div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm font-semibold">Actif net partagé soumis au droit de partage (€)<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.actifNetPartage??''} placeholder="À défaut : assiette saisie ci-dessus" onChange={e=>setTaxes(t=>({...t,actifNetPartage:e.target.value===''?undefined:Number(e.target.value)}))}/></label>
+              <label className="text-sm font-semibold">Valeur immobilière publiée pour la CSI (€)<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.valeurImmoPartage??0} onChange={e=>setTaxes(t=>({...t,valeurImmoPartage:Math.max(0,Number(e.target.value))}))}/></label>
+            </div>
+            <label className="mt-4 block text-sm font-semibold">Reprises en nature (€), émolument complémentaire de 0,484 % HT<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.reprisesNaturePartage??0} onChange={e=>setTaxes(t=>({...t,reprisesNaturePartage:Math.max(0,Number(e.target.value))}))}/></label>
+            <p className="mt-3 text-sm">Le droit de partage porte sur l’actif net après passif admissible (CGI 747), au taux de 2,5 % ou 1,1 % dans les cas prévus de divorce, séparation de corps ou rupture de PACS. Si le champ net est laissé vide, aucun passif distinct n’est déduit. Les émoluments utilisent leur propre assiette brute (A444-121). La CSI n’est calculée que sur les droits immobiliers publiés ; un partage uniquement mobilier ne produit pas de CSI. Minimum de perception du droit proportionnel : 25 € (CGI 674), sauf exonération particulière.</p>
+            <p className="mt-2 text-sm">Ce calcul vise un partage pur et simple. Les soultes, attributions à des tiers et rapports et régimes particuliers nécessitent une liquidation complémentaire ; le régime de faveur des partages successoraux ne s’applique pas à toute indivision.</p>
+          </div>}
           {ASSIETTES_SUCCESSORALES[selectedActe] && <p className="mt-4 p-4 bg-blue-50 rounded-xl text-sm">{ASSIETTES_SUCCESSORALES[selectedActe]} Les formalités et débours sont à ajuster aux prestations effectivement réalisées. <a className="underline" href="/succession">Calcul des droits de succession à l’État</a></p>}
           {getMajorationDOMTOM(selectedDepartement) > 0 && (
             <div className="mt-6 bg-orange-50 border border-orange-200 rounded-xl p-4">

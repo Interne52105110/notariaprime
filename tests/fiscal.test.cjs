@@ -245,3 +245,12 @@ test('revenus fonciers : déficit intérêts reporté sans imputation sur le rev
  assert.deepEqual(investissement.revenuFoncierAnnuel(15000,18000,0,20000),{imposable:0,global:10700,report:12300});
  assert.deepEqual(investissement.revenuFoncierAnnuel(15000,3000,2000,0),{imposable:10000,global:0,report:0});
 });
+
+test('partage : droit sur actif net et minimum de perception, distinct des émoluments bruts',()=>{
+ let taxes={};const setter=f=>taxes=typeof f==='function'?f(taxes):f;
+ pretaxe.calculerDroitPartage('200000','standard',setter);assert.equal(taxes.droitPartage,5000);
+ pretaxe.calculerDroitPartage('200000','divorce',setter);assert.equal(taxes.droitPartage,2200);
+ pretaxe.calculerDroitPartage('100','standard',setter);assert.equal(taxes.droitPartage,25);
+ const em=pretaxe.calculerEmoluments(300000,[{min:0,max:6500,taux:4.837},{min:6500,max:17000,taux:1.995},{min:17000,max:60000,taux:1.330},{min:60000,max:Infinity,taux:.998}],'75',false);
+ assert.equal(em.nets,3490.98);
+});

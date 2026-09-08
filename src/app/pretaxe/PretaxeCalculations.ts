@@ -223,7 +223,7 @@ export function calculerDroitPartage(
 
   const taux = regime === 'divorce' ? 1.10 : 2.50;
   // Droit de partage arrondi à l'euro le plus proche (CGI art. 1724).
-  const droitPartage = Math.round(montant * (taux / 100));
+  const droitPartage = Math.max(25, Math.round(Math.max(0, Math.round(montant)) * (taux / 100))); // minimum CGI 674, hors exonération particulière
 
   setTaxes(prev => ({
     ...prev,
