@@ -123,16 +123,16 @@ function AboutContent() {
               
               <div className="space-y-4 text-lg text-gray-700 leading-relaxed">
                 <p>
-                  NotariaPrime est né d'un constat simple : les professionnels du notariat perdent 
+                  NotariaPrime est né d&apos;un constat simple : les professionnels du notariat perdent
                   un temps précieux sur des calculs répétitifs et complexes.
                 </p>
                 <p>
-                  Notre mission est de créer des outils <strong>gratuits, précis et faciles d'utilisation</strong> pour 
+                  Notre mission est de créer des outils <strong>gratuits, précis et faciles d&apos;utilisation</strong> pour
                   automatiser ces tâches et permettre aux notaires de se concentrer sur leur cœur de métier.
                 </p>
                 <p>
                   En tant que projet <strong>open source</strong>, nous garantissons la transparence de nos calculs 
-                  et permettons à la communauté de contribuer à l'amélioration continue de la plateforme.
+                  et permettons à la communauté de contribuer à l&apos;amélioration continue de la plateforme.
                 </p>
               </div>
             </div>
@@ -205,7 +205,7 @@ function AboutContent() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-200 rounded-full mb-6">
                 <Building2 className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">L'entreprise</span>
+                <span className="text-sm font-semibold text-blue-700">L&apos;entreprise</span>
               </div>
 
               <h2 className="text-4xl font-bold text-gray-900 mb-6">NOTARIA PRIME</h2>
@@ -239,7 +239,7 @@ function AboutContent() {
                       <div className="font-semibold text-gray-900 mb-1">Siège social</div>
                       <div className="text-gray-700">
                         1 Impasse de Menez Bijigou<br />
-                        29120 Pont-l'Abbé<br />
+                        29120 Pont-l&apos;Abbé<br />
                         France
                       </div>
                     </div>

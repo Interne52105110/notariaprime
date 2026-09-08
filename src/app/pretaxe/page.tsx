@@ -886,7 +886,7 @@ function PretaxeContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Catégorie d'acte</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Catégorie d&apos;acte</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => {
@@ -903,7 +903,7 @@ function PretaxeContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Type d'acte</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Type d&apos;acte</label>
               <select
                 value={selectedActe}
                 onChange={(e) => setSelectedActe(e.target.value)}
@@ -940,7 +940,7 @@ function PretaxeContent() {
 
           {selectedActe && !estActeNonTarife && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
             <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de l'opération</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de l&apos;opération</label>
               <div className="relative">
                 <Euro className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input

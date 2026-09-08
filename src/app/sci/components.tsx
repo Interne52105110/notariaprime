@@ -38,7 +38,7 @@ export function AssociesForm({ associes, onChange }: AssociesFormProps) {
     }
   };
 
-  const updateAssocie = (index: number, field: keyof AssocieData, value: any) => {
+  const updateAssocie = <K extends keyof AssocieData,>(index: number, field: K, value: AssocieData[K]) => {
     const newAssocies = [...associes];
     newAssocies[index] = { ...newAssocies[index], [field]: value };
     onChange(newAssocies);
@@ -111,7 +111,7 @@ export function AssociesForm({ associes, onChange }: AssociesFormProps) {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Lien familial</label>
                 <select
                   value={associe.lienFamilial}
-                  onChange={(e) => updateAssocie(index, 'lienFamilial', e.target.value as any)}
+                  onChange={(e) => updateAssocie(index, 'lienFamilial', e.target.value as AssocieData['lienFamilial'])}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="conjoint">Conjoint</option>
@@ -260,7 +260,7 @@ export function PlusValueDisplay({ plusValue, regimeFiscal }: PlusValueDisplayPr
     <div className="space-y-6">
       {/* Résultat IR */}
       <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Plus-value SCI à l'IR</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Plus-value SCI à l&apos;IR</h3>
         <div className="space-y-3">
           <div className="flex justify-between py-2 border-b border-purple-200">
             <span className="text-gray-700">Prix de vente estimé</span>
@@ -290,10 +290,10 @@ export function PlusValueDisplay({ plusValue, regimeFiscal }: PlusValueDisplayPr
 
       {/* Résultat IS */}
       <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border-2 border-indigo-200">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Plus-value SCI à l'IS</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Plus-value SCI à l&apos;IS</h3>
         <div className="space-y-3">
           <div className="flex justify-between py-2 border-b border-indigo-200">
-            <span className="text-gray-700">Prix d'achat</span>
+            <span className="text-gray-700">Prix d&apos;achat</span>
             <span className="font-bold text-gray-900">{plusValue.IS.prixAchat.toLocaleString('fr-FR')} €</span>
           </div>
           <div className="flex justify-between py-2 border-b border-indigo-200">
@@ -344,7 +344,7 @@ export function PlusValueDisplay({ plusValue, regimeFiscal }: PlusValueDisplayPr
             </>
           )}
           <p className="text-sm text-gray-600 mt-4">
-            L'avantage fiscal de l'IS pendant la détention peut être annulé par la fiscalité à la revente
+            L&apos;avantage fiscal de l&apos;IS pendant la détention peut être annulé par la fiscalité à la revente
           </p>
         </div>
       </div>
@@ -356,9 +356,9 @@ export function PlusValueDisplay({ plusValue, regimeFiscal }: PlusValueDisplayPr
           <div className="text-sm text-blue-900">
             <p className="font-semibold mb-2">💡 Points clés à retenir</p>
             <ul className="space-y-1 text-blue-800">
-              <li>• <strong>IR</strong> : Abattements progressifs jusqu'à exonération totale après 30 ans</li>
-              <li>• <strong>IS</strong> : Les amortissements réduisent l'impôt pendant la détention mais augmentent la plus-value à la revente</li>
-              <li>• <strong>Stratégie</strong> : L'IS est optimal si conservation très long terme (&gt; 30 ans) sans revente</li>
+              <li>• <strong>IR</strong> : Abattements progressifs jusqu&apos;à exonération totale après 30 ans</li>
+              <li>• <strong>IS</strong> : Les amortissements réduisent l&apos;impôt pendant la détention mais augmentent la plus-value à la revente</li>
+              <li>• <strong>Stratégie</strong> : L&apos;IS est optimal si conservation très long terme (&gt; 30 ans) sans revente</li>
               <li>• <strong>Conseil</strong> : Faites une simulation sur votre durée de détention prévue</li>
             </ul>
           </div>
@@ -384,7 +384,7 @@ export function Disclaimer() {
               Cette simulation est fournie <strong>à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les calculs sont basés sur la réglementation fiscale 2025 et peuvent évoluer.
             </p>
             <p className="leading-relaxed">
-              La création d'une SCI et le choix du régime fiscal (IR/IS) ont des <strong>conséquences importantes et durables</strong>. L'option pour l'IS est <strong>irrévocable</strong>.
+              La création d&apos;une SCI et le choix du régime fiscal (IR/IS) ont des <strong>conséquences importantes et durables</strong>. L&apos;option pour l&apos;IS est <strong>irrévocable</strong>.
             </p>
             <div className="bg-white rounded-lg p-4 border-2 border-red-300 mt-4">
               <p className="font-bold text-red-900 mb-2">✅ Consultation obligatoire de professionnels :</p>

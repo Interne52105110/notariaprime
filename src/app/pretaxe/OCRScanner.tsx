@@ -257,7 +257,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         text = data.text || '';
       }
 
-      let hit = parseExtractedText(text);
+      const hit = parseExtractedText(text);
 
       // Si l'IA locale est activée, on raffine l'extraction
       if (useAI && selectedModel && ollamaModels && ollamaModels.length > 0) {
@@ -320,7 +320,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         </div>
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2 flex-wrap mb-1">
-            <h3 className="text-lg font-bold text-gray-900">Scanner un projet d'acte</h3>
+            <h3 className="text-lg font-bold text-gray-900">Scanner un projet d&apos;acte</h3>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
               <Shield className="w-3.5 h-3.5" />
               100 % local — aucune donnée envoyée
@@ -328,7 +328,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           </div>
           <p className="text-sm text-gray-600 mb-3">
             Importez un PDF, un fichier Word (.doc/.docx) ou une image (JPG/PNG/WebP). Le montant,
-            le département et le type d'acte seront extraits automatiquement.
+            le département et le type d&apos;acte seront extraits automatiquement.
           </p>
 
           <button
@@ -350,7 +350,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                   <p className="text-gray-600 mt-0.5">
                     Le texte est lu directement dans votre navigateur (tesseract.js pour les images,
                     pdfjs pour les PDF, mammoth pour les .docx). Une heuristique repère le montant
-                    en euros, le code département via le code postal, et le type d'acte via des
+                    en euros, le code département via le code postal, et le type d&apos;acte via des
                     mots-clés. <strong>Aucune connexion réseau, aucun envoi de données.</strong>
                   </p>
                 </div>
@@ -376,8 +376,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                         Ollama détecté ({ollamaModels.length} modèle{ollamaModels.length > 1 ? 's' : ''} disponible{ollamaModels.length > 1 ? 's' : ''})
                       </p>
                       <p className="text-emerald-800 text-xs mt-1">
-                        Cochez la case « IA locale » ci-dessous lors de l'import pour utiliser le
-                        modèle. L'extraction par règles reste appliquée en parallèle.
+                        Cochez la case « IA locale » ci-dessous lors de l&apos;import pour utiliser le
+                        modèle. L&apos;extraction par règles reste appliquée en parallèle.
                       </p>
                     </div>
                   ) : (
@@ -506,7 +506,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                   <p className="font-bold text-gray-900">{extracted.departement || '—'}</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <p className="text-xs text-gray-500">Type d'acte</p>
+                  <p className="text-xs text-gray-500">Type d&apos;acte</p>
                   <p className="font-bold text-gray-900">{extracted.acteLabel || '—'}</p>
                 </div>
               </div>
@@ -514,7 +514,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
                   <span className="font-semibold text-amber-900">Mobilier détecté : </span>
                   <span className="text-amber-800">
-                    {extracted.valeurMobilier.toLocaleString('fr-FR')} € (déduit de l'assiette DMTO — art. 1245 CGI)
+                    {extracted.valeurMobilier.toLocaleString('fr-FR')} € (déduit de l&apos;assiette DMTO — art. 1245 CGI)
                   </span>
                 </div>
               )}

@@ -16,7 +16,7 @@ export default function ComptabiliteNotariale() {
             Comptabilité notariale experte
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Plus de 20 ans d'expérience en gestion comptable et fiscale d'offices notariaux
+            Plus de 20 ans d&apos;expérience en gestion comptable et fiscale d&apos;offices notariaux
           </p>
         </div>
       </section>
@@ -39,9 +39,9 @@ export default function ComptabiliteNotariale() {
               </a>
             </div>
             <p className="text-gray-600 leading-relaxed mb-6">
-              Comptable avec 20 ans d'expérience en étude notariale, spécialisée dans la gestion quotidienne 
+              Comptable avec 20 ans d&apos;expérience en étude notariale, spécialisée dans la gestion quotidienne
               comptable (plus de 12 000 opérations annuelles), paie, déclarations fiscales et sociales, et 
-              reporting financier. Maîtrise d'Excel, Odoo comptabilité, FIDUCIAL et GENAPI.
+              reporting financier. Maîtrise d&apos;Excel, Odoo comptabilité, FIDUCIAL et GENAPI.
             </p>
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
               <h3 className="font-semibold text-gray-900 mb-3">🎯 Intervention pour offices notariaux français</h3>
@@ -68,7 +68,7 @@ export default function ComptabiliteNotariale() {
 
           {/* Services Grid */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-12">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Modalités d'intervention</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Modalités d&apos;intervention</h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -78,7 +78,7 @@ export default function ComptabiliteNotariale() {
                   <li>• Gestion quotidienne à distance (saisie, pointage, paie)</li>
                   <li>• Connexion sécurisée aux logiciels notariaux</li>
                   <li>• Communication quotidienne (email, visio, téléphone)</li>
-                  <li>• Reporting régulier de l'activité</li>
+                  <li>• Reporting régulier de l&apos;activité</li>
                   <li>• Disponibilité horaires bureau français</li>
                 </ul>
               </div>
@@ -219,7 +219,7 @@ export default function ComptabiliteNotariale() {
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Gestion immobilière (SCI)</h4>
                 <p className="text-gray-600">
-                  Co-gestion d'une SCI spécialisée dans l'investissement immobilier et la gestion locative. 
+                  Co-gestion d&apos;une SCI spécialisée dans l&apos;investissement immobilier et la gestion locative.
                   Supervision des travaux de rénovation, gestion administrative et financière des biens 
                   (états des lieux, contrats, comptabilité locative).
                 </p>
@@ -228,7 +228,7 @@ export default function ComptabiliteNotariale() {
                 <h4 className="font-semibold text-gray-900 mb-2">Formaliste notariale (7 ans)</h4>
                 <p className="text-gray-600">
                   Constitution et gestion des dossiers clients en amont de la signature des actes. 
-                  Collecte et vérification des pièces administratives, demandes d'urbanisme, recherches d'état civil, 
+                  Collecte et vérification des pièces administratives, demandes d&apos;urbanisme, recherches d&apos;état civil,
                   constitution des dossiers de financement, préparation des avant-contrats.
                 </p>
               </div>
@@ -279,7 +279,7 @@ export default function ComptabiliteNotariale() {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Tarifs HT - Non soumis à TVA</h4>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Conformément à l'article 293 B du Code Général des Impôts, notre activité n'est pas soumise à la TVA. 
+                    Conformément à l&apos;article 293 B du Code Général des Impôts, notre activité n&apos;est pas soumise à la TVA.
                     Les tarifs affichés sont donc les prix définitifs que vous payez.
                   </p>
                 </div>
@@ -300,7 +300,7 @@ export default function ComptabiliteNotariale() {
       {/* CTA Section */}
       <section className="py-16 px-6 bg-gradient-to-br from-indigo-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Votre office notarial a besoin d'un renfort comptable ?</h2>
+          <h2 className="text-3xl font-bold mb-4">Votre office notarial a besoin d&apos;un renfort comptable ?</h2>
           <p className="text-xl text-indigo-100 mb-8">
             Intervention en télétravail pour les études notariales françaises, avec déplacements possibles sur site
           </p>

@@ -310,7 +310,7 @@ export default function CalculateurPret() {
               </h1>
             </div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Calcul de mensualités • Tableau d'amortissement • Barème 2025
+              Calcul de mensualités • Tableau d&apos;amortissement • Barème 2025
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-indigo-700 bg-indigo-100 px-4 py-2 rounded-full w-fit mx-auto">
               <Info className="w-4 h-4" />
@@ -366,7 +366,7 @@ export default function CalculateurPret() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                   <Percent className="w-4 h-4 text-indigo-600" />
-                  Taux d'intérêt annuel (%)
+                  Taux d&apos;intérêt annuel (%)
                 </label>
                 <div className="relative">
                   <input
@@ -395,7 +395,7 @@ export default function CalculateurPret() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                   <Shield className="w-4 h-4 text-indigo-600" />
-                  Taux d'assurance emprunteur (% du capital)
+                  Taux d&apos;assurance emprunteur (% du capital)
                 </label>
                 <input
                   type="number"
@@ -503,7 +503,7 @@ export default function CalculateurPret() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={(props: any) => `${props.name}: ${formatEuros(props.value as number)}`}
+                    label={(props) => `${props.name}: ${formatEuros(props.value as number)}`}
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
@@ -571,7 +571,7 @@ export default function CalculateurPret() {
             >
               <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Landmark className="w-6 h-6 text-indigo-600" />
-                Tableau d'amortissement détaillé
+                Tableau d&apos;amortissement détaillé
               </h3>
               {afficherTableau ? (
                 <ChevronUp className="w-6 h-6 text-indigo-600" />
@@ -652,7 +652,7 @@ export default function CalculateurPret() {
             </div>
             <p className="mt-4 text-sm text-gray-600 bg-white rounded-lg p-3">
               <strong>💡 Recommandation :</strong> En octobre 2025, avec des taux fixes autour de 3%, 
-              le taux fixe reste l'option la plus sécurisante pour la majorité des emprunteurs.
+              le taux fixe reste l&apos;option la plus sécurisante pour la majorité des emprunteurs.
             </p>
           </div>
 
@@ -665,12 +665,12 @@ export default function CalculateurPret() {
                 <p>
                   Ce calculateur est fourni à titre informatif uniquement et ne constitue pas une offre de prêt. 
                   Les résultats sont des estimations basées sur les informations fournies et les taux de référence 
-                  d'octobre 2025 (Observatoire Crédit Logement/CSA).
+                  d&apos;octobre 2025 (Observatoire Crédit Logement/CSA).
                 </p>
                 <p>
                   Les taux réels proposés par les banques varient selon votre profil (apport, revenus, endettement, 
-                  stabilité professionnelle), la région, et la stratégie commerciale de l'établissement. 
-                  Une négociation peut permettre d'obtenir des conditions plus avantageuses.
+                  stabilité professionnelle), la région, et la stratégie commerciale de l&apos;établissement.
+                  Une négociation peut permettre d&apos;obtenir des conditions plus avantageuses.
                 </p>
                 <p className="font-semibold">
                   Pour obtenir une offre de prêt personnalisée, consultez un courtier en crédit immobilier 

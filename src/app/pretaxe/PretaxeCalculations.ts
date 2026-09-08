@@ -420,7 +420,7 @@ export function estFormaliteObligatoire(nomFormalite: string, selectedActe: stri
   if (!config || !config.formalites) return false;
   
   const formalite = config.formalites[nomFormalite as keyof typeof config.formalites];
-  return (formalite as any)?.obligatoire === true;
+  return formalite != null && 'obligatoire' in formalite && formalite.obligatoire === true;
 }
 
 // ============================================================================

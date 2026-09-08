@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import {
   Calculator, Menu, X, ArrowRight, Github, TrendingUp, Receipt, Gift, Building,
@@ -98,7 +99,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-12">
-              <a href="/" className="flex items-center gap-3 group">
+              <Link href="/" className="flex items-center gap-3 group">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <Calculator className="w-5 h-5 text-white" />
@@ -109,7 +110,7 @@ export default function Header() {
                   <span className="text-xl font-bold text-gray-900">NotariaPrime</span>
                   <span className="block text-xs text-gray-500 -mt-1">Plateforme Open Source</span>
                 </div>
-              </a>
+              </Link>
 
               {isDesktop && (
                 <nav className="flex items-center gap-6">

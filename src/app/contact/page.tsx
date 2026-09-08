@@ -140,7 +140,7 @@ function ContactContent() {
               <span className="text-gray-900">Contactez</span>
               <br />
               <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                l'équipe NotariaPrime
+                l&apos;équipe NotariaPrime
               </span>
             </h1>
 
@@ -200,14 +200,14 @@ function ContactContent() {
                   <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-green-900 mb-2">Message envoyé !</h3>
                   <p className="text-green-700">
-                    Votre client email va s'ouvrir pour finaliser l'envoi.
+                    Votre client email va s&apos;ouvrir pour finaliser l&apos;envoi.
                     Nous vous répondrons dans les plus brefs délais.
                   </p>
                 </div>
               ) : submitStatus === 'error' ? (
                 <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center">
                   <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-red-900 mb-2">Erreur d'envoi</h3>
+                  <h3 className="text-xl font-bold text-red-900 mb-2">Erreur d&apos;envoi</h3>
                   <p className="text-red-700 mb-4">
                     Une erreur est survenue. Vous pouvez nous contacter directement à{' '}
                     <a href="mailto:contact@notariaprime.fr" className="underline font-semibold">
@@ -342,7 +342,7 @@ function ContactContent() {
                     <h3 className="font-bold text-gray-900 mb-2">Délai de réponse</h3>
                     <p className="text-gray-700 text-sm">
                       Nous nous efforçons de répondre à tous les messages sous <strong>48 heures ouvrées</strong>.
-                      Pour les questions urgentes, n'hésitez pas à préciser "URGENT" dans l'objet.
+                      Pour les questions urgentes, n&apos;hésitez pas à préciser &quot;URGENT&quot; dans l&apos;objet.
                     </p>
                   </div>
                 </div>
@@ -389,7 +389,7 @@ function ContactContent() {
                 <div>
                   <p className="font-semibold text-gray-900">NOTARIA PRIME</p>
                   <p className="text-sm text-gray-600">1 Impasse de Menez Bijigou</p>
-                  <p className="text-sm text-gray-600">29120 Pont-l'Abbé, France</p>
+                  <p className="text-sm text-gray-600">29120 Pont-l&apos;Abbé, France</p>
                 </div>
                 <a
                   href="https://www.openstreetmap.org/?mlat=47.8655&mlon=-4.2159#map=15/47.8655/-4.2159"

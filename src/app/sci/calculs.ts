@@ -181,7 +181,7 @@ export function calculerResultatsIR(
   const assurances = parseFloat(formData.assurances.replace(/\s/g, '')) || 0;
   const travaux = parseFloat(formData.travauxAnnuels.replace(/\s/g, '')) || 0;
   
-  let revenusFonciers = revenusBruts;
+  const revenusFonciers = revenusBruts;
   let chargesDeductibles = 0;
   let revenuImposable = 0;
   
@@ -671,7 +671,7 @@ export function supprimerSimulation(id: string) {
 export function genererPDF(
   formData: FormData,
   results: ComparaisonResults,
-  graphiqueData: any[]
+  graphiqueData: ReturnType<typeof genererDonneesGraphiques>
 ) {
   // Import dynamique de jsPDF
   import('jspdf').then(({ default: jsPDF }) => {

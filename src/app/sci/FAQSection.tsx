@@ -143,7 +143,7 @@ export function FAQSection() {
               Questions fréquentes sur les SCI
             </h2>
             <p className="text-blue-100 text-lg">
-              Tout ce que vous devez savoir sur la création, la gestion et la fiscalité d'une SCI
+              Tout ce que vous devez savoir sur la création, la gestion et la fiscalité d&apos;une SCI
             </p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-4 border-2 border-white/30">
@@ -269,10 +269,10 @@ export function FAQSection() {
               Ces informations sont fournies à titre indicatif
             </h4>
             <p className="text-sm text-amber-800 leading-relaxed">
-              Chaque situation est unique. Les conseils d'un <strong>notaire</strong>, <strong>avocat fiscaliste</strong>, 
+              Chaque situation est unique. Les conseils d&apos;un <strong>notaire</strong>, <strong>avocat fiscaliste</strong>,
               ou <strong>expert-comptable</strong> sont indispensables avant toute décision importante concernant 
-              la création, la gestion ou la fiscalité d'une SCI. Les informations ci-dessus sont basées sur la 
-              législation en vigueur en 2025 et sont susceptibles d'évoluer.
+              la création, la gestion ou la fiscalité d&apos;une SCI. Les informations ci-dessus sont basées sur la
+              législation en vigueur en 2025 et sont susceptibles d&apos;évoluer.
             </p>
           </div>
         </div>

@@ -352,7 +352,7 @@ function calculerStatut(
 
       // Dividendes: part > 10% du capital soumise a SSI
       const seuilSSIDividendes = capitalSocial * 0.10;
-      let dividendesBruts = beneficeApresIS;
+      const dividendesBruts = beneficeApresIS;
       let fiscDividendes = 0;
 
       // La TOTALITE des dividendes supporte la flat tax (31,4%).
@@ -802,7 +802,7 @@ export default function ComparateurStatutJuridique() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [nomSimulation, setNomSimulation] = useState('');
-  const [simulations, setSimulations] = useState<any[]>([]);
+  const [simulations, setSimulations] = useState<{ nom: string; date: string; formData: FormData }[]>([]);
   const [formData, setFormData] = useState<FormData>({
     typeActivite: 'commerciale',
     chiffreAffaires: '100 000',
@@ -1464,7 +1464,7 @@ export default function ComparateurStatutJuridique() {
                                 r.statut === recommandation ? 'bg-green-50/50' : ''
                               } ${row.isBold ? 'text-indigo-900 text-base' : 'text-gray-900'}`}
                             >
-                              {(row as any).isPct
+                              {('isPct' in row && row.isPct)
                                 ? formatPourcentage(val)
                                 : formatEuros(val)}
                             </td>

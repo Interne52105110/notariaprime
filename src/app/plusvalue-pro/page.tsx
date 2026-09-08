@@ -928,7 +928,7 @@ function PlusValueProContent() {
                   Calculateur Plus-Value Professionnelle
                 </h1>
                 <p className="text-indigo-600 font-medium mt-1">
-                  Regimes d'exoneration et simulation fiscale 2026
+                  Regimes d&apos;exoneration et simulation fiscale 2026
                 </p>
               </div>
             </div>
@@ -1031,7 +1031,7 @@ function PlusValueProContent() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'activite</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Type d&apos;activite</label>
                   <div className="flex gap-2">
                     {[
                       { value: 'ventes' as const, label: 'Ventes / Hebergement' },
@@ -1083,7 +1083,7 @@ function PlusValueProContent() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Prix / Valeur d'acquisition *
+                    Prix / Valeur d&apos;acquisition *
                   </label>
                   <div className="relative">
                     <input
@@ -1176,7 +1176,7 @@ function PlusValueProContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Tranche marginale d'imposition (TMI)
+                    Tranche marginale d&apos;imposition (TMI)
                   </label>
                   <div className="flex gap-2 flex-wrap">
                     {TMI_OPTIONS.map((opt) => (
@@ -1328,7 +1328,7 @@ function PlusValueProContent() {
 
                   {/* Detail imposition */}
                   <div className="border-2 border-gray-100 rounded-xl p-6">
-                    <h3 className="font-bold text-gray-900 mb-4 text-lg">Detail de l'imposition</h3>
+                    <h3 className="font-bold text-gray-900 mb-4 text-lg">Detail de l&apos;imposition</h3>
                     <div className="space-y-3">
                       {results.pvNetteImposableCT > 0 && (
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -1380,7 +1380,7 @@ function PlusValueProContent() {
                         <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                           <CheckCircle className="w-5 h-5 text-white" />
                         </div>
-                        <h3 className="font-bold text-green-800 text-lg">Regime d'exoneration optimal</h3>
+                        <h3 className="font-bold text-green-800 text-lg">Regime d&apos;exoneration optimal</h3>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
@@ -1388,7 +1388,7 @@ function PlusValueProContent() {
                           <p className="text-xs text-green-600">{results.meilleurRegime.article}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-green-700">Taux d'exoneration</p>
+                          <p className="text-sm text-green-700">Taux d&apos;exoneration</p>
                           <p className="font-bold text-green-800">{formatPourcent(results.meilleurRegime.tauxExoneration)}</p>
                         </div>
                         <div>
@@ -1485,10 +1485,10 @@ function PlusValueProContent() {
                 <h3 className="text-xl font-bold text-blue-900 mb-2">Aucune plus-value</h3>
                 <p className="text-blue-700">
                   La cession degage une moins-value de {formatEuros(Math.abs(results.plusValueBrute))}.
-                  Aucune imposition n'est due sur cette operation.
+                  Aucune imposition n&apos;est due sur cette operation.
                 </p>
                 <p className="text-sm text-blue-600 mt-2">
-                  La moins-value professionnelle peut s'imputer sur les benefices.
+                  La moins-value professionnelle peut s&apos;imputer sur les benefices.
                 </p>
               </div>
             )}
@@ -1507,7 +1507,7 @@ function PlusValueProContent() {
                   <Shield className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Regimes d'exoneration</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Regimes d&apos;exoneration</h2>
                   <p className="text-sm text-gray-500">Eligibilite automatique selon vos donnees</p>
                 </div>
               </div>
@@ -1515,7 +1515,7 @@ function PlusValueProContent() {
               {!results ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                   <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Effectuez d'abord un calcul dans l'onglet Calcul</p>
+                  <p className="text-gray-600 font-medium">Effectuez d&apos;abord un calcul dans l&apos;onglet Calcul</p>
                   <p className="text-sm text-gray-400 mt-1">Les regimes seront analyses automatiquement</p>
                 </div>
               ) : (
@@ -1608,7 +1608,7 @@ function PlusValueProContent() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-4">
                 <Info className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-bold text-gray-900">Cumul des regimes d'exoneration</h3>
+                <h3 className="font-bold text-gray-900">Cumul des regimes d&apos;exoneration</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -1666,7 +1666,7 @@ function PlusValueProContent() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Evolution selon la duree de detention</h2>
-                  <p className="text-sm text-gray-500">Impact du temps sur l'exoneration (art. 151 septies B)</p>
+                  <p className="text-sm text-gray-500">Impact du temps sur l&apos;exoneration (art. 151 septies B)</p>
                 </div>
               </div>
 
@@ -1688,8 +1688,8 @@ function PlusValueProContent() {
               ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                   <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Renseignez les prix de cession et d'acquisition</p>
-                  <p className="text-sm text-gray-400 mt-1">Le graphique s'affichera automatiquement</p>
+                  <p className="text-gray-600 font-medium">Renseignez les prix de cession et d&apos;acquisition</p>
+                  <p className="text-sm text-gray-400 mt-1">Le graphique s&apos;affichera automatiquement</p>
                 </div>
               )}
             </div>
@@ -1745,7 +1745,7 @@ function PlusValueProContent() {
               ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                   <Scale className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Effectuez d'abord un calcul dans l'onglet Calcul</p>
+                  <p className="text-gray-600 font-medium">Effectuez d&apos;abord un calcul dans l&apos;onglet Calcul</p>
                 </div>
               )}
             </div>
@@ -1758,7 +1758,7 @@ function PlusValueProContent() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Impact CT vers LT</h2>
-                  <p className="text-sm text-gray-500">Interet d'attendre le passage en long terme (2 ans)</p>
+                  <p className="text-sm text-gray-500">Interet d&apos;attendre le passage en long terme (2 ans)</p>
                 </div>
               </div>
 
@@ -1845,7 +1845,7 @@ function PlusValueProContent() {
               ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                   <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Effectuez d'abord un calcul dans l'onglet Calcul</p>
+                  <p className="text-gray-600 font-medium">Effectuez d&apos;abord un calcul dans l&apos;onglet Calcul</p>
                 </div>
               )}
             </div>
@@ -1880,7 +1880,7 @@ function PlusValueProContent() {
                   <h3 className="font-bold text-amber-900">Avertissement important</h3>
                   <p className="text-sm text-amber-800 leading-relaxed">
                     Les regles fiscales en matiere de plus-values professionnelles sont <strong>complexes et evoluent regulierement</strong>.
-                    Ce simulateur est fourni a titre indicatif et ne saurait se substituer a l'avis d'un professionnel qualifie.
+                    Ce simulateur est fourni a titre indicatif et ne saurait se substituer a l&apos;avis d&apos;un professionnel qualifie.
                   </p>
 
                   <div className="bg-white rounded-lg p-4 border-2 border-amber-300 mt-4">
@@ -1892,11 +1892,11 @@ function PlusValueProContent() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 font-bold">-</span>
-                        <span className="text-sm text-amber-800"><strong>Avocat fiscaliste</strong> : pour les regimes d'exoneration et l'optimisation</span>
+                        <span className="text-sm text-amber-800"><strong>Avocat fiscaliste</strong> : pour les regimes d&apos;exoneration et l&apos;optimisation</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 font-bold">-</span>
-                        <span className="text-sm text-amber-800"><strong>Notaire</strong> : pour la cession d'immeuble ou de fonds de commerce</span>
+                        <span className="text-sm text-amber-800"><strong>Notaire</strong> : pour la cession d&apos;immeuble ou de fonds de commerce</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 font-bold">-</span>
@@ -1906,7 +1906,7 @@ function PlusValueProContent() {
                   </div>
 
                   <p className="text-sm font-semibold text-amber-900">
-                    <strong>NotariaPrime.fr</strong> decline toute responsabilite en cas d'utilisation des informations fournies
+                    <strong>NotariaPrime.fr</strong> decline toute responsabilite en cas d&apos;utilisation des informations fournies
                     sans validation par un professionnel qualifie.
                   </p>
 

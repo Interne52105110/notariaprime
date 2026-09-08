@@ -31,7 +31,7 @@ export default function DeveloppementInformatique() {
               <h2 className="text-3xl font-bold">NotariaPrime.fr</h2>
             </div>
             <p className="text-xl text-indigo-100 mb-6">
-              Plateforme PropTech open source d'automatisation des calculs juridiques immobiliers par intelligence artificielle
+              Plateforme PropTech open source d&apos;automatisation des calculs juridiques immobiliers par intelligence artificielle
             </p>
             <div className="grid md:grid-cols-3 gap-4 mb-6">
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
@@ -81,7 +81,7 @@ export default function DeveloppementInformatique() {
                 <ul className="space-y-2 text-gray-600">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>Prétaxe notariale (frais d'acquisition)</span>
+                    <span>Prétaxe notariale (frais d&apos;acquisition)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -173,7 +173,7 @@ export default function DeveloppementInformatique() {
                 <h3 className="text-2xl font-semibold text-gray-900 mb-3">Gloria Project</h3>
                 <p className="text-gray-700 mb-4">
                   Spécialisé en marketing digital et SEO/SEA, avec une expertise reconnue dans 
-                  l'accompagnement d'entreprises dans leur transformation digitale.
+                  l&apos;accompagnement d&apos;entreprises dans leur transformation digitale.
                 </p>
                 <p className="text-gray-700 mb-4">
                   <strong>400+ professionnels formés</strong> aux stratégies de référencement naturel 
@@ -273,7 +273,7 @@ export default function DeveloppementInformatique() {
                   <span className="text-indigo-600 font-bold">1</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Développement d'applications web sur mesure</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Développement d&apos;applications web sur mesure</h4>
                   <p className="text-gray-600">
                     Création de plateformes PropTech, outils de gestion immobilière, calculateurs métiers 
                     et solutions SaaS adaptées aux besoins du secteur notarial et immobilier.
@@ -286,7 +286,7 @@ export default function DeveloppementInformatique() {
                   <span className="text-purple-600 font-bold">2</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Intégration d'Intelligence Artificielle</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Intégration d&apos;Intelligence Artificielle</h4>
                   <p className="text-gray-600">
                     Automatisation des processus métiers par IA (extraction de données, analyse de documents, 
                     calculs prédictifs, chatbots métiers) via APIs Claude AI et OpenAI.
@@ -302,7 +302,7 @@ export default function DeveloppementInformatique() {
                   <h4 className="font-semibold text-gray-900 mb-2">Audit et optimisation digitale</h4>
                   <p className="text-gray-600">
                     Audit de sites web, optimisation SEO/SEA, analyse de données (KPIs), amélioration de 
-                    l'UX/UI et stratégies de croissance digitale.
+                    l&apos;UX/UI et stratégies de croissance digitale.
                   </p>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function DeveloppementInformatique() {
       {/* CTA Section */}
       <section className="py-16 px-6 bg-gradient-to-br from-indigo-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Automatisez vos processus avec l'IA</h2>
+          <h2 className="text-3xl font-bold mb-4">Automatisez vos processus avec l&apos;IA</h2>
           <p className="text-xl text-indigo-100 mb-8">
             Développement de solutions PropTech sur mesure • Formation et accompagnement de vos équipes
           </p>

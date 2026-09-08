@@ -17,11 +17,6 @@ if (process.platform === "win32") {
     .join(" ");
 }
 
-const nextConfig: NextConfig = {
-  eslint: {
-    // Ignore ESLint errors during build
-    ignoreDuringBuilds: true,
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

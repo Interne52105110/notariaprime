@@ -672,7 +672,7 @@ function HomepageContent() {
                 Encore plus de fonctionnalités en préparation
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Mode hors-ligne (PWA) et OCR sont disponibles. L'API publique REST et l'espace professionnel arrivent bientôt.
+                Mode hors-ligne (PWA) et OCR sont disponibles. L&apos;API publique REST et l&apos;espace professionnel arrivent bientôt.
               </p>
             </div>
 

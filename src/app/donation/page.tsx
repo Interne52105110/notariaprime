@@ -405,7 +405,7 @@ function DonationCalculatorContent() {
     const donataire = donataires[0];
     if (!donataire.montant) return null;
 
-    let montantBase = parseFloat(donataire.montant.replace(/\s/g, ''));
+    const montantBase = parseFloat(donataire.montant.replace(/\s/g, ''));
     if (isNaN(montantBase)) return null;
 
     let valeurTaxable = montantBase;
@@ -510,7 +510,7 @@ function DonationCalculatorContent() {
     const detailTranches: Array<{tranche: string; montant: number; taux: number; impot: number}> = [];
     {
       let reste = baseImposable;
-      let position = baseAnterieureTaxable; // on démarre au-dessus de l'antérieure déjà taxée
+      const position = baseAnterieureTaxable; // on démarre au-dessus de l'antérieure déjà taxée
       let trancheInf = 0;
       for (const tranche of tranches) {
         if (reste <= 0) break;
@@ -1159,7 +1159,7 @@ function DonationCalculatorContent() {
                         value={donataire.lien}
                         onChange={(e) => {
                           const newDonataires = [...donataires];
-                          newDonataires[index].lien = e.target.value as any;
+                          newDonataires[index].lien = e.target.value as Donataire['lien'];
                           setDonataires(newDonataires);
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
@@ -1184,14 +1184,14 @@ function DonationCalculatorContent() {
                           value={donataire.typeDon}
                           onChange={(e) => {
                             const newDonataires = [...donataires];
-                            newDonataires[index].typeDon = e.target.value as any;
+                            newDonataires[index].typeDon = e.target.value as Donataire['typeDon'];
                             setDonataires(newDonataires);
                           }}
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500"
                         >
                           <option value="bien">Bien (immeuble, actions...) → Abattement général uniquement</option>
-                          <option value="argent">Somme d'argent → Don familial +31 865€ (donateur &lt; 80 ans, donataire majeur)</option>
-                          <option value="argent-residence">Somme d'argent pour le logement → Exo. jusqu'à 100 000€/donateur (2025)</option>
+                          <option value="argent">Somme d&apos;argent → Don familial +31 865€ (donateur &lt; 80 ans, donataire majeur)</option>
+                          <option value="argent-residence">Somme d&apos;argent pour le logement → Exo. jusqu&apos;à 100 000€/donateur (2025)</option>
                         </select>
                         <p className="text-xs text-gray-600 mt-1">
                           {donataire.typeDon === 'argent' && '💰 Don familial argent (art. 790 G)'}
@@ -1240,12 +1240,12 @@ function DonationCalculatorContent() {
                       </div>
                       {donataire.typeDon === 'argent' && (
                         <p className="text-xs text-blue-700 mt-2">
-                          ⚠️ Don familial de somme d'argent (art. 790 G, +31 865€) : donateur <strong>&lt; 80 ans</strong> et donataire <strong>majeur (≥ 18 ans)</strong>. Réservé aux descendants (ou neveux/nièces à défaut de descendance).
+                          ⚠️ Don familial de somme d&apos;argent (art. 790 G, +31 865€) : donateur <strong>&lt; 80 ans</strong> et donataire <strong>majeur (≥ 18 ans)</strong>. Réservé aux descendants (ou neveux/nièces à défaut de descendance).
                         </p>
                       )}
                       {donataire.typeDon === 'argent-residence' && (
                         <p className="text-xs text-green-700 mt-2">
-                          ✅ <strong>Don familial pour le logement (art. 790 A bis, 2025) :</strong> exonéré jusqu'à <strong>100 000 €/donateur</strong> et <strong>300 000 €/donataire</strong>, affecté à l'achat d'un logement neuf ou à des travaux de rénovation énergétique (utilisation sous 6 mois, conservation 5 ans). Réservé aux descendants (ou neveux/nièces à défaut de descendance). Cumulable avec le don familial 790 G.
+                          ✅ <strong>Don familial pour le logement (art. 790 A bis, 2025) :</strong> exonéré jusqu&apos;à <strong>100 000 €/donateur</strong> et <strong>300 000 €/donataire</strong>, affecté à l&apos;achat d&apos;un logement neuf ou à des travaux de rénovation énergétique (utilisation sous 6 mois, conservation 5 ans). Réservé aux descendants (ou neveux/nièces à défaut de descendance). Cumulable avec le don familial 790 G.
                         </p>
                       )}
                     </div>
@@ -1286,7 +1286,7 @@ function DonationCalculatorContent() {
                         className="w-5 h-5 rounded border-gray-300 text-rose-600 focus:ring-rose-500"
                       />
                       <span className="text-sm font-medium text-gray-700">
-                        Bénéficiaire en situation de handicap (+159 325 € d'abattement)
+                        Bénéficiaire en situation de handicap (+159 325 € d&apos;abattement)
                       </span>
                     </label>
                   </div>
@@ -1336,7 +1336,7 @@ function DonationCalculatorContent() {
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-800">
                   Les abattements se renouvellent tous les 15 ans. Si vous avez déjà fait une donation 
-                  il y a moins de 15 ans, l'abattement sera réduit d'autant.
+                  il y a moins de 15 ans, l&apos;abattement sera réduit d&apos;autant.
                 </p>
               </div>
             </div>
@@ -1380,7 +1380,7 @@ function DonationCalculatorContent() {
             {demembrement.actif && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Type d'opération</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Type d&apos;opération</label>
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => setDemembrement({...demembrement, typeOperation: 'donation-nue'})}
@@ -1391,7 +1391,7 @@ function DonationCalculatorContent() {
                       }`}
                     >
                       <p className="font-semibold mb-1">Donation nue-propriété</p>
-                      <p className="text-xs text-gray-600">Vous gardez l'usufruit</p>
+                      <p className="text-xs text-gray-600">Vous gardez l&apos;usufruit</p>
                     </button>
                     <button
                       onClick={() => setDemembrement({...demembrement, typeOperation: 'donation-usufruit'})}
@@ -1419,7 +1419,7 @@ function DonationCalculatorContent() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <p className="text-xs text-gray-600 mt-2">
-                    Nécessaire pour calculer la valeur de l'usufruit selon le barème fiscal
+                    Nécessaire pour calculer la valeur de l&apos;usufruit selon le barème fiscal
                   </p>
                 </div>
 
@@ -1456,7 +1456,7 @@ function DonationCalculatorContent() {
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-sm font-medium text-gray-700">Transmission d'entreprise ?</span>
+              <span className="text-sm font-medium text-gray-700">Transmission d&apos;entreprise ?</span>
               <div className="flex gap-3">
                 <button
                   onClick={() => setPacteDutreil({...pacteDutreil, actif: true})}
@@ -1489,8 +1489,8 @@ function DonationCalculatorContent() {
                     <div>
                       <p className="font-semibold text-green-900 mb-2">Réduction fiscale de 75%</p>
                       <p className="text-sm text-green-800">
-                        Le Pacte Dutreil permet une exonération de 75% de la valeur de l'entreprise 
-                        transmise, sous conditions d'engagement collectif (2 ans) et individuel (4 ans).
+                        Le Pacte Dutreil permet une exonération de 75% de la valeur de l&apos;entreprise
+                        transmise, sous conditions d&apos;engagement collectif (2 ans) et individuel (4 ans).
                       </p>
                     </div>
                   </div>
@@ -1499,7 +1499,7 @@ function DonationCalculatorContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Valeur de l'entreprise *
+                      Valeur de l&apos;entreprise *
                     </label>
                     <input
                       type="text"
@@ -1702,9 +1702,9 @@ function DonationCalculatorContent() {
                     <div className="flex items-start gap-3">
                       <TrendingDown className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-amber-900 mb-1">Économie grâce à l'abattement</p>
+                        <p className="font-semibold text-amber-900 mb-1">Économie grâce à l&apos;abattement</p>
                         <p className="text-sm text-amber-800">
-                          Vous économisez <strong>{results.economieAbattement.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €</strong> grâce à l'abattement fiscal
+                          Vous économisez <strong>{results.economieAbattement.toLocaleString('fr-FR', {maximumFractionDigits: 0})} €</strong> grâce à l&apos;abattement fiscal
                         </p>
                       </div>
                     </div>
@@ -1718,7 +1718,7 @@ function DonationCalculatorContent() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Lightbulb className="w-8 h-8 text-amber-600" />
-                  <h2 className="text-2xl font-bold text-gray-900">Suggestions d'optimisation</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Suggestions d&apos;optimisation</h2>
                 </div>
                 <div className="space-y-3">
                   {results.suggestions.map((suggestion, index) => (
@@ -1807,7 +1807,7 @@ function DonationCalculatorContent() {
               </h3>
               <div className="space-y-3 text-sm text-amber-900">
                 <p className="leading-relaxed">
-                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d'évoluer.
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d&apos;évoluer.
                 </p>
                 
                 <p className="leading-relaxed">
@@ -1825,11 +1825,11 @@ function DonationCalculatorContent() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 font-bold">•</span>
-                      <span><strong>Avocat fiscaliste</strong> : pour l'optimisation fiscale complexe (Pacte Dutreil, holdings, structures patrimoniales)</span>
+                      <span><strong>Avocat fiscaliste</strong> : pour l&apos;optimisation fiscale complexe (Pacte Dutreil, holdings, structures patrimoniales)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 font-bold">•</span>
-                      <span><strong>Expert-comptable</strong> : pour les transmissions d'entreprise et aspects comptables</span>
+                      <span><strong>Expert-comptable</strong> : pour les transmissions d&apos;entreprise et aspects comptables</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 font-bold">•</span>
@@ -1839,7 +1839,7 @@ function DonationCalculatorContent() {
                 </div>
 
                 <p className="leading-relaxed font-semibold text-amber-900">
-                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d'utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l'optimisation adaptée à votre situation.
+                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d&apos;utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l&apos;optimisation adaptée à votre situation.
                 </p>
 
                 <div className="bg-amber-100 rounded-lg p-3 mt-4 border border-amber-400">

@@ -389,7 +389,7 @@ function RoadmapContent() {
           </div>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl">
-            17 fonctionnalités disponibles aujourd'hui (15 calculateurs + PWA + OCR), 2 en préparation.
+            17 fonctionnalités disponibles aujourd&apos;hui (15 calculateurs + PWA + OCR), 2 en préparation.
             Votre feedback guide notre feuille de route.
           </p>
 

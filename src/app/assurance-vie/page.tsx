@@ -882,7 +882,7 @@ function AssuranceVieContent() {
           </h1>
           <p className={`text-gray-600 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-lg'}`}>
             Fiscalite des rachats, transmission successorale, projection de capitalisation.
-            Comparez les strategies pour optimiser votre contrat d'assurance-vie.
+            Comparez les strategies pour optimiser votre contrat d&apos;assurance-vie.
           </p>
         </div>
 
@@ -1265,7 +1265,7 @@ function AssuranceVieContent() {
                             cx="50%"
                             cy="50%"
                             outerRadius={90}
-                            label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            label={({ name, percent = 0 }) => `${name}: ${(Number(percent) * 100).toFixed(0)}%`}
                             labelLine={false}
                           >
                             {pieRachatData.map((_, index) => (

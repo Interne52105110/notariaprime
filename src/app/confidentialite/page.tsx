@@ -17,7 +17,7 @@ function ConfidentialiteContent() {
             <h1 className="text-4xl font-bold text-gray-900">Politique de confidentialité</h1>
           </div>
           <p className="text-lg text-gray-600">
-            NotariaPrime s'engage à protéger votre vie privée et vos données personnelles
+            NotariaPrime s&apos;engage à protéger votre vie privée et vos données personnelles
           </p>
         </div>
       </section>
@@ -31,7 +31,7 @@ function ConfidentialiteContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Notre engagement</h2>
               <div className="space-y-4 text-gray-700">
                 <p className="font-semibold text-green-900">
-                  NotariaPrime respecte votre vie privée et s'engage à protéger vos données personnelles.
+                  NotariaPrime respecte votre vie privée et s&apos;engage à protéger vos données personnelles.
                 </p>
                 <p>
                   Cette politique de confidentialité vous informe sur la manière dont nous collectons, 
@@ -39,7 +39,7 @@ function ConfidentialiteContent() {
                 </p>
                 <p>
                   <strong>Responsable du traitement :</strong> NOTARIA PRIME, SAS au capital de 500€, 
-                  dont le siège social est situé 1 Impasse de Menez Bijigou, 29120 Pont-l'Abbé, France.
+                  dont le siège social est situé 1 Impasse de Menez Bijigou, 29120 Pont-l&apos;Abbé, France.
                 </p>
               </div>
             </div>
@@ -66,7 +66,7 @@ function ConfidentialiteContent() {
                   <h3 className="font-bold text-gray-900 mb-3">2. Données de navigation</h3>
                   <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm text-gray-700">
                     <p><strong>Collectées :</strong> Adresse IP, type de navigateur, pages visitées, durée de visite</p>
-                    <p><strong>Finalité :</strong> Analyse d'audience et amélioration du service</p>
+                    <p><strong>Finalité :</strong> Analyse d&apos;audience et amélioration du service</p>
                     <p><strong>Outil :</strong> Google Analytics 4 (IP anonymisée, soumis à votre consentement)</p>
                     <p><strong>Conservation :</strong> 13 mois maximum</p>
                   </div>
@@ -99,7 +99,7 @@ function ConfidentialiteContent() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-500 mt-1">✓</span>
-                    <span>Analyser l'utilisation de la plateforme (données anonymisées)</span>
+                    <span>Analyser l&apos;utilisation de la plateforme (données anonymisées)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-500 mt-1">✓</span>
@@ -115,7 +115,7 @@ function ConfidentialiteContent() {
                     ✗ Nous ne vendons jamais vos données à des tiers
                   </p>
                   <p className="text-sm text-red-700 mt-2">
-                    ✗ Nous n'utilisons pas vos données à des fins publicitaires
+                    ✗ Nous n&apos;utilisons pas vos données à des fins publicitaires
                   </p>
                 </div>
               </div>
@@ -165,7 +165,7 @@ function ConfidentialiteContent() {
                   <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <span className="text-xl">👁️</span>
                     <div>
-                      <div className="font-semibold text-gray-900">Droit d'accès</div>
+                      <div className="font-semibold text-gray-900">Droit d&apos;accès</div>
                       <p className="text-sm">Obtenir une copie de vos données personnelles</p>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ function ConfidentialiteContent() {
                   <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <span className="text-xl">🗑️</span>
                     <div>
-                      <div className="font-semibold text-gray-900">Droit à l'effacement</div>
+                      <div className="font-semibold text-gray-900">Droit à l&apos;effacement</div>
                       <p className="text-sm">Demander la suppression de vos données</p>
                     </div>
                   </div>
@@ -189,7 +189,7 @@ function ConfidentialiteContent() {
                   <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <span className="text-xl">⛔</span>
                     <div>
-                      <div className="font-semibold text-gray-900">Droit d'opposition</div>
+                      <div className="font-semibold text-gray-900">Droit d&apos;opposition</div>
                       <p className="text-sm">Vous opposer au traitement de vos données</p>
                     </div>
                   </div>
@@ -225,12 +225,12 @@ function ConfidentialiteContent() {
                     </a>
                   </div>
                   <p className="text-sm text-gray-600">
-                    Nous nous engageons à répondre dans un délai d'un mois maximum
+                    Nous nous engageons à répondre dans un délai d&apos;un mois maximum
                   </p>
                 </div>
                 <p className="text-sm">
-                  Vous disposez également du droit d'introduire une réclamation auprès de la CNIL 
-                  (Commission Nationale de l'Informatique et des Libertés) si vous estimez que vos droits 
+                  Vous disposez également du droit d&apos;introduire une réclamation auprès de la CNIL
+                  (Commission Nationale de l&apos;Informatique et des Libertés) si vous estimez que vos droits
                   ne sont pas respectés : <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 font-medium">www.cnil.fr</a>
                 </p>
               </div>

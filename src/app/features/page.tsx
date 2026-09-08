@@ -401,9 +401,9 @@ function FonctionnalitesContent() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
-            Suite complète d'outils conçus avec et pour les professionnels du notariat. 
+            Suite complète d&apos;outils conçus avec et pour les professionnels du notariat.
             4 disponibles depuis T3 2025, 14 prévus pour T1 2026. 
-            Conformes aux réglementations, ultra-rapides et d'une précision irréprochable.
+            Conformes aux réglementations, ultra-rapides et d&apos;une précision irréprochable.
           </p>
 
           <div className="flex items-center gap-6 mb-12">

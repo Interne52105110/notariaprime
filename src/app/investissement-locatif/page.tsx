@@ -401,7 +401,7 @@ export default function SimulateurInvestissementLocatif() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [nomSimulation, setNomSimulation] = useState('');
-  const [simulations, setSimulations] = useState<any[]>([]);
+  const [simulations, setSimulations] = useState<{ nom: string; date: string; formData: FormData }[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
     prixAcquisition: '200000',

@@ -220,7 +220,7 @@ export default function HoldingPatrimoniale() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [nomSimulation, setNomSimulation] = useState('');
-  const [simulations, setSimulations] = useState<any[]>([]);
+  const [simulations, setSimulations] = useState<{ nom: string; date: string; formData: FormData }[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
     biens: [
@@ -329,7 +329,7 @@ export default function HoldingPatrimoniale() {
     });
   };
 
-  const updateField = (field: keyof FormData, value: any) => {
+  const updateField = <K extends keyof FormData,>(field: K, value: FormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -974,7 +974,7 @@ export default function HoldingPatrimoniale() {
                       <label className="block text-xs font-medium text-gray-500 mb-1">Objectif principal</label>
                       <select
                         value={formData.objectif}
-                        onChange={(e) => updateField('objectif', e.target.value)}
+                        onChange={(e) => updateField('objectif', e.target.value as FormData['objectif'])}
                         className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-indigo-400 focus:outline-none bg-white"
                       >
                         <option value="capitalisation">Capitalisation (reinvestissement)</option>
@@ -1281,7 +1281,7 @@ export default function HoldingPatrimoniale() {
                         cy="50%"
                         outerRadius={100}
                         dataKey="value"
-                        label={(props: any) => `${props.name}: ${(props.percent * 100).toFixed(0)}%`}
+                        label={(props) => `${props.name}: ${(Number(props.percent ?? 0) * 100).toFixed(0)}%`}
                         labelLine={true}
                       >
                         {resultats.repartitionFlux.map((_, index) => (

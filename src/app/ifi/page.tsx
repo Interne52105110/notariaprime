@@ -273,7 +273,7 @@ export default function CalculateurIFI() {
     }
   };
 
-  const modifierBien = (id: number, champ: keyof Bien, valeur: any) => {
+  const modifierBien = <K extends keyof Bien,>(id: number, champ: K, valeur: Bien[K]) => {
     setBiens(biens.map(b => 
       b.id === id ? { ...b, [champ]: valeur } : b
     ));
@@ -377,11 +377,11 @@ export default function CalculateurIFI() {
                 <div className="flex items-start gap-3">
                   <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                   <div className="space-y-2 text-sm text-blue-900">
-                    <p className="font-semibold">Seuil d'imposition IFI</p>
+                    <p className="font-semibold">Seuil d&apos;imposition IFI</p>
                     <p>
-                      <strong>Vous êtes redevable de l'IFI uniquement si votre patrimoine immobilier net taxable 
-                      dépasse 1 300 000 €</strong> au 1er janvier. Si c'est le cas, l'IFI est calculé sur toute 
-                      la part de votre patrimoine qui dépasse 800 000 €. Une décote s'applique entre 1 300 000 € 
+                      <strong>Vous êtes redevable de l&apos;IFI uniquement si votre patrimoine immobilier net taxable
+                      dépasse 1 300 000 €</strong> au 1er janvier. Si c&apos;est le cas, l&apos;IFI est calculé sur toute
+                      la part de votre patrimoine qui dépasse 800 000 €. Une décote s&apos;applique entre 1 300 000 €
                       et 1 400 000 €.
                     </p>
                   </div>
@@ -489,16 +489,16 @@ export default function CalculateurIFI() {
                   Plafonnement (art. 979)
                 </h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Optionnel. La somme de l'IFI et de l'impôt sur le revenu + prélèvements sociaux
-                  de l'année précédente ne peut excéder 75 % de vos revenus mondiaux nets de
-                  l'année précédente. Renseignez ces montants pour appliquer le plafonnement.
+                  Optionnel. La somme de l&apos;IFI et de l&apos;impôt sur le revenu + prélèvements sociaux
+                  de l&apos;année précédente ne peut excéder 75 % de vos revenus mondiaux nets de
+                  l&apos;année précédente. Renseignez ces montants pour appliquer le plafonnement.
                   Laissez vide pour ignorer ce mécanisme.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Revenus nets de l'année précédente (€)
+                      Revenus nets de l&apos;année précédente (€)
                     </label>
                     <input
                       type="text"
@@ -535,7 +535,7 @@ export default function CalculateurIFI() {
                   className="flex-1 flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105"
                 >
                   <Calculator className="w-6 h-6" />
-                  Calculer l'IFI
+                  Calculer l&apos;IFI
                 </button>
                 <button
                   onClick={reinitialiser}
@@ -558,14 +558,14 @@ export default function CalculateurIFI() {
                 
                 <div className="bg-blue-50 p-3 rounded-lg mb-4">
                   <p className="text-xs text-blue-900 font-semibold">
-                    ℹ️ Seuil d'imposition : 1 300 000 €<br />
-                    Si votre patrimoine dépasse ce seuil, l'IFI se calcule dès 800 000 €
+                    ℹ️ Seuil d&apos;imposition : 1 300 000 €<br />
+                    Si votre patrimoine dépasse ce seuil, l&apos;IFI se calcule dès 800 000 €
                   </p>
                 </div>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Jusqu'à 800 000 €</span>
+                    <span className="text-gray-600">Jusqu&apos;à 800 000 €</span>
                     <span className="font-semibold text-gray-900">0 %</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-200">
@@ -612,7 +612,7 @@ export default function CalculateurIFI() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-emerald-600 font-bold">✓</span>
-                    <span>Biens à l'étranger</span>
+                    <span>Biens à l&apos;étranger</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-600 font-bold">✗</span>
@@ -641,11 +641,11 @@ export default function CalculateurIFI() {
                     <>
                       <p className="text-sm font-semibold text-gray-600 mb-2">✅ Résultat fiscal</p>
                       <p className="text-4xl font-black mb-4 text-green-600">
-                        Non imposable à l'IFI
+                        Non imposable à l&apos;IFI
                       </p>
                       <p className="text-lg text-gray-700">
                         Votre patrimoine net taxable ({formatEuros(results.patrimoineNetTaxable)})
-                        est inférieur au seuil d'imposition de 1 300 000 €
+                        est inférieur au seuil d&apos;imposition de 1 300 000 €
                       </p>
                     </>
                   ) : (
@@ -802,7 +802,7 @@ export default function CalculateurIFI() {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: any) => formatEuros(value)} />
+                      <Tooltip formatter={(value) => formatEuros(Number(value))} />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -814,7 +814,7 @@ export default function CalculateurIFI() {
                 <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                     <TrendingUp className="w-6 h-6 text-emerald-600" />
-                    Calcul de l'IFI par tranches
+                    Calcul de l&apos;IFI par tranches
                   </h3>
                   
                   <ResponsiveContainer width="100%" height={300}>
@@ -828,7 +828,7 @@ export default function CalculateurIFI() {
                         style={{ fontSize: '12px' }}
                       />
                       <YAxis />
-                      <Tooltip formatter={(value: any) => formatEuros(value)} />
+                      <Tooltip formatter={(value) => formatEuros(Number(value))} />
                       <Bar dataKey="montant" fill="#10b981" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -862,10 +862,10 @@ export default function CalculateurIFI() {
                   <div className="flex items-start gap-3">
                     <Info className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
                     <div className="space-y-2 text-sm text-green-900">
-                      <p className="font-semibold">✅ Non imposable à l'IFI</p>
+                      <p className="font-semibold">✅ Non imposable à l&apos;IFI</p>
                       <p>
                         Votre patrimoine immobilier net taxable ({formatEuros(results.patrimoineNetTaxable)}) 
-                        est inférieur au seuil d'imposition de 1 300 000 €. Vous n'avez aucun IFI à payer.
+                        est inférieur au seuil d&apos;imposition de 1 300 000 €. Vous n&apos;avez aucun IFI à payer.
                       </p>
                     </div>
                   </div>
@@ -893,7 +893,7 @@ export default function CalculateurIFI() {
                   <div className="flex items-start gap-3">
                     <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                     <div className="space-y-2 text-sm text-blue-900">
-                      <p className="font-semibold">Calcul de l'IFI</p>
+                      <p className="font-semibold">Calcul de l&apos;IFI</p>
                       <p>
                         Votre IFI est calculé sur la part de votre patrimoine qui dépasse 800 000 €,
                         soit {formatEuros(results.patrimoineNetTaxable - 800000)}, en appliquant le barème progressif.
@@ -919,20 +919,20 @@ export default function CalculateurIFI() {
                       <p className="font-semibold">Plafonnement (art. 979 CGI) pris en compte</p>
                       {results.reductionPlafonnement > 0 ? (
                         <p>
-                          La somme de l'IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
+                          La somme de l&apos;IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
                           prélèvements sociaux ({formatEuros(results.irEtPsAnneePrecedente)}) dépasse 75 %
-                          de vos revenus nets de l'année précédente
-                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). L'excédent de{' '}
-                          {formatEuros(results.reductionPlafonnement)} est déduit de l'IFI, ramené à{' '}
+                          de vos revenus nets de l&apos;année précédente
+                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). L&apos;excédent de{' '}
+                          {formatEuros(results.reductionPlafonnement)} est déduit de l&apos;IFI, ramené à{' '}
                           {formatEuros(results.ifiFinal)}.
                         </p>
                       ) : (
                         <p>
-                          La somme de l'IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
-                          prélèvements sociaux ({formatEuros(results.irEtPsAnneePrecedente)}) n'excède pas
-                          75 % de vos revenus nets de l'année précédente
-                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). Aucune réduction n'est
-                          appliquée : l'IFI reste de {formatEuros(results.ifiFinal)}.
+                          La somme de l&apos;IFI ({formatEuros(results.ifiApresDecote)}) et de votre IR +
+                          prélèvements sociaux ({formatEuros(results.irEtPsAnneePrecedente)}) n&apos;excède pas
+                          75 % de vos revenus nets de l&apos;année précédente
+                          ({formatEuros(0.75 * results.revenusAnneePrecedente)}). Aucune réduction n&apos;est
+                          appliquée : l&apos;IFI reste de {formatEuros(results.ifiFinal)}.
                         </p>
                       )}
                     </div>
@@ -964,25 +964,25 @@ export default function CalculateurIFI() {
                   Les résultats sont des estimations basées sur les informations fournies et le barème IFI 2025. 
                 </p>
                 <p>
-                  L'IFI est un impôt complexe avec de nombreuses règles spécifiques (exonérations
+                  L&apos;IFI est un impôt complexe avec de nombreuses règles spécifiques (exonérations
                   particulières, cas de démembrement, etc.) qui ne sont pas toutes prises en compte dans ce
                   calculateur simplifié.
                 </p>
                 {results?.plafonnementApplicable ? (
                   <p>
                     <span className="font-semibold">Plafonnement pris en compte :</span> ce calculateur
-                    applique le plafonnement de l'IFI (article 979 du CGI) à partir des revenus et impôts
-                    que vous avez saisis, qui limite la somme de l'IFI et de l'impôt sur le revenu +
-                    prélèvements sociaux à 75 % des revenus nets de l'année précédente. Le résultat reste
-                    une estimation : seuls les revenus et impôts éligibles au sens de l'article 979 doivent
+                    applique le plafonnement de l&apos;IFI (article 979 du CGI) à partir des revenus et impôts
+                    que vous avez saisis, qui limite la somme de l&apos;IFI et de l&apos;impôt sur le revenu +
+                    prélèvements sociaux à 75 % des revenus nets de l&apos;année précédente. Le résultat reste
+                    une estimation : seuls les revenus et impôts éligibles au sens de l&apos;article 979 doivent
                     être retenus.
                   </p>
                 ) : (
                   <p>
-                    <span className="font-semibold">Plafonnement non pris en compte :</span> vous n'avez pas
+                    <span className="font-semibold">Plafonnement non pris en compte :</span> vous n&apos;avez pas
                     renseigné vos revenus dans la section « Plafonnement (art. 979) ». Ce mécanisme limite la
-                    somme de l'IFI et de l'impôt sur le revenu à 75 % des revenus de l'année précédente et
-                    peut, le cas échéant, réduire l'IFI réellement dû. Le montant affiché peut donc être
+                    somme de l&apos;IFI et de l&apos;impôt sur le revenu à 75 % des revenus de l&apos;année précédente et
+                    peut, le cas échéant, réduire l&apos;IFI réellement dû. Le montant affiché peut donc être
                     supérieur à votre IFI effectif.
                   </p>
                 )}
@@ -1092,10 +1092,10 @@ function FAQSection() {
       <div className="mb-6">
         <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <HelpCircle className="w-8 h-8 text-emerald-600" />
-          Questions fréquentes sur l'IFI
+          Questions fréquentes sur l&apos;IFI
         </h2>
         <p className="text-gray-600 mt-2">
-          Tout ce que vous devez savoir sur l'Impôt sur la Fortune Immobilière
+          Tout ce que vous devez savoir sur l&apos;Impôt sur la Fortune Immobilière
         </p>
       </div>
 

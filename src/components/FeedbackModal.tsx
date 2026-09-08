@@ -94,12 +94,12 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 text-center">
             <div className="text-4xl mb-3">✓</div>
             <p className="font-semibold text-green-900 mb-1">Merci pour votre feedback !</p>
-            <p className="text-sm text-green-700">Votre client email va s'ouvrir pour finaliser l'envoi.</p>
+            <p className="text-sm text-green-700">Votre client email va s&apos;ouvrir pour finaliser l&apos;envoi.</p>
           </div>
         ) : submitStatus === 'error' ? (
           <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
             <div className="text-4xl mb-3">✗</div>
-            <p className="font-semibold text-red-900 mb-2">Erreur d'envoi</p>
+            <p className="font-semibold text-red-900 mb-2">Erreur d&apos;envoi</p>
             <p className="text-sm text-red-700 mb-4">
               Une erreur est survenue. Vous pouvez nous contacter directement à{' '}
               <a href="mailto:contact@notariaprime.fr" className="underline font-medium">

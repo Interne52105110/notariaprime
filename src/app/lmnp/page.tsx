@@ -418,7 +418,7 @@ export default function SimulateurLMNP() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [nomSimulation, setNomSimulation] = useState('');
-  const [simulations, setSimulations] = useState<any[]>([]);
+  const [simulations, setSimulations] = useState<{ nom: string; date: string; formData: FormData }[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
     typeLocation: 'classique',
@@ -1024,7 +1024,7 @@ export default function SimulateurLMNP() {
                     {formData.typeLocation === 'tourisme_non_classe' && formData.zoneTendue && (
                       <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        <span>Depuis les revenus 2025, les meubles de tourisme non classes en zone tendue ne beneficient que d'un abattement de 30% avec un plafond de 15 000 euros.</span>
+                        <span>Depuis les revenus 2025, les meubles de tourisme non classes en zone tendue ne beneficient que d&apos;un abattement de 30% avec un plafond de 15 000 euros.</span>
                       </div>
                     )}
                   </div>
@@ -1102,7 +1102,7 @@ export default function SimulateurLMNP() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Taux d'occupation (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Taux d&apos;occupation (%)</label>
                       <div className="relative">
                         <input
                           type="text"
@@ -1148,7 +1148,7 @@ export default function SimulateurLMNP() {
                     ))}
                   </div>
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Interets d'emprunt annuels</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Interets d&apos;emprunt annuels</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -1183,7 +1183,7 @@ export default function SimulateurLMNP() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tranche marginale d'imposition (TMI)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tranche marginale d&apos;imposition (TMI)</label>
                       <div className="grid grid-cols-5 gap-2">
                         {[0, 11, 30, 41, 45].map(taux => (
                           <button
@@ -1442,8 +1442,8 @@ export default function SimulateurLMNP() {
                           outerRadius={100}
                           fill="#8884d8"
                           dataKey="value"
-                          label={({ name, percent }: any) =>
-                            `${name} (${(percent * 100).toFixed(0)}%)`
+                          label={({ name, percent = 0 }) =>
+                            `${name} (${(Number(percent) * 100).toFixed(0)}%)`
                           }
                         >
                           {donneesRepartitionCharges.map((_entry, index) => (
@@ -1477,7 +1477,7 @@ export default function SimulateurLMNP() {
                   <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold">Terrain non amortissable</p>
-                    <p>La quote-part terrain ({formData.quotePartTerrain}%) de la valeur du bien n'est pas amortissable. Base amortissable immobiliere : {formatEuros(parseNumber(formData.valeurBien) * (1 - parseNumber(formData.quotePartTerrain) / 100))}.</p>
+                    <p>La quote-part terrain ({formData.quotePartTerrain}%) de la valeur du bien n&apos;est pas amortissable. Base amortissable immobiliere : {formatEuros(parseNumber(formData.valeurBien) * (1 - parseNumber(formData.quotePartTerrain) / 100))}.</p>
                   </div>
                 </div>
 
@@ -1517,7 +1517,7 @@ export default function SimulateurLMNP() {
               <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Clock className="w-6 h-6 text-indigo-600" />
-                  Tableau d'amortissement annuel
+                  Tableau d&apos;amortissement annuel
                 </h3>
 
                 <div className="mb-4">
@@ -1577,7 +1577,7 @@ export default function SimulateurLMNP() {
                     <p className="font-semibold text-lg">Fiscalite de la plus-value a la revente</p>
                     <p>
                       <strong>LMNP :</strong> regime des plus-values des particuliers. Abattement progressif
-                      pour duree de detention. Exoneration totale d'IR apres 22 ans, de prelevements sociaux apres 30 ans.
+                      pour duree de detention. Exoneration totale d&apos;IR apres 22 ans, de prelevements sociaux apres 30 ans.
                       Les amortissements deduits ne sont pas reintegres.
                     </p>
                     <p>

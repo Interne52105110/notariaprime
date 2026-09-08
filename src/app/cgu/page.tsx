@@ -14,10 +14,10 @@ function CguContent() {
             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
               <FileText className="w-6 h-6 text-blue-600" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">Conditions Générales d'Utilisation</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Conditions Générales d&apos;Utilisation</h1>
           </div>
           <p className="text-lg text-gray-600">
-            Conditions d'utilisation de la plateforme NotariaPrime
+            Conditions d&apos;utilisation de la plateforme NotariaPrime
           </p>
         </div>
       </section>
@@ -31,8 +31,8 @@ function CguContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Préambule</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Les présentes Conditions Générales d'Utilisation (ci-après "CGU") régissent l'accès et 
-                  l'utilisation de la plateforme NotariaPrime accessible à l'adresse{' '}
+                  Les présentes Conditions Générales d&apos;Utilisation (ci-après &quot;CGU&quot;) régissent l&apos;accès et
+                  l&apos;utilisation de la plateforme NotariaPrime accessible à l&apos;adresse{' '}
                   <a href="https://www.notariaprime.fr" className="text-blue-600 hover:text-blue-700 font-medium">
                     www.notariaprime.fr
                   </a>
@@ -40,7 +40,7 @@ function CguContent() {
                 <p>
                   <strong>Éditeur :</strong> NOTARIA PRIME, SAS au capital de 500€, immatriculée au RCS 
                   sous le numéro 941 646 341, dont le siège social est situé 1 Impasse de Menez Bijigou, 
-                  29120 Pont-l'Abbé, France.
+                  29120 Pont-l&apos;Abbé, France.
                 </p>
                 <p>
                   <strong>Contact :</strong>{' '}
@@ -49,7 +49,7 @@ function CguContent() {
                   </a>
                 </p>
                 <p className="font-semibold text-blue-900">
-                  L'utilisation de NotariaPrime implique l'acceptation pleine et entière des présentes CGU.
+                  L&apos;utilisation de NotariaPrime implique l&apos;acceptation pleine et entière des présentes CGU.
                 </p>
               </div>
             </div>
@@ -82,9 +82,9 @@ function CguContent() {
                     <div>
                       <p className="font-semibold text-yellow-900 mb-2">Important</p>
                       <p className="text-sm text-yellow-800">
-                        NotariaPrime est un <strong>outil d'aide à la décision</strong>. Les résultats fournis 
+                        NotariaPrime est un <strong>outil d&apos;aide à la décision</strong>. Les résultats fournis
                         sont donnés à titre indicatif et ne constituent pas un conseil juridique ou fiscal. 
-                        Ils ne peuvent se substituer à l'expertise d'un professionnel du droit.
+                        Ils ne peuvent se substituer à l&apos;expertise d&apos;un professionnel du droit.
                       </p>
                     </div>
                   </div>
@@ -97,7 +97,7 @@ function CguContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Article 2 - Accès à la plateforme</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  L'accès à NotariaPrime est :
+                  L&apos;accès à NotariaPrime est :
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
@@ -118,8 +118,8 @@ function CguContent() {
                   </div>
                 </div>
                 <p className="mt-4">
-                  L'utilisateur doit disposer d'un accès à Internet et d'un navigateur web récent. 
-                  Les frais de connexion et d'équipement sont à sa charge.
+                  L&apos;utilisateur doit disposer d&apos;un accès à Internet et d&apos;un navigateur web récent.
+                  Les frais de connexion et d&apos;équipement sont à sa charge.
                 </p>
               </div>
             </div>
@@ -130,7 +130,7 @@ function CguContent() {
               <div className="space-y-6 text-gray-700">
                 <div>
                   <h3 className="font-bold text-gray-900 mb-3">3.1 Usage autorisé</h3>
-                  <p>L'utilisateur s'engage à utiliser NotariaPrime :</p>
+                  <p>L&apos;utilisateur s&apos;engage à utiliser NotariaPrime :</p>
                   <ul className="space-y-2 ml-6 mt-2">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500">✓</span>
@@ -194,13 +194,13 @@ function CguContent() {
                   <p className="font-bold text-yellow-900 mb-3 text-lg">⚠️ Clause importante</p>
                   <div className="space-y-3 text-yellow-800">
                     <p>
-                      <strong>NotariaPrime est fourni "en l'état"</strong>, sans garantie d'aucune sorte, 
+                      <strong>NotariaPrime est fourni &quot;en l&apos;état&quot;</strong>, sans garantie d&apos;aucune sorte,
                       expresse ou implicite.
                     </p>
                     <p>
                       Les calculs sont basés sur les textes réglementaires en vigueur au moment de leur 
-                      implémentation. <strong>Il appartient à l'utilisateur de vérifier l'exactitude, 
-                      l'actualité et la pertinence des résultats obtenus.</strong>
+                      implémentation. <strong>Il appartient à l&apos;utilisateur de vérifier l&apos;exactitude,
+                      l&apos;actualité et la pertinence des résultats obtenus.</strong>
                     </p>
                   </div>
                 </div>
@@ -208,8 +208,8 @@ function CguContent() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-3">4.1 Exactitude des calculs</h3>
                   <p>
-                    NOTARIA PRIME met tout en œuvre pour assurer l'exactitude des calculs, mais ne peut 
-                    garantir l'absence d'erreur. Les résultats doivent être validés par un professionnel qualifié 
+                    NOTARIA PRIME met tout en œuvre pour assurer l&apos;exactitude des calculs, mais ne peut
+                    garantir l&apos;absence d&apos;erreur. Les résultats doivent être validés par un professionnel qualifié
                     avant toute utilisation dans un contexte officiel.
                   </p>
                 </div>
@@ -224,9 +224,9 @@ function CguContent() {
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-3">4.3 Responsabilité de l'utilisateur</h3>
+                  <h3 className="font-bold text-gray-900 mb-3">4.3 Responsabilité de l&apos;utilisateur</h3>
                   <p>
-                    L'utilisateur est seul responsable de l'utilisation qu'il fait des résultats obtenus 
+                    L&apos;utilisateur est seul responsable de l&apos;utilisation qu&apos;il fait des résultats obtenus
                     sur NotariaPrime. NOTARIA PRIME ne saurait être tenue responsable des décisions prises 
                     sur la base de ces résultats.
                   </p>
@@ -236,8 +236,8 @@ function CguContent() {
                   <h3 className="font-bold text-gray-900 mb-3">4.4 Limitation de responsabilité</h3>
                   <p>
                     En aucun cas NOTARIA PRIME ne pourra être tenue responsable des dommages directs ou 
-                    indirects résultant de l'utilisation ou de l'impossibilité d'utiliser la plateforme, 
-                    y compris la perte de données, de bénéfices ou d'opportunités commerciales.
+                    indirects résultant de l&apos;utilisation ou de l&apos;impossibilité d&apos;utiliser la plateforme,
+                    y compris la perte de données, de bénéfices ou d&apos;opportunités commerciales.
                   </p>
                 </div>
               </div>
@@ -260,7 +260,7 @@ function CguContent() {
                   </p>
                 </div>
                 <p>
-                  Vous êtes libre d'utiliser, de modifier et de distribuer le code source conformément 
+                  Vous êtes libre d&apos;utiliser, de modifier et de distribuer le code source conformément
                   aux termes de la licence MIT. Les contributions sont les bienvenues.
                 </p>
                 <p>
@@ -302,8 +302,8 @@ function CguContent() {
                   Les modifications entrent en vigueur dès leur publication sur le site.
                 </p>
                 <p>
-                  En cas de modification substantielle, un avis sera affiché sur la page d'accueil. 
-                  L'utilisation continue de la plateforme après modification vaut acceptation des nouvelles CGU.
+                  En cas de modification substantielle, un avis sera affiché sur la page d&apos;accueil.
+                  L&apos;utilisation continue de la plateforme après modification vaut acceptation des nouvelles CGU.
                 </p>
               </div>
             </div>
@@ -316,7 +316,7 @@ function CguContent() {
                   Les présentes CGU sont régies par le <strong>droit français</strong>.
                 </p>
                 <p>
-                  En cas de litige, et à défaut d'accord amiable, les tribunaux français seront seuls compétents.
+                  En cas de litige, et à défaut d&apos;accord amiable, les tribunaux français seront seuls compétents.
                 </p>
                 <p>
                   Pour toute réclamation, contactez-nous en priorité à :{' '}
@@ -344,7 +344,7 @@ function CguContent() {
                     <p className="text-sm">
                       NOTARIA PRIME<br />
                       1 Impasse de Menez Bijigou<br />
-                      29120 Pont-l'Abbé<br />
+                      29120 Pont-l&apos;Abbé<br />
                       France
                     </p>
                   </div>
@@ -354,8 +354,8 @@ function CguContent() {
 
             {/* Date de mise à jour */}
             <div className="text-center text-sm text-gray-500 pt-8 border-t border-gray-200">
-              <p>Conditions Générales d'Utilisation</p>
-              <p className="mt-1">Date d'entrée en vigueur : 14 mars 2025</p>
+              <p>Conditions Générales d&apos;Utilisation</p>
+              <p className="mt-1">Date d&apos;entrée en vigueur : 14 mars 2025</p>
               <p>Dernière mise à jour : 13 octobre 2025</p>
               <p className="mt-2">Version 1.0</p>
             </div>

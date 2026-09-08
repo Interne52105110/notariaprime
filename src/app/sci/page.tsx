@@ -99,7 +99,7 @@ export default function SCISimulator() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [nomSimulation, setNomSimulation] = useState('');
-  const [simulations, setSimulations] = useState<any[]>([]);
+  const [simulations, setSimulations] = useState<ReturnType<typeof chargerSimulations>>([]);
 
   // ============================================
   // CALCUL DES RÉSULTATS
@@ -301,7 +301,7 @@ export default function SCISimulator() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={`px-6 py-3 font-semibold transition-all relative whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'text-purple-600 border-b-2 border-purple-600'
@@ -485,7 +485,7 @@ export default function SCISimulator() {
                         </label>
                         <select
                           value={formData.regimeFoncier}
-                          onChange={(e) => setFormData({...formData, regimeFoncier: e.target.value as any})}
+                          onChange={(e) => setFormData({...formData, regimeFoncier: e.target.value as FormData['regimeFoncier']})}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
                         >
                           <option value="reel">Régime réel</option>
@@ -1080,7 +1080,7 @@ export default function SCISimulator() {
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Type de transmission</label>
                           <select
                             value={formData.typeTransmission}
-                            onChange={(e) => setFormData({...formData, typeTransmission: e.target.value as any})}
+                            onChange={(e) => setFormData({...formData, typeTransmission: e.target.value as FormData['typeTransmission']})}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:outline-none"
                           >
                             <option value="donation">Donation</option>

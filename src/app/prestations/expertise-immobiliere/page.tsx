@@ -16,10 +16,10 @@ export default function ExpertiseImmobiliere() {
             Expertise immobilière & Due Diligence
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            16 ans d'expérience | +1 500 expertises réalisées | Expert judiciaire près la Cour d'Appel de Rennes
+            16 ans d&apos;expérience | +1 500 expertises réalisées | Expert judiciaire près la Cour d&apos;Appel de Rennes
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <span className="text-sm font-medium text-blue-900">💡 "Sans données, vous n'êtes qu'une personne de plus avec une opinion." - W. Edwards Deming</span>
+            <span className="text-sm font-medium text-blue-900">💡 &quot;Sans données, vous n&apos;êtes qu&apos;une personne de plus avec une opinion.&quot; - W. Edwards Deming</span>
           </div>
         </div>
       </section>
@@ -53,14 +53,14 @@ export default function ExpertiseImmobiliere() {
               </div>
             </div>
             <p className="text-gray-600 leading-relaxed mb-4">
-              Expert en évaluation immobilière et analyse de risques avec 16 ans d'expérience, spécialisé dans 
-              l'évaluation de garanties bancaires et expertises judiciaires.
+              Expert en évaluation immobilière et analyse de risques avec 16 ans d&apos;expérience, spécialisé dans
+              l&apos;évaluation de garanties bancaires et expertises judiciaires.
             </p>
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200">
               <h3 className="font-semibold text-gray-900 mb-3">🎯 Missions pour offices notariaux français</h3>
               <p className="text-gray-700 mb-3">
-                Expert judiciaire près la Cour d'Appel de Rennes, disponible pour accompagner les notaires 
-                dans leurs missions d'évaluation immobilière. Interventions partout en France.
+                Expert judiciaire près la Cour d&apos;Appel de Rennes, disponible pour accompagner les notaires
+                dans leurs missions d&apos;évaluation immobilière. Interventions partout en France.
               </p>
               <div className="flex flex-wrap gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg text-sm">
@@ -81,7 +81,7 @@ export default function ExpertiseImmobiliere() {
 
           {/* Certifications */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-12">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Modalités d'intervention</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Modalités d&apos;intervention</h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -103,7 +103,7 @@ export default function ExpertiseImmobiliere() {
                   <li>• Inspection physique complète du bien</li>
                   <li>• Relevés métré et état des lieux détaillé</li>
                   <li>• Photographies professionnelles</li>
-                  <li>• Analyse de l'environnement et du quartier</li>
+                  <li>• Analyse de l&apos;environnement et du quartier</li>
                   <li>• Vérification conformité et travaux nécessaires</li>
                   <li>• Interventions partout en France métropolitaine</li>
                 </ul>
@@ -127,12 +127,12 @@ export default function ExpertiseImmobiliere() {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 text-center">
               <Shield className="w-12 h-12 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Expert judiciaire</h3>
-              <p className="text-sm text-gray-600">Cour d'Appel de Rennes</p>
+              <p className="text-sm text-gray-600">Cour d&apos;Appel de Rennes</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-6 text-center">
               <BarChart3 className="w-12 h-12 text-purple-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">+1 500 expertises</h3>
-              <p className="text-sm text-gray-600">Volume d'expérience conséquent</p>
+              <p className="text-sm text-gray-600">Volume d&apos;expérience conséquent</p>
             </div>
           </div>
 
@@ -177,7 +177,7 @@ export default function ExpertiseImmobiliere() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Contraintes d'urbanisme et risques naturels (PPR)</span>
+                  <span>Contraintes d&apos;urbanisme et risques naturels (PPR)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -216,12 +216,12 @@ export default function ExpertiseImmobiliere() {
 
           {/* Périmètre d'intervention */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-12">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Périmètre d'intervention</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Périmètre d&apos;intervention</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3">Types de biens</h4>
                 <ul className="space-y-2 text-gray-600">
-                  <li>• Biens d'habitation (maisons, appartements)</li>
+                  <li>• Biens d&apos;habitation (maisons, appartements)</li>
                   <li>• Parts sociales (SCI, SCPI)</li>
                   <li>• Locaux commerciaux</li>
                   <li>• Locaux artisanaux et professionnels</li>
@@ -245,7 +245,7 @@ export default function ExpertiseImmobiliere() {
                 <ul className="space-y-2 text-gray-600">
                   <li>• <strong>+25 missions/an</strong></li>
                   <li>• <strong>+1 500 expertises</strong> au total</li>
-                  <li>• <strong>16 ans</strong> d'expérience</li>
+                  <li>• <strong>16 ans</strong> d&apos;expérience</li>
                   <li>• Délais respectés</li>
                   <li>• Rapports détaillés</li>
                 </ul>
@@ -260,7 +260,7 @@ export default function ExpertiseImmobiliere() {
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Formations</h4>
                 <ul className="text-gray-600 space-y-1">
-                  <li>• DU Conseil Notarial d'Entreprise (Université Panthéon-Assas, 2023)</li>
+                  <li>• DU Conseil Notarial d&apos;Entreprise (Université Panthéon-Assas, 2023)</li>
                   <li>• Master 1 Droit des Affaires + 3ème cycle Gestion de Patrimoine et Finance de Marché</li>
                   <li>• Formation continue en normes EVS 2025 et réglementation CRR</li>
                 </ul>
@@ -273,7 +273,7 @@ export default function ExpertiseImmobiliere() {
       {/* CTA Section */}
       <section className="py-16 px-6 bg-gradient-to-br from-emerald-600 to-teal-600">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Notaires : besoin d'une expertise immobilière fiable ?</h2>
+          <h2 className="text-3xl font-bold mb-4">Notaires : besoin d&apos;une expertise immobilière fiable ?</h2>
           <p className="text-xl text-emerald-100 mb-8">
             Rapports conformes normes EVS 2025 et CRR • Interventions partout en France • Délai 10 jours
           </p>
@@ -288,7 +288,7 @@ export default function ExpertiseImmobiliere() {
             </div>
             <div className="bg-white/10 backdrop-blur rounded-lg p-4">
               <div className="font-semibold mb-2">✓ Expert judiciaire</div>
-              <div className="text-sm text-emerald-100">Cour d'Appel de Rennes</div>
+              <div className="text-sm text-emerald-100">Cour d&apos;Appel de Rennes</div>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

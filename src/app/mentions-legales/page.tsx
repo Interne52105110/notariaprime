@@ -51,7 +51,7 @@ function MentionsLegalesContent() {
 
                 <div>
                   <div className="font-semibold text-gray-900 mb-1">Siège social</div>
-                  <p>1 IMPASSE DE MENEZ BIJIGOU<br />29120 PONT-L'ABBÉ<br />France</p>
+                  <p>1 IMPASSE DE MENEZ BIJIGOU<br />29120 PONT-L&apos;ABBÉ<br />France</p>
                 </div>
 
                 <div>
@@ -127,7 +127,7 @@ function MentionsLegalesContent() {
                 </div>
 
                 <div>
-                  <div className="font-semibold text-gray-900 mb-1">Site web de l'hébergeur</div>
+                  <div className="font-semibold text-gray-900 mb-1">Site web de l&apos;hébergeur</div>
                   <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 font-medium">
                     vercel.com
                   </a>
@@ -173,7 +173,7 @@ function MentionsLegalesContent() {
                 </a>.
               </p>
               <p className="text-gray-700">
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression 
+                Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression
                 de vos données personnelles en nous contactant à :{' '}
                 <a href="mailto:contact@notariaprime.fr" className="text-indigo-600 hover:text-indigo-700 font-medium">
                   contact@notariaprime.fr
@@ -186,7 +186,7 @@ function MentionsLegalesContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Cookies</h2>
               <p className="text-gray-700">
                 NotariaPrime utilise uniquement des cookies techniques essentiels au fonctionnement du site. 
-                Aucun cookie de tracking ou publicitaire n'est utilisé.
+                Aucun cookie de tracking ou publicitaire n&apos;est utilisé.
               </p>
             </div>
 
@@ -207,16 +207,16 @@ function MentionsLegalesContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Limitation de responsabilité</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  <strong>NotariaPrime est un outil d'aide au calcul.</strong> Les résultats fournis sont donnés 
-                  à titre indicatif et ne sauraient se substituer à l'expertise d'un professionnel du droit.
+                  <strong>NotariaPrime est un outil d&apos;aide au calcul.</strong> Les résultats fournis sont donnés
+                  à titre indicatif et ne sauraient se substituer à l&apos;expertise d&apos;un professionnel du droit.
                 </p>
                 <p>
-                  NOTARIA PRIME ne saurait être tenue responsable des erreurs, d'une absence de disponibilité 
+                  NOTARIA PRIME ne saurait être tenue responsable des erreurs, d&apos;une absence de disponibilité
                   des informations et/ou de la présence de virus sur son site.
                 </p>
                 <p>
                   Les calculs sont basés sur les textes réglementaires en vigueur au moment de leur mise en ligne. 
-                  Il appartient à l'utilisateur de vérifier l'exactitude et l'actualité des informations.
+                  Il appartient à l&apos;utilisateur de vérifier l&apos;exactitude et l&apos;actualité des informations.
                 </p>
               </div>
             </div>

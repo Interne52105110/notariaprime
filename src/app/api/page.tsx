@@ -197,7 +197,7 @@ print(response.json())`
 
             <p className="text-xl text-gray-600 leading-relaxed mb-8">
               Intégrez nos calculateurs notariaux directement dans vos applications.
-              API REST rapide, sécurisée et simple d'utilisation.
+              API REST rapide, sécurisée et simple d&apos;utilisation.
             </p>
 
             <div className="flex gap-4 justify-center flex-wrap">
@@ -240,7 +240,7 @@ print(response.json())`
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Endpoints disponibles</h2>
           <p className="text-lg text-gray-600 mb-12 max-w-3xl">
-            L'API NotariaPrime exposera tous nos calculateurs via des endpoints REST simples et cohérents.
+            L&apos;API NotariaPrime exposera tous nos calculateurs via des endpoints REST simples et cohérents.
           </p>
 
           <div className="space-y-4 mb-16">
@@ -281,7 +281,7 @@ print(response.json())`
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Exemples de code</h2>
           <p className="text-lg text-gray-600 mb-12">
-            Voici comment vous pourrez utiliser l'API NotariaPrime dans vos applications
+            Voici comment vous pourrez utiliser l&apos;API NotariaPrime dans vos applications
           </p>
 
           <div className="space-y-8">
@@ -417,7 +417,7 @@ print(response.json())`
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Authentification</h2>
           <p className="text-lg text-gray-600 mb-8">
-            L'API utilisera un système d'authentification par clé API simple et sécurisé.
+            L&apos;API utilisera un système d&apos;authentification par clé API simple et sécurisé.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -470,8 +470,8 @@ print(response.json())`
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl border-2 border-green-200 p-12">
             <div className="text-6xl font-bold text-green-600 mb-4">100% Gratuit</div>
             <p className="text-xl text-gray-700 mb-6">
-              Comme pour la plateforme web, l'API NotariaPrime sera entièrement gratuite.
-              Pas de frais cachés, pas d'abonnement.
+              Comme pour la plateforme web, l&apos;API NotariaPrime sera entièrement gratuite.
+              Pas de frais cachés, pas d&apos;abonnement.
             </p>
             <div className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-200 rounded-xl">
               <CheckCircle className="w-5 h-5 text-green-600" />
@@ -488,9 +488,9 @@ print(response.json())`
             <div className="flex items-start gap-4">
               <Info className="w-8 h-8 text-blue-600 flex-shrink-0" />
               <div>
-                <h3 className="text-xl font-bold text-blue-900 mb-3">L'API arrive bientôt !</h3>
+                <h3 className="text-xl font-bold text-blue-900 mb-3">L&apos;API arrive bientôt !</h3>
                 <p className="text-blue-800 mb-4 leading-relaxed">
-                  Nous travaillons actuellement sur l'API NotariaPrime. Le lancement est prévu pour le 
+                  Nous travaillons actuellement sur l&apos;API NotariaPrime. Le lancement est prévu pour le
                   <strong> T1 2026</strong>. Vous souhaitez être parmi les premiers utilisateurs ?
                 </p>
                 <div className="flex gap-4 flex-wrap">

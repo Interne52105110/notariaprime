@@ -840,7 +840,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Mode d'acquisition *
+                    Mode d&apos;acquisition *
                   </label>
                   <div className="grid grid-cols-4 gap-4">
                     {[
@@ -851,7 +851,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                     ].map((mode) => (
                       <button
                         key={mode.value}
-                        onClick={() => setFormData({...formData, modeAcquisition: mode.value as any})}
+                        onClick={() => setFormData({...formData, modeAcquisition: mode.value as FormData['modeAcquisition']})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.modeAcquisition === mode.value
                             ? 'border-emerald-500 bg-white shadow-md'
@@ -876,7 +876,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                     ].map((type) => (
                       <button
                         key={type.value}
-                        onClick={() => setFormData({...formData, typeBien: type.value as any})}
+                        onClick={() => setFormData({...formData, typeBien: type.value as FormData['typeBien']})}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.typeBien === type.value
                             ? 'border-emerald-500 bg-white shadow-md'
@@ -892,7 +892,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                         <p className="text-xs text-amber-800">
-                          <strong>Important:</strong> SCI à l'IR uniquement. Les SCI à l'IS relèvent du régime professionnel.
+                          <strong>Important:</strong> SCI à l&apos;IR uniquement. Les SCI à l&apos;IS relèvent du régime professionnel.
                         </p>
                       </div>
                     </div>
@@ -943,7 +943,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                           ].map((type) => (
                             <button
                               key={type.value}
-                              onClick={() => setFormData({...formData, typeDroit: type.value as any})}
+                              onClick={() => setFormData({...formData, typeDroit: type.value as FormData['typeDroit']})}
                               className={`p-3 rounded-lg border-2 transition-all text-sm ${
                                 formData.typeDroit === type.value
                                   ? 'border-emerald-500 bg-white'
@@ -958,7 +958,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                       {formData.typeDroit !== 'pleine' && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Âge de l'usufruitier *</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Âge de l&apos;usufruitier *</label>
                           <input
                             type="number"
                             value={formData.ageUsufruitier}
@@ -1009,7 +1009,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                 {formData.modeAcquisition === 'achat' ? (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Prix d'acquisition *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Prix d&apos;acquisition *</label>
                     <input
                       type="text"
                       value={formData.prixAcquisition}
@@ -1031,13 +1031,13 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Valeur déclarée dans l'acte
+                      Valeur déclarée dans l&apos;acte
                     </p>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Date d'acquisition *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Date d&apos;acquisition *</label>
                   <input
                     type="date"
                     value={formData.dateAcquisition}
@@ -1048,7 +1048,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                 {formData.modeAcquisition === 'achat' && (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Frais d'acquisition</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Frais d&apos;acquisition</label>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <button
                         onClick={() => setFormData({...formData, fraisAcquisition: 'forfait'})}
@@ -1164,7 +1164,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                               <p className="font-semibold mb-1">Forfait 15% : TOUJOURS applicable</p>
                               <p className="text-xs">
                                 Vous pouvez appliquer le forfait 15% <strong>MÊME SI</strong> vous avez déjà déduit des travaux 
-                                de vos revenus fonciers ! C'est un <strong>double avantage fiscal légal</strong>.
+                                de vos revenus fonciers ! C&apos;est un <strong>double avantage fiscal légal</strong>.
                               </p>
                             </div>
                           </div>
@@ -1180,10 +1180,10 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                           </div>
                           <div className="bg-green-100 rounded-lg p-3 mt-2">
                             <p className="text-xs font-semibold text-green-900 mb-2">
-                              💡 Conseil d'expert :
+                              💡 Conseil d&apos;expert :
                             </p>
                             <p className="text-xs text-green-800">
-                              Pour un bien locatif, le forfait 15% est souvent plus avantageux car il s'applique 
+                              Pour un bien locatif, le forfait 15% est souvent plus avantageux car il s&apos;applique
                               systématiquement sans justificatif, même si vous avez déjà optimisé vos impôts avec 
                               les charges déductibles !
                             </p>
@@ -1201,8 +1201,8 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                               </a>
                             </p>
                             <p className="text-xs text-green-700 italic mt-1">
-                              "Il n'y a pas lieu de rechercher si les dépenses de travaux ont déjà été 
-                              prises en compte pour l'assiette de l'impôt sur le revenu" (forfait 15%)
+                              &quot;Il n&apos;y a pas lieu de rechercher si les dépenses de travaux ont déjà été
+                              prises en compte pour l&apos;assiette de l&apos;impôt sur le revenu&quot; (forfait 15%)
                             </p>
                           </div>
                         </div>
@@ -1213,7 +1213,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Travaux à déduire du prix d'acquisition
+                    Travaux à déduire du prix d&apos;acquisition
                   </label>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <button
@@ -1387,7 +1387,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                       <p className="text-xs text-gray-600 mt-2">
-                        L'exonération porte sur la part de plus-value correspondant à la fraction du prix remployée.
+                        L&apos;exonération porte sur la part de plus-value correspondant à la fraction du prix remployée.
                         À vide, on présume un remploi de 100 % (exonération totale).
                       </p>
                     </div>
@@ -1451,7 +1451,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                       <p className="text-xs text-gray-600 mt-2">
-                        Visible sur votre avis d'imposition
+                        Visible sur votre avis d&apos;imposition
                       </p>
                     </div>
                   )}
@@ -1467,8 +1467,8 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         Art. 150 U II 4° CGI - Conditions:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Expropriation pour cause d'utilité publique</li>
-                        <li>• Réemploi de l'indemnité sous 12 mois</li>
+                        <li>• Expropriation pour cause d&apos;utilité publique</li>
+                        <li>• Réemploi de l&apos;indemnité sous 12 mois</li>
                       </ul>
                     </div>
                   </div>
@@ -1511,9 +1511,9 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         Art. 150 U II 2° CGI - Exonération partielle (plafonnée), conditions :
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Personne physique non-résidente, ressortissante d'un État de l'UE/EEE</li>
+                        <li>• Personne physique non-résidente, ressortissante d&apos;un État de l&apos;UE/EEE</li>
                         <li>• Domiciliée fiscalement en France ≥ 2 ans continus, à un moment quelconque avant la cession</li>
-                        <li>• Cession ≤ 31/12 de la 10ᵉ année suivant le transfert du domicile hors de France, OU libre disposition du bien depuis le 1ᵉʳ janvier de l'année précédente</li>
+                        <li>• Cession ≤ 31/12 de la 10ᵉ année suivant le transfert du domicile hors de France, OU libre disposition du bien depuis le 1ᵉʳ janvier de l&apos;année précédente</li>
                         <li>• <strong>Plafond : 150 000 € de plus-value nette imposable par cédant</strong> (le surplus reste taxé)</li>
                         <li>• Limitée à une seule résidence par contribuable</li>
                       </ul>
@@ -1579,7 +1579,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
 
                       <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-lg">
                         <span className="text-sm font-medium text-gray-700 flex-1">
-                          A déjà bénéficié de l'exonération de sa RP en tant que non-résident (244 bis A) → exclut l'exonération
+                          A déjà bénéficié de l&apos;exonération de sa RP en tant que non-résident (244 bis A) → exclut l&apos;exonération
                         </span>
                         <div className="flex gap-3">
                           <button
@@ -1635,10 +1635,10 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                         Art. 150 U II 1° ter CGI - Conditions :
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-4 ml-4">
-                        <li>• Le bien constituait la résidence principale avant l'entrée en établissement</li>
-                        <li>• Cession dans les 2 ans suivant l'entrée en établissement (EHPAD, foyer, etc.)</li>
-                        <li>• Le logement est resté inoccupé depuis l'entrée</li>
-                        <li>• Revenu fiscal de référence sous le seuil de l'art. 1417 II et non soumis à l'IFI</li>
+                        <li>• Le bien constituait la résidence principale avant l&apos;entrée en établissement</li>
+                        <li>• Cession dans les 2 ans suivant l&apos;entrée en établissement (EHPAD, foyer, etc.)</li>
+                        <li>• Le logement est resté inoccupé depuis l&apos;entrée</li>
+                        <li>• Revenu fiscal de référence sous le seuil de l&apos;art. 1417 II et non soumis à l&apos;IFI</li>
                       </ul>
                     </div>
                   </div>
@@ -1733,7 +1733,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <Lightbulb className="w-6 h-6 text-amber-600" />
-                      <h3 className="text-lg font-bold text-gray-900">Suggestions d'optimisation</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Suggestions d&apos;optimisation</h3>
                     </div>
                     {results.suggestions.length > 0 ? (
                       <div className="space-y-3">
@@ -1976,7 +1976,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                       <span className="font-semibold">{results.prixVenteCorrige.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Prix d'acquisition corrigé</span>
+                      <span className="text-gray-600">Prix d&apos;acquisition corrigé</span>
                       <span className="font-semibold">-{results.prixAcquisitionCorrige.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
                     </div>
                     <div className="flex justify-between pt-3 border-t-2 border-gray-200">
@@ -2110,7 +2110,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
               </h3>
               <div className="space-y-3 text-sm text-amber-900">
                 <p className="leading-relaxed">
-                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d'évoluer.
+                  <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 1er janvier 2025 et sont susceptibles d&apos;évoluer.
                 </p>
                 
                 <p className="leading-relaxed">
@@ -2128,7 +2128,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 font-bold">•</span>
-                      <span><strong>Avocat fiscaliste</strong> : pour l'optimisation fiscale complexe et les cas particuliers</span>
+                      <span><strong>Avocat fiscaliste</strong> : pour l&apos;optimisation fiscale complexe et les cas particuliers</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 font-bold">•</span>
@@ -2142,7 +2142,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 </div>
 
                 <p className="leading-relaxed font-semibold text-amber-900">
-                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d'utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l'optimisation adaptée à votre situation.
+                  <strong>NotariaPrime.fr</strong> décline toute responsabilité en cas d&apos;utilisation des informations fournies sans validation par un professionnel qualifié. Seul un conseil personnalisé peut garantir la conformité légale et l&apos;optimisation adaptée à votre situation.
                 </p>
 
                 <div className="bg-amber-100 rounded-lg p-3 mt-4 border border-amber-400">

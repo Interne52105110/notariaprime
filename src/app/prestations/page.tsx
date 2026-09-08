@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/MainLayout';
 import { 
@@ -137,13 +138,13 @@ export default function PrestationsPage() {
 
               <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
                 Expertise, accompagnement et solutions digitales au service de votre activité. 
-                Plus de 20 ans d'expérience cumulée dans le secteur notarial et immobilier.
+                Plus de 20 ans d&apos;expérience cumulée dans le secteur notarial et immobilier.
               </p>
 
               <div className="flex items-center justify-center gap-6 text-sm mb-12">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-600">20+ ans d'expérience</span>
+                  <span className="text-gray-600">20+ ans d&apos;expérience</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -169,7 +170,7 @@ export default function PrestationsPage() {
                     EXPERTISE
                   </span>
                 </div>
-                <p className="text-gray-600">Années d'expérience</p>
+                <p className="text-gray-600">Années d&apos;expérience</p>
               </div>
 
               <div className="text-center">
@@ -213,7 +214,7 @@ export default function PrestationsPage() {
                 Une expertise complète à votre service
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Trois domaines d'excellence pour accompagner les études notariales dans leur gestion quotidienne et leur transformation digitale
+                Trois domaines d&apos;excellence pour accompagner les études notariales dans leur gestion quotidienne et leur transformation digitale
               </p>
             </div>
 
@@ -374,12 +375,12 @@ export default function PrestationsPage() {
                 Prendre contact
                 <ArrowRight className="w-5 h-5" />
               </a>
-              <a 
+              <Link
                 href="/" 
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl font-semibold transition-all"
               >
-                Retour à l'accueil
-              </a>
+                Retour à l&apos;accueil
+              </Link>
             </div>
             
             <div className="flex items-center justify-center gap-8 text-sm text-gray-400">
@@ -403,7 +404,7 @@ export default function PrestationsPage() {
         <section className="py-8 bg-gray-50 border-t border-gray-200">
           <div className="max-w-7xl mx-auto px-6 text-center">
             <p className="text-sm text-gray-500">
-              Conformément à l'article 293 B du Code Général des Impôts, notre activité n'est pas soumise à la TVA. 
+              Conformément à l&apos;article 293 B du Code Général des Impôts, notre activité n&apos;est pas soumise à la TVA.
               Les tarifs affichés sont donc les prix définitifs que vous payez.
             </p>
           </div>

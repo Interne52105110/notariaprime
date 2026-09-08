@@ -609,7 +609,7 @@ export default function ViagerCalculator() {
     if (valeur === 0 || formData.creditentiers.length === 0) return null;
     
     const methodes: MethodeCalcul[] = ['simple', 'daubry', 'actuarielle', 'fiscale', 'moyenne'];
-    const resultats: any = {};
+    const resultats: Partial<ResultatsComparatifs> = {};
     
     methodes.forEach(m => {
       resultats[m] = calculerViager(
@@ -693,7 +693,7 @@ export default function ViagerCalculator() {
     }));
   };
 
-  const modifierCredirentier = (id: string, champ: keyof Creditentier, valeur: any) => {
+  const modifierCredirentier = <K extends keyof Creditentier,>(id: string, champ: K, valeur: Creditentier[K]) => {
     setFormData(prev => ({
       ...prev,
       creditentiers: prev.creditentiers.map(c =>
@@ -1316,13 +1316,13 @@ export default function ViagerCalculator() {
                       Pourquoi cette information ?
                     </h4>
                     <p className="text-sm text-gray-700 leading-relaxed mb-2">
-                      Le loyer théorique permet de calculer précisément la valeur du <strong>Droit d'Usage et d'Habitation (DUH)</strong>.
+                      Le loyer théorique permet de calculer précisément la valeur du <strong>Droit d&apos;Usage et d&apos;Habitation (DUH)</strong>.
                     </p>
                     <p className="text-sm text-gray-700 leading-relaxed">
                       <strong>Calcul :</strong> Valeur DUH = Loyer mensuel × 12 mois × Espérance de vie
                     </p>
                     <p className="text-sm text-gray-700 leading-relaxed mt-2">
-                      <strong>Exemple :</strong> Un loyer de 1 000€/mois sur 15 ans d'espérance de vie = 180 000€ de valeur DUH à déduire de la valeur vénale.
+                      <strong>Exemple :</strong> Un loyer de 1 000€/mois sur 15 ans d&apos;espérance de vie = 180 000€ de valeur DUH à déduire de la valeur vénale.
                     </p>
                   </div>
                 </div>
@@ -1404,12 +1404,12 @@ export default function ViagerCalculator() {
                         <>
                           <span className="font-bold">Convention privée:</span> Les parties ont convenu par clause 
                           contractuelle que la taxe foncière demeure à la charge du crédirentier (vendeur/usufruitier), 
-                          dérogeant ainsi à la règle légale de l'article 1403 CGI.
+                          dérogeant ainsi à la règle légale de l&apos;article 1403 CGI.
                         </>
                       )}
                       {formData.payeurTaxeFonciere === 'partage' && (
                         <>
-                          <span className="font-bold">Partage conventionnel:</span> Les parties ont convenu d'un 
+                          <span className="font-bold">Partage conventionnel:</span> Les parties ont convenu d&apos;un
                           partage à parts égales de la taxe foncière, solution équilibrée entre les intérêts 
                           du crédirentier et du débirentier.
                         </>
@@ -1442,7 +1442,7 @@ export default function ViagerCalculator() {
                 <div className="border-2 border-green-200 rounded-xl p-6 bg-green-50">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Percent className="w-5 h-5 text-green-600" />
-                    Taux technique d'actualisation
+                    Taux technique d&apos;actualisation
                   </h3>
                   
                   <div>
@@ -1466,11 +1466,11 @@ export default function ViagerCalculator() {
                   <div className="mt-4 p-4 bg-white rounded-lg border-2 border-green-300">
                     <h4 className="font-bold text-green-900 mb-2 flex items-center gap-2">
                       <Info className="w-4 h-4" />
-                      Qu'est-ce que le taux technique ?
+                      Qu&apos;est-ce que le taux technique ?
                     </h4>
                     <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                      Le taux technique est le <strong>taux de rendement annuel</strong> que l'acheteur espère obtenir 
-                      sur son investissement viager. Il permet d'actualiser les flux futurs de rente.
+                      Le taux technique est le <strong>taux de rendement annuel</strong> que l&apos;acheteur espère obtenir
+                      sur son investissement viager. Il permet d&apos;actualiser les flux futurs de rente.
                     </p>
                     
                     <div className="space-y-2 text-sm">
@@ -1486,8 +1486,8 @@ export default function ViagerCalculator() {
 
                     <div className="mt-3 p-3 bg-green-100 rounded-lg">
                       <p className="text-xs text-gray-700 leading-relaxed">
-                        <strong>💡 Référence :</strong> Le taux technique s'inspire généralement du <strong>taux OAT 10 ans</strong> 
-                        (obligations d'État françaises) + une <strong>prime de risque</strong> de 2-3%. 
+                        <strong>💡 Référence :</strong> Le taux technique s&apos;inspire généralement du <strong>taux OAT 10 ans</strong>
+                        (obligations d&apos;État françaises) + une <strong>prime de risque</strong> de 2-3%.
                         En octobre 2025, un taux de <strong>4,5%</strong> est cohérent avec le marché.
                       </p>
                     </div>
@@ -1495,7 +1495,7 @@ export default function ViagerCalculator() {
                     <div className="mt-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
                       <p className="text-xs text-gray-700">
                         <strong>⚠️ Impact :</strong> Plus le taux est élevé, plus la rente calculée sera importante 
-                        (car l'acheteur exige un meilleur rendement sur son capital immobilisé).
+                        (car l&apos;acheteur exige un meilleur rendement sur son capital immobilisé).
                       </p>
                     </div>
                   </div>
@@ -1828,7 +1828,7 @@ export default function ViagerCalculator() {
                     <div className="flex items-start gap-4">
                       <Award className="w-12 h-12 flex-shrink-0" />
                       <div>
-                        <h3 className="text-2xl font-bold mb-3">Recommandation d'expert</h3>
+                        <h3 className="text-2xl font-bold mb-3">Recommandation d&apos;expert</h3>
                         <p className="text-purple-100 mb-4">
                           La <span className="font-bold">méthode moyenne pondérée</span> offre le meilleur équilibre 
                           entre les différentes approches. Elle combine:

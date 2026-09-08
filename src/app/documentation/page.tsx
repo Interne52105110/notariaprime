@@ -51,7 +51,7 @@ function DocumentationContent() {
             <h1 className="text-5xl font-bold text-gray-900">Documentation</h1>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl">
-            Guide complet d'utilisation de NotariaPrime. Apprenez à maîtriser tous nos outils de calcul.
+            Guide complet d&apos;utilisation de NotariaPrime. Apprenez à maîtriser tous nos outils de calcul.
           </p>
         </div>
       </section>
@@ -82,7 +82,7 @@ function DocumentationContent() {
                 <div className="flex items-start gap-3">
                   <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-900 mb-1">Besoin d'aide ?</p>
+                    <p className="text-sm font-semibold text-blue-900 mb-1">Besoin d&apos;aide ?</p>
                     <a href="/contact" className="text-xs text-blue-700 hover:underline">
                       Contactez-nous
                     </a>
@@ -130,7 +130,7 @@ function DocumentationContent() {
                   <div>
                     <p className="font-semibold text-yellow-900 mb-2">Important</p>
                     <p className="text-sm text-yellow-800">
-                      NotariaPrime est un outil d'aide à la décision. Les résultats doivent être validés 
+                      NotariaPrime est un outil d&apos;aide à la décision. Les résultats doivent être validés
                       par un professionnel qualifié avant toute utilisation officielle.
                     </p>
                   </div>
@@ -156,7 +156,7 @@ function DocumentationContent() {
                 <ol className="space-y-3">
                   <li className="flex items-start gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                    <span className="text-gray-700">Accédez au calculateur via le bouton <strong>"Calculer"</strong> ou le menu</span>
+                    <span className="text-gray-700">Accédez au calculateur via le bouton <strong>&quot;Calculer&quot;</strong> ou le menu</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
@@ -164,7 +164,7 @@ function DocumentationContent() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                    <span className="text-gray-700">Sélectionnez le type d'acte (vente, VEFA, donation, etc.)</span>
+                    <span className="text-gray-700">Sélectionnez le type d&apos;acte (vente, VEFA, donation, etc.)</span>
                   </li>
                 </ol>
               </div>
@@ -229,7 +229,7 @@ function DocumentationContent() {
                   <div>
                     <p className="font-semibold text-green-900 mb-2">Astuce</p>
                     <p className="text-sm text-green-800">
-                      Vous pouvez exporter le résultat en PDF pour le partager avec votre client ou l'archiver.
+                      Vous pouvez exporter le résultat en PDF pour le partager avec votre client ou l&apos;archiver.
                     </p>
                   </div>
                 </div>
@@ -250,19 +250,19 @@ function DocumentationContent() {
 
               <div className="space-y-4 not-prose mb-8">
                 <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
-                  <h4 className="font-bold text-gray-900 mb-3">1. Informations sur l'acquisition</h4>
+                  <h4 className="font-bold text-gray-900 mb-3">1. Informations sur l&apos;acquisition</h4>
                   <ul className="space-y-2 text-sm text-gray-700">
                     <li className="flex items-start gap-2">
                       <ChevronRight className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span>Prix d'acquisition initial</span>
+                      <span>Prix d&apos;acquisition initial</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <ChevronRight className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span>Date d'acquisition</span>
+                      <span>Date d&apos;acquisition</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <ChevronRight className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span>Frais d'acquisition (réels ou forfait 7,5%)</span>
+                      <span>Frais d&apos;acquisition (réels ou forfait 7,5%)</span>
                     </li>
                   </ul>
                 </div>
@@ -395,7 +395,7 @@ function DocumentationContent() {
               </div>
 
               <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 p-8 mt-8 not-prose">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Besoin d'aide supplémentaire ?</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Besoin d&apos;aide supplémentaire ?</h3>
                 <p className="text-gray-700 mb-6">
                   Notre équipe est disponible pour répondre à toutes vos questions
                 </p>

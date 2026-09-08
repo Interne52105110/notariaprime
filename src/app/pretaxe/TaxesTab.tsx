@@ -61,7 +61,7 @@ export default function TaxesTab({
               />
             </div>
             <p className="text-xs text-amber-800 mt-2">
-              L'assiette de la TPF et de la CSI est le <strong>capital garanti majoré des
+              L&apos;assiette de la TPF et de la CSI est le <strong>capital garanti majoré des
               accessoires</strong> (intérêts, frais, indemnités), usuellement <strong>+20 %</strong>
               (ou +15 %). Ex. : un prêt de 70 000 € donne une assiette de 84 000 €.
             </p>
@@ -79,10 +79,10 @@ export default function TaxesTab({
               <span className="font-medium">{(taxes.tpf || 0).toFixed(2)} €</span>
             </div>
             <p className="text-xs text-gray-500">
-              L'inscription d'une hypothèque conventionnelle est soumise à la taxe de
-              publicité foncière de 0,715 % de l'assiette (CGI art. 663 et 844), et
+              L&apos;inscription d&apos;une hypothèque conventionnelle est soumise à la taxe de
+              publicité foncière de 0,715 % de l&apos;assiette (CGI art. 663 et 844), et
               non aux droits de mutation. La contribution de sécurité immobilière (0,05 %)
-              figure dans l'onglet Débours. Les droits sont arrondis à l'euro (CGI art. 1724).
+              figure dans l&apos;onglet Débours. Les droits sont arrondis à l&apos;euro (CGI art. 1724).
             </p>
             <p className="text-xs text-gray-500 border-t border-gray-200 pt-2">
               <strong>Double sûreté</strong> (privilège de prêteur de deniers + hypothèque
@@ -132,7 +132,7 @@ export default function TaxesTab({
               <span className="font-medium">{(taxes.droitPartage || 0).toFixed(2)} €</span>
             </div>
             <p className="text-xs text-gray-500">
-              CGI art. 746 — calculé sur l'actif net partagé. Le droit est ramené à 1,10 %
+              CGI art. 746 — calculé sur l&apos;actif net partagé. Le droit est ramené à 1,10 %
               pour les partages consécutifs à un divorce, une séparation de corps ou une
               rupture de PACS.
             </p>
@@ -191,7 +191,7 @@ export default function TaxesTab({
                     <span className="font-medium text-gray-900">Primo-accédant (résidence principale)</span>
                     <p className="text-xs text-gray-600 mt-1">
                       LF 2025 art. 116 — exonération de la hausse votée par le département (taux ramené à 4,50%).
-                      L'acquéreur s'engage à affecter le bien à sa résidence principale pendant 5 ans.
+                      L&apos;acquéreur s&apos;engage à affecter le bien à sa résidence principale pendant 5 ans.
                     </p>
                   </div>
                 </label>
@@ -212,8 +212,8 @@ export default function TaxesTab({
                 />
                 <p className="text-xs text-amber-800 mt-2">
                   <strong>Art. 1245 CGI</strong> — Les meubles meublants vendus avec le bien
-                  (cuisine équipée, électroménager, etc.) sont déduits de l'assiette des DMTO.
-                  Tolérance administrative : jusqu'à 5 % du prix sans justificatif. Au-delà, un
+                  (cuisine équipée, électroménager, etc.) sont déduits de l&apos;assiette des DMTO.
+                  Tolérance administrative : jusqu&apos;à 5 % du prix sans justificatif. Au-delà, un
                   inventaire détaillé et estimatif est requis.
                 </p>
                 {prix > 0 && mobilier > 0 && (
@@ -255,7 +255,7 @@ export default function TaxesTab({
                     <span className="font-medium">{taxes.communale.toFixed(2)} €</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Frais d'assiette (2,37%)</span>
+                    <span className="text-gray-600">Frais d&apos;assiette (2,37%)</span>
                     <span className="font-medium">{taxes.fraisAssiette.toFixed(2)} €</span>
                   </div>
                   {mobilier > 0 && (
