@@ -104,3 +104,39 @@ test('SCI transmission : aucune survalorisation IS ni second parent inventé', (
   assert.equal(result.valeurRevaluee,200000); assert.equal(result.nombreBeneficiaires,1); assert.equal(result.baseImposable,100000);
   assert.ok(Math.abs(result.droitsTotal-18194.35)<0.001);
 });
+
+const succession = require('../src/lib/succession.ts');
+const retraite = require('../src/lib/retraite.ts');
+const av = require('../src/lib/assurance-vie.ts');
+const actes = require('../src/lib/actes-successoraux.ts');
+for(const [lien,part,expected] of [['conjoint',500000,0],['partenaire-pacs',500000,0],['enfant',100000,0],['enfant',200000,18194],['autre',10000,5044],['petit-enfant',10000,437],['neveu-niece',10000,1118]]) {
+ test(`Succession ${lien} ${part}`,()=>assert.equal(succession.droitsSuccession({lien,partNette:part}).droits,expected));
+}
+test('Succession : fratrie exonérée, représentation et rappel',()=>{
+ assert.equal(succession.droitsSuccession({lien:'frere-soeur',partNette:300000,fratrieExoneree:true}).droits,0);
+ assert.equal(succession.droitsSuccession({lien:'petit-enfant',partNette:50000,representation:'enfant',nombreRepresentants:2}).droits,0);
+ assert.equal(succession.droitsSuccession({lien:'enfant',partNette:100000,abattementConsomme:100000,baseAnterieureTaxable:50000}).droits,20000);
+ assert.throws(()=>succession.droitsSuccession({lien:'enfant',partNette:-1}),RangeError);
+});
+for(const [age,u] of [[20,90],[21,80],[30,80],[31,70],[60,50],[61,40],[90,20],[91,10]]) test(`CGI 669 âge ${age}`,()=>assert.equal(succession.usufruitFiscal(age),u));
+test('Dutreil : réduction à 69 ans, exclusion à 70 ans et nue-propriété',()=>{
+ const args=[50000,150000,0,BAREME_SUCCESSION.enfant.tranches];
+ assert.ok(Math.abs(succession.reductionDroitsDutreil(...args,69,true)-4097.175)<.001);
+ assert.equal(succession.reductionDroitsDutreil(...args,70,true),0);
+ assert.equal(succession.reductionDroitsDutreil(...args,69,false),0);
+});
+for(const [date,ans,mois,t] of [['1961-08-31',62,0,168],['1961-09-01',62,3,168],['1964-09-08',62,9,170],['1965-03-31',62,9,170],['1965-04-01',63,0,171],['1966-01-01',63,3,172],['1968-01-01',63,9,172],['1969-01-01',64,0,172]]) test(`Retraite septembre 2026 ${date}`,()=>assert.deepEqual(retraite.parametresRetraite(date),{ans,mois,trimestres:t}));
+test('Agirc-Arrco exemple officiel salaire 75500 euros',()=>assert.ok(Math.abs(retraite.pointsAnnuelsAgircArrco(75500)-378.67)<.01));
+test('Décote relative, taux plein automatique et surcote après plafond',()=>{
+ assert.equal(retraite.pensionBasePrive(30000,166,170,63).taux,.475);
+ assert.equal(retraite.pensionBasePrive(30000,160,170,67).taux,.5);
+ assert.ok(Math.abs(retraite.pensionBasePrive(48060,172,172,66,8).pension-26433)<1e-8);
+});
+test('AV abattement appliqué d’abord au taux 7,5 % et seuil tous contrats',()=>{
+ assert.equal(av.impotRachatHuitAns(0,20000,100000,100000,4600),1685);
+ assert.equal(av.impotRachatHuitAns(5000,5000,150000,100000,4600),670);
+});
+test('Actes : délivrance de legs et certificat mobilier',()=>{
+ assert.equal(pretaxe.calculerEmoluments(100000,actes.ACTES_SUCCESSORAUX.delivrance_legs_avec.tranches,'75',false).bruts,704.28);
+ assert.equal(pretaxe.calculerEmoluments(100000,actes.ACTES_SUCCESSORAUX.delivrance_legs_sans.tranches,'75',false).bruts,352.11);
+});

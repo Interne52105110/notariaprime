@@ -1,6 +1,7 @@
 "use client";
 
 import { BAREME_SUCCESSION, appliquerBareme } from '@/lib/donation';
+import { reductionDroitsDutreil } from '@/lib/succession';
 import { anneesRevolues } from '@/lib/fiscal';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
@@ -37,6 +38,7 @@ interface PacteDutreil {
   valeurEntreprise: string;
   pourcentageTransmis: string;
   engagementCollectif: boolean;
+  ageDonateur?: string;
   engagementIndividuel: boolean;
 }
 
@@ -49,6 +51,7 @@ interface Results {
   tauxMoyen: number;
   netApresImpot: number;
   reductionDutreil: number;
+  reductionDroits: number;
   economieAbattement: number;
   suggestions: string[];
   detailTranches: Array<{
@@ -426,7 +429,9 @@ function DonationCalculatorContent() {
     // pas réappliquées à la nouvelle donation.
     const droitsCumul = appliquerBareme(baseAnterieureTaxable + baseImposable, tranches);
     const droitsAnterieurs = appliquerBareme(baseAnterieureTaxable, tranches);
-    const droits = Math.max(0, droitsCumul - droitsAnterieurs);
+    const droitsAvantReduction = Math.max(0, droitsCumul - droitsAnterieurs);
+    const reductionDroits = reductionDroitsDutreil(baseImposable, reductionDutreil / 3, baseAnterieureTaxable, tranches, parseInt(pacteDutreil.ageDonateur ?? ''), !demembrement.actif);
+    const droits = Math.max(0, droitsAvantReduction - reductionDroits);
 
     // Détail des tranches imposées à la nouvelle donation (au-dessus de la base antérieure)
     const detailTranches: Array<{tranche: string; montant: number; taux: number; impot: number}> = [];
@@ -479,6 +484,7 @@ function DonationCalculatorContent() {
       tauxMoyen,
       netApresImpot,
       reductionDutreil,
+      reductionDroits,
       economieAbattement,
       suggestions: genererSuggestions(donataire, montantBase, abattementDisponible, demembrement, pacteDutreil),
       detailTranches
@@ -1016,7 +1022,7 @@ function DonationCalculatorContent() {
                 <p className="text-xs text-gray-600 mt-1">De votre vivant</p>
               </button>
               <button
-                disabled aria-disabled="true"
+                onClick={() => { window.location.href = "/succession"; }}
                 className={`flex-1 p-6 rounded-xl border-2 transition-all ${
                   activeTab === 'succession'
                     ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-md'
@@ -1025,7 +1031,7 @@ function DonationCalculatorContent() {
               >
                 <FileText className="w-8 h-8 mx-auto mb-2 text-purple-600" />
                 <p className="font-semibold text-gray-900">Droits de succession</p>
-                <p className="text-xs text-gray-600 mt-1">Simulation distincte non disponible</p>
+                <p className="text-xs text-gray-600 mt-1">Impôt dû à l’État</p>
               </button>
             </div>
           </div>
@@ -1423,7 +1429,7 @@ function DonationCalculatorContent() {
                       <p className="font-semibold text-green-900 mb-2">Réduction fiscale de 75%</p>
                       <p className="text-sm text-green-800">
                         Le Pacte Dutreil permet une exonération de 75% de la valeur de l&apos;entreprise
-                        transmise, sous conditions d&apos;engagement collectif (2 ans) et individuel (6 ans). La réduction de droits de 50 % de l’article 790 (pleine propriété avant 70 ans) n’est pas comprise dans cette estimation ; les conditions d’activité et de direction doivent aussi être vérifiées.
+                        transmise, sous conditions d&apos;engagement collectif (2 ans) et individuel (6 ans). La réduction de droits de 50 % de l’article 790 est appliquée en pleine propriété avant 70 ans lorsque l’âge est renseigné. Vérifiez également les conditions d’activité, de direction et la composition éligible des actifs.
                       </p>
                     </div>
                   </div>
@@ -1486,6 +1492,7 @@ function DonationCalculatorContent() {
             )}
           </div>
 
+          {pacteDutreil.actif && <label className="block mb-5 text-sm">Âge du donateur au jour de l’acte (article 790)<input type="number" min="0" max="120" value={pacteDutreil.ageDonateur ?? ''} onChange={e=>setPacteDutreil({...pacteDutreil,ageDonateur:e.target.value})} className="block border rounded p-3 mt-2" /><span>Pour une donation mixte, abattement imputé d’abord aux autres biens et fraction éligible dans les tranches supérieures. Les transmissions démembrées n’ouvrent pas cette réduction.</span></label>}
           {/* Boutons d'action */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-4">
             <button
@@ -1514,6 +1521,7 @@ function DonationCalculatorContent() {
           </div>
         </div>
 
+        {results && results.reductionDroits > 0 && <p className="p-4 bg-green-50 rounded-xl font-semibold">Réduction de droits Dutreil (article 790) : − {results.reductionDroits.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} € comprise dans les droits à payer.</p>}
         {/* Résultats */}
         {results && (
           <>

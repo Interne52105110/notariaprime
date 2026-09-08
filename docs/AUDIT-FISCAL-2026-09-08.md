@@ -43,3 +43,15 @@ Cette revue porte sur les règles et défauts listés ci-dessous. Elle ne consti
 ## Validation technique
 
 Tests automatisés des règles et cas limites dans `tests/fiscal.test.cjs`, exécutés avec `npm test`. Les tests s’appuient sur des exemples chiffrés et frontières de barème, pas seulement sur les constantes. 41 tests unitaires réussis ; parcours navigateur donation (deux bénéficiaires), prétaxe ancien/neuf, IFI, et chargement de 17 routes. Contrôles TypeScript, lint et compilation de production avant publication. Les avertissements préexistants du lint ne sont pas assimilés à des validations fiscales.
+
+
+## Lot complémentaire — revue approfondie en cours
+
+- Droits de succession : nouveau moteur et route `/succession`, parts nettes saisies par héritier, abattements, exonérations conjoint/PACS et fratrie conditionnelle, représentation, rappel des tranches et nue-propriété. Le périmètre fiscal est distinct de la détermination civile des parts.
+- Dutreil : réduction de droits de 50 % avant 70 ans, exclusion des droits démembrés, double liquidation de la fraction éligible.
+- Prétaxe : six actes complémentaires (certificat mobilier, délivrances de legs, ouverture de testament, consentement et cantonnement), assiettes documentées, CSI de l’attestation après décès, majoration territoriale des émoluments fixes. Télétransmission forfaitaire automatique supprimée ; casier judiciaire non présumé pour notoriété/déclaration.
+- Retraite : calendrier applicable à compter du 1er septembre 2026, PASS 48 060 €, acquisition de points à 6,2 % et 17 % / 20,1877 €, décote proportionnelle et surcote après plafond. Valeurs du relevé et taux social saisissables ; minimum contributif non accordé sans ses conditions. La revue des régimes professionnels et des scénarios se poursuit.
+- Assurance-vie : abattement imputé dans l’ordre légal, primes antérieures comptées dans le seuil de 150 000 €, abattement annuel déjà utilisé ; droits 757 B intégrant abattements successoraux et bases antérieures ; contrôle des quotités totalisant 100 % et du montant de rachat.
+- Validation du lot : 70 tests de règles, compilation et contrôles TypeScript/lint réussis. La revue n’est pas encore terminée.
+
+Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006199108/2026-09-01), [actes successoraux A444-59 et suivants](https://www.legifrance.gouv.fr/codes/id/LEGISCTA000032132076/), [DGFiP droits de succession](https://www.impots.gouv.fr/particulier/questions/comment-dois-je-calculer-les-droits-de-succession), [calendrier retraite septembre 2026](https://www.service-public.gouv.fr/particuliers/actualites/A18825), [paramètres Agirc-Arrco](https://www.agirc-arrco.fr/nous-connaitre/nos-etudes-et-publications/documentation-institutionnelle/parametres-et-donnees-statistiques/), [assurance-vie : règles d’imposition](https://bofip.impots.gouv.fr/bofip/11224-PGP.html/identifiant=BOI-RPPM-RCM-20-15-20191220).

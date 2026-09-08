@@ -282,67 +282,67 @@ export function appliquerConfigParDefaut(
       ...prev,
       publiciteFonciere: {
         actif: config.formalites?.publiciteFonciere?.defaut || false,
-        montant: config.formalites?.publiciteFonciere?.montant || 339.58
+        montant: config.formalites?.publiciteFonciere?.montant ?? 339.58
       },
       cadastre: {
         actif: config.formalites?.cadastre?.defaut || false,
-        montant: config.formalites?.cadastre?.montant || 11.32
+        montant: config.formalites?.cadastre?.montant ?? 11.32
       },
       casierJudiciaire: {
         actif: config.formalites?.casierJudiciaire?.defaut || false,
-        montant: config.formalites?.casierJudiciaire?.montant || 37.73
+        montant: config.formalites?.casierJudiciaire?.montant ?? 37.73
       },
       notification: {
         actif: config.formalites?.notification?.defaut || false,
-        montant: config.formalites?.notification?.montant || 15.09
+        montant: config.formalites?.notification?.montant ?? 15.09
       },
       mesurage: {
         actif: config.formalites?.mesurage?.defaut || false,
-        montant: config.formalites?.mesurage?.montant || 15.09
+        montant: config.formalites?.mesurage?.montant ?? 15.09
       },
       diagnostics: {
         dpe: {
           actif: config.formalites?.diagnostics?.dpe?.defaut || false,
-          montant: config.formalites?.diagnostics?.dpe?.montant || 15.09
+          montant: config.formalites?.diagnostics?.dpe?.montant ?? 15.09
         },
         amiante: {
           actif: config.formalites?.diagnostics?.amiante?.defaut || false,
-          montant: config.formalites?.diagnostics?.amiante?.montant || 15.09
+          montant: config.formalites?.diagnostics?.amiante?.montant ?? 15.09
         },
         plomb: {
           actif: config.formalites?.diagnostics?.plomb?.defaut || false,
-          montant: config.formalites?.diagnostics?.plomb?.montant || 15.09
+          montant: config.formalites?.diagnostics?.plomb?.montant ?? 15.09
         },
         termites: {
           actif: config.formalites?.diagnostics?.termites?.defaut || false,
-          montant: config.formalites?.diagnostics?.termites?.montant || 15.09
+          montant: config.formalites?.diagnostics?.termites?.montant ?? 15.09
         },
         gaz: {
           actif: config.formalites?.diagnostics?.gaz?.defaut || false,
-          montant: config.formalites?.diagnostics?.gaz?.montant || 15.09
+          montant: config.formalites?.diagnostics?.gaz?.montant ?? 15.09
         },
         electricite: {
           actif: config.formalites?.diagnostics?.electricite?.defaut || false,
-          montant: config.formalites?.diagnostics?.electricite?.montant || 15.09
+          montant: config.formalites?.diagnostics?.electricite?.montant ?? 15.09
         },
         erp: {
           actif: config.formalites?.diagnostics?.erp?.defaut || false,
-          montant: config.formalites?.diagnostics?.erp?.montant || 15.09
+          montant: config.formalites?.diagnostics?.erp?.montant ?? 15.09
         }
       },
       transmissionCSN: {
         actif: config.formalites?.transmissionCSN?.defaut || false,
-        montant: config.formalites?.transmissionCSN?.montant || 15.31
+        montant: config.formalites?.transmissionCSN?.montant ?? 15.31
       },
       requisition: {
         actif: config.formalites?.requisition?.defaut || false,
-        montant: config.formalites?.requisition?.montant || 18.87
+        montant: config.formalites?.requisition?.montant ?? 18.87
       },
       // Télé@ctes : uniquement pour les actes publiés au SPF (alignés sur la
       // publicité foncière). Lettres recommandées : non systématiques (off).
       teleactes: {
-        actif: config.formalites?.publiciteFonciere?.defaut || false,
-        montant: 50
+        actif: false,
+        montant: 0
       },
       lettresRecommandees: { actif: false, montant: 7.08 },
       // Déclaration de plus-value (A444-172 n°206) : à activer pour les ventes

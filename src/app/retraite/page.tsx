@@ -6,6 +6,7 @@
 
 "use client";
 
+import { parametresRetraite, PASS_2026, pointsAnnuelsAgircArrco, pensionBasePrive } from '@/lib/retraite';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Calculator, TrendingUp, Euro, Calendar, Info, AlertCircle,
@@ -31,6 +32,10 @@ type ObjectifDepart = 'plus_tot' | 'taux_plein' | 'surcote';
 type TabId = 'estimation' | 'optimisation' | 'complementaire' | 'faq';
 
 interface FormData {
+  samReleve?: string;
+  pointsReleve?: string;
+  complementReleve?: string;
+  tauxSocial?: string;
   dateNaissance: string;
   sexe: 'homme' | 'femme';
   statut: Statut;
@@ -90,7 +95,7 @@ interface ScenarioDepart {
 // CONSTANTES 2026
 // ============================================
 
-const PASS_2025 = 47100; // PASS 2025 : 47 100 EUR/an (la valeur 46 368 etait celle de 2024)
+const PASS_2025 = PASS_2026; // PASS 2025 : 47 100 EUR/an (la valeur 46 368 etait celle de 2024)
 const TAUX_PLEIN = 0.50;
 const DECOTE_PAR_TRIMESTRE = 0.0125;
 const SURCOTE_PAR_TRIMESTRE = 0.0125;
@@ -99,10 +104,10 @@ const MINIMUM_CONTRIBUTIF = 8970;
 
 // Agirc-Arrco
 const VALEUR_POINT_AGIRC_ARRCO = 1.4386; // valeur du point Agirc-Arrco depuis nov. 2024
-const PRIX_ACHAT_POINT_T1 = 19.6321;
-const PRIX_ACHAT_POINT_T2 = 19.6321;
-const TAUX_ACQUISITION_T1 = 0.0620 + 0.0821;
-const TAUX_ACQUISITION_T2 = 0.0864 + 0.1295;
+const PRIX_ACHAT_POINT_T1 = 20.1877;
+const PRIX_ACHAT_POINT_T2 = 20.1877;
+const TAUX_ACQUISITION_T1 = 0.0620;
+const TAUX_ACQUISITION_T2 = 0.17;
 
 // Prelevements sociaux retraite
 const CSG_RETRAITE = 0.083;
@@ -243,7 +248,7 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
   const salaireBrut = parseNumber(formData.salaireBrutAnnuel);
   if (salaireBrut <= 0) return null;
 
-  const evolutionPct = parseNumber(formData.evolutionSalariale) || 1.5;
+  const evolutionPct = formData.evolutionSalariale.trim() ? parseNumber(formData.evolutionSalariale) : 1.5;
   const trimestresAcquis = Math.max(0, Math.round(parseNumber(formData.trimestresAcquis)));
   const ageDebut = parseNumber(formData.ageDebutActivite) || 22;
   const trimestresChomage = Math.round(parseNumber(formData.trimestresChomage));
@@ -251,17 +256,21 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
   const trimestresMaternite = Math.round(parseNumber(formData.trimestresMaternite));
   const trimestresRachetes = Math.round(parseNumber(formData.trimestresRachetes));
 
-  const ageLegalInfo = getAgeLegal(anneeNaissance);
+  const ageLegalInfo = parametresRetraite(formData.dateNaissance);
   const ageLegal = ageLegalInfo.ans + ageLegalInfo.mois / 12;
-  const trimestresRequis = getDureeRequise(anneeNaissance);
+  const trimestresRequis = parametresRetraite(formData.dateNaissance).trimestres;
 
   // Trimestres totaux projetes
-  const ageActuel = 2026 - anneeNaissance;
+  const ageActuel = (Date.now() - new Date(formData.dateNaissance).getTime()) / (365.25*86400000);
   const trimestresSpeciaux = trimestresChomage + trimestresMaladie + trimestresMaternite + trimestresRachetes;
 
-  // Projection des trimestres jusqu'a l'age legal
-  const anneesJusquAgeLegal = Math.max(0, ageLegal - ageActuel);
-  const trimestresProjection = Math.round(anneesJusquAgeLegal * 4);
+  // L'objectif choisit réellement l'âge projeté ; jamais avant l'âge légal ici.
+  const ageInitial = Math.max(ageActuel,ageLegal);
+  const trimestresAuLegal = trimestresAcquis+trimestresSpeciaux+Math.floor(Math.max(0,ageInitial-ageActuel)*4);
+  const ageTauxPleinProjete = Math.max(ageInitial,Math.min(67,ageInitial+Math.max(0,trimestresRequis-trimestresAuLegal)/4));
+  const ageDepart = formData.objectifDepart === 'plus_tot' ? ageInitial : ageTauxPleinProjete+(formData.objectifDepart === 'surcote'?2:0);
+  const anneesJusquAgeLegal = Math.max(0, ageDepart-ageActuel);
+  const trimestresProjection = Math.floor(anneesJusquAgeLegal*4);
   const trimestresTotaux = trimestresAcquis + trimestresSpeciaux + trimestresProjection;
 
   // Annees effectivement cotisees (pour SAM)
@@ -280,38 +289,11 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
     sam = traitementRef;
   } else {
     // Regime general: SAM x taux x (duree / duree requise)
-    sam = calculerSAM(salaireBrut, evolutionPct, anneesCotisees);
+    sam = formData.samReleve?.trim() ? parseNumber(formData.samReleve) : calculerSAM(salaireBrut, evolutionPct, anneesCotisees);
 
-    // Calcul du taux de liquidation
-    let tauxLiquidation = TAUX_PLEIN;
-    let trimestresManquants = 0;
-    let trimestresExcedentaires = 0;
+    const trimestresApresAgeLegal = Math.max(0, Math.floor((ageDepart-ageLegal)*4));
+    pensionBaseAnnuelle = pensionBasePrive(sam,trimestresTotaux,trimestresRequis,ageDepart,Math.min(Math.max(0,trimestresTotaux-trimestresRequis),trimestresApresAgeLegal)).pension;
 
-    if (trimestresTotaux < trimestresRequis) {
-      trimestresManquants = trimestresRequis - trimestresTotaux;
-      if (formData.objectifDepart === 'plus_tot') {
-        const decote = Math.min(trimestresManquants, MAX_TRIMESTRES_DECOTE) * DECOTE_PAR_TRIMESTRE;
-        tauxLiquidation = TAUX_PLEIN - decote;
-      }
-    } else {
-      trimestresExcedentaires = trimestresTotaux - trimestresRequis;
-      if (formData.objectifDepart === 'surcote') {
-        const surcote = trimestresExcedentaires * SURCOTE_PAR_TRIMESTRE;
-        tauxLiquidation = TAUX_PLEIN + surcote;
-      }
-    }
-
-    const dureeRetenue = Math.min(trimestresTotaux, trimestresRequis);
-    pensionBaseAnnuelle = sam * tauxLiquidation * (dureeRetenue / trimestresRequis);
-
-    // Plafond de la pension de base
-    const plafondPension = PASS_2025 * 0.50;
-    pensionBaseAnnuelle = Math.min(pensionBaseAnnuelle, plafondPension);
-
-    // Minimum contributif si taux plein et carriere complete
-    if (tauxLiquidation >= TAUX_PLEIN && trimestresTotaux >= trimestresRequis) {
-      pensionBaseAnnuelle = Math.max(pensionBaseAnnuelle, MINIMUM_CONTRIBUTIF);
-    }
   }
 
   pensionBase = pensionBaseAnnuelle / 12;
@@ -322,7 +304,7 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
   let pensionComplementaire = 0;
 
   if (formData.statut === 'salarie') {
-    pointsAgircArrco = calculerPointsAgircArrco(salaireBrut, evolutionPct, anneesCotisees);
+    pointsAgircArrco = formData.pointsReleve?.trim() ? parseNumber(formData.pointsReleve) + pointsAnnuelsAgircArrco(salaireBrut)*anneesJusquAgeLegal : calculerPointsAgircArrco(salaireBrut, evolutionPct, anneesCotisees);
     pensionComplementaireAnnuelle = pointsAgircArrco * VALEUR_POINT_AGIRC_ARRCO;
     pensionComplementaire = pensionComplementaireAnnuelle / 12;
   } else if (formData.statut === 'independant') {
@@ -339,11 +321,13 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
     pensionComplementaire = pensionComplementaireAnnuelle / 12;
   }
 
+  if (formData.complementReleve?.trim()) { pensionComplementaireAnnuelle=parseNumber(formData.complementReleve); pensionComplementaire=pensionComplementaireAnnuelle/12; }
+  const tauxSocial = Number(formData.tauxSocial ?? 9.1)/100;
   // Totaux
   const pensionBruteMensuelle = pensionBase + pensionComplementaire;
   const pensionBruteAnnuelle = pensionBaseAnnuelle + pensionComplementaireAnnuelle;
-  const pensionNetteMensuelle = pensionBruteMensuelle * (1 - TOTAL_PRELEVEMENTS);
-  const pensionNetteAnnuelle = pensionBruteAnnuelle * (1 - TOTAL_PRELEVEMENTS);
+  const pensionNetteMensuelle = pensionBruteMensuelle * (1 - Number(formData.tauxSocial ?? 9.1)/100);
+  const pensionNetteAnnuelle = pensionBruteAnnuelle * (1 - Number(formData.tauxSocial ?? 9.1)/100);
 
   // Taux de remplacement
   const dernierRevenuNet = salaireBrut * 0.78; // approximation net/brut
@@ -375,28 +359,28 @@ function calculerRetraite(formData: FormData): ResultatRetraite | null {
     pensionNetteAnnuelle,
     tauxRemplacement,
     dernierRevenuNet,
-    anneeDepart: anneeNaissance + Math.ceil(ageLegal),
-    ageDepartEffectif: ageLegal,
+    anneeDepart: new Date(new Date(dateNaissance).getTime()+ageDepart*365.25*86400000).getFullYear(),
+    ageDepartEffectif: ageDepart,
   };
 }
 
 function calculerScenarios(formData: FormData, resultatBase: ResultatRetraite): ScenarioDepart[] {
   const anneeNaissance = parseInt(formData.dateNaissance.split('-')[0]);
   const salaireBrut = parseNumber(formData.salaireBrutAnnuel);
-  const evolutionPct = parseNumber(formData.evolutionSalariale) || 1.5;
-  const trimestresRequis = getDureeRequise(anneeNaissance);
-  const ageLegalInfo = getAgeLegal(anneeNaissance);
+  const evolutionPct = formData.evolutionSalariale.trim() ? parseNumber(formData.evolutionSalariale) : 1.5;
+  const trimestresRequis = parametresRetraite(formData.dateNaissance).trimestres;
+  const ageLegalInfo = parametresRetraite(formData.dateNaissance);
   const ageLegal = ageLegalInfo.ans + ageLegalInfo.mois / 12;
 
   const scenarios: ScenarioDepart[] = [];
-  const offsets = [-2, 0, 2, 4];
-  const noms = ['Depart anticipe (-2 ans)', 'Age legal', 'Surcote +2 ans', 'Surcote +4 ans'];
+  const offsets = [0, 2, 4];
+  const noms = ['Age legal', 'Départ +2 ans', 'Départ +4 ans'];
 
   for (let i = 0; i < offsets.length; i++) {
     const ageDepart = ageLegal + offsets[i];
-    if (ageDepart < 60) continue;
+    if (ageDepart < 60 || ageDepart < (Date.now()-new Date(formData.dateNaissance).getTime())/(365.25*86400000)) continue;
 
-    const ageActuel = 2026 - anneeNaissance;
+    const ageActuel = (Date.now() - new Date(formData.dateNaissance).getTime()) / (365.25*86400000);
     const anneesRestantes = Math.max(0, ageDepart - ageActuel);
     const trimestresProjection = Math.round(anneesRestantes * 4);
     const trimestresAcquis = Math.round(parseNumber(formData.trimestresAcquis));
@@ -407,24 +391,24 @@ function calculerScenarios(formData: FormData, resultatBase: ResultatRetraite): 
     const trimestresTotaux = trimestresAcquis + trimestresSpeciaux + trimestresProjection;
 
     const anneesCotisees = Math.max(1, Math.round(trimestresTotaux / 4));
-    const sam = calculerSAM(salaireBrut, evolutionPct, anneesCotisees);
+    const sam = formData.samReleve?.trim() ? parseNumber(formData.samReleve) : calculerSAM(salaireBrut, evolutionPct, anneesCotisees);
 
     let tauxLiquidation = TAUX_PLEIN;
     let decoteSurcoteText = 'Taux plein';
 
     if (trimestresTotaux < trimestresRequis) {
-      const manquants = Math.min(trimestresRequis - trimestresTotaux, MAX_TRIMESTRES_DECOTE);
-      tauxLiquidation = TAUX_PLEIN - manquants * DECOTE_PAR_TRIMESTRE;
+      const manquants = Math.max(0,Math.min(trimestresRequis - trimestresTotaux, Math.ceil((67-ageDepart)*4), MAX_TRIMESTRES_DECOTE));
+      tauxLiquidation = TAUX_PLEIN * (1 - manquants * DECOTE_PAR_TRIMESTRE);
       decoteSurcoteText = `Decote -${manquants} trim.`;
     } else if (trimestresTotaux > trimestresRequis && offsets[i] > 0) {
       const excedentaires = trimestresTotaux - trimestresRequis;
-      tauxLiquidation = TAUX_PLEIN + excedentaires * SURCOTE_PAR_TRIMESTRE;
+      tauxLiquidation = TAUX_PLEIN * (1 + Math.min(excedentaires,offsets[i]*4) * SURCOTE_PAR_TRIMESTRE);
       decoteSurcoteText = `Surcote +${excedentaires} trim.`;
     }
 
     const dureeRetenue = Math.min(trimestresTotaux, trimestresRequis);
     let pensionBaseAnnuelle = sam * tauxLiquidation * (dureeRetenue / trimestresRequis);
-    pensionBaseAnnuelle = Math.min(pensionBaseAnnuelle, PASS_2025 * 0.50);
+    pensionBaseAnnuelle = pensionBasePrive(sam,trimestresTotaux,trimestresRequis,ageDepart,Math.min(Math.max(0,trimestresTotaux-trimestresRequis),Math.max(0,offsets[i]*4))).pension;
 
     let pensionComplAnnuelle = 0;
     if (formData.statut === 'salarie') {
@@ -439,7 +423,7 @@ function calculerScenarios(formData: FormData, resultatBase: ResultatRetraite): 
     }
 
     const pensionBruteAnnuelle = pensionBaseAnnuelle + pensionComplAnnuelle;
-    const pensionNetteAnnuelle = pensionBruteAnnuelle * (1 - TOTAL_PRELEVEMENTS);
+    const pensionNetteAnnuelle = pensionBruteAnnuelle * (1 - Number(formData.tauxSocial ?? 9.1)/100);
     const pensionNetteMensuelle = pensionNetteAnnuelle / 12;
 
     // Cumul jusqu'a 85 ans
@@ -715,7 +699,7 @@ export default function SimulateurRetraite() {
     const salaireBrut = parseNumber(formData.salaireBrutAnnuel);
     const salaireNet = salaireBrut * 0.78;
     const anneeNaissance = parseInt(formData.dateNaissance.split('-')[0]);
-    const ageLegal = getAgeLegal(anneeNaissance);
+    const ageLegal = parametresRetraite(formData.dateNaissance);
     const ageRetraite = ageLegal.ans;
 
     const data = [];
@@ -852,7 +836,7 @@ export default function SimulateurRetraite() {
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-gray-900">
                 Simulateur Retraite
-              </h1>
+              </h1><div className="mt-5 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><p>Règles des départs à compter du 1er septembre 2026. Reconstitution indicative à partir du salaire actuel : utilisez les données de votre relevé pour affiner. Le minimum contributif n’est pas attribué automatiquement. Les trimestres particuliers saisis doivent être absents du total acquis et sans double compte. Les carrières longues et régimes spéciaux exigent une vérification dédiée.</p><div className="grid md:grid-cols-2 gap-3">{[['samReleve','SAM revalorisé du relevé (€ annuels)'],['pointsReleve','Points Agirc-Arrco déjà acquis'],['complementReleve','Pension complémentaire annuelle du relevé (€)']].map(([key,label])=><label key={key}>{label}<input type="number" min="0" className="block border rounded p-2 w-full" value={String(formData[key as keyof FormData] ?? '')} onChange={e=>setFormData({...formData,[key]:e.target.value})}/></label>)}<label>Prélèvements sociaux sur pension<select className="block border rounded p-2 w-full" value={formData.tauxSocial ?? '9.1'} onChange={e=>setFormData({...formData,tauxSocial:e.target.value})}><option value="9.1">9,1 % (taux normal)</option><option value="7.4">7,4 % (taux médian)</option><option value="4.3">4,3 % (taux réduit)</option><option value="0">Exonération</option></select></label></div><a className="underline" href="https://www.service-public.gouv.fr/particuliers/actualites/A18825">Calendrier officiel 2026</a></div>
             </div>
             <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
               Estimation de pension francaise {'\u2022'} Regime de base et complementaire {'\u2022'} Optimisation

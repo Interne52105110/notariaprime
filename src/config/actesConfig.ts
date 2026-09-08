@@ -50,6 +50,12 @@ export interface ConfigActe {
 }
 
 export const actesConfig: Record<string, ConfigActe> = {
+  certificat_propriete: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
+  delivrance_legs_avec: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
+  delivrance_legs_sans: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
+  ouverture_testament: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
+  consentement_execution: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
+  cantonnement: { formalites: { publiciteFonciere: { defaut: false, montant: 0 } }, documents: { pagesActe: 1, copiesAuthentiques: 1, copiesExecutoires: 0, copiesHypothecaires: 0 }, taxes: { applicable: false, type: 'aucune', calculAuto: false } },
   
   // ============================================================================
   // 🏠 BIENS IMMOBILIERS (9 actes)
@@ -434,7 +440,7 @@ export const actesConfig: Record<string, ConfigActe> = {
     formalites: {
       publiciteFonciere: { defaut: false, montant: 0 },
       cadastre: { defaut: false, montant: 0 },
-      casierJudiciaire: { defaut: true, montant: 37.73 }
+      casierJudiciaire: { defaut: false, montant: 0 }
     },
     documents: {
       pagesActe: 5,
@@ -507,7 +513,7 @@ export const actesConfig: Record<string, ConfigActe> = {
     formalites: {
       publiciteFonciere: { defaut: false, montant: 0 },
       cadastre: { defaut: true, montant: 11.32 },
-      casierJudiciaire: { defaut: true, montant: 37.73 }
+      casierJudiciaire: { defaut: false, montant: 0 }
     },
     documents: {
       pagesActe: 15,

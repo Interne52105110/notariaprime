@@ -3,6 +3,7 @@
 "use client";
 
 import MainLayout from '@/components/MainLayout';
+import { ACTES_SUCCESSORAUX, ASSIETTES_SUCCESSORALES } from '@/lib/actes-successoraux';
 import React, { useState, useEffect } from 'react';
 import { 
   Calculator, FileText, Euro, Building, Users, Home,
@@ -287,6 +288,7 @@ const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes relatifs aux successions et libéralités',
     icon: FileSignature,
     actes: {
+      ...ACTES_SUCCESSORAUX,
       'donation': { 
         label: 'Donation',
         type: 'proportionnel',
@@ -339,9 +341,9 @@ const categoriesActes: Record<string, CategorieActes> = {
         droitFixeEnreg: 125 // CGI art. 848 2° (par vacation)
       },
       'renonciation': {
-        label: 'Renonciation à succession (pure et simple)',
-        type: 'fixe',
-        montant: 57.69,
+        label: 'Renonciation à succession (honoraires à convenir)',
+        type: 'non_tarife',
+        description: 'Prestation à convenir avec le notaire ; pas d’assimilation au tarif de notoriété.',
         droitFixeEnreg: 125 // CGI art. 847 2° (renonciation pure et simple)
       },
       'declaration_succession': {
@@ -681,18 +683,22 @@ function PretaxeContent() {
         if (acte.type === 'fixe' && acte.montant) {
           const detail = {
             bruts: acte.montant,
-            majoration: 0,
-            avantRemise: acte.montant,
+            majoration: Math.round(acte.montant * getMajorationDOMTOM(selectedDepartement)) / 100,
+            avantRemise: Math.round(acte.montant * (100 + getMajorationDOMTOM(selectedDepartement))) / 100,
             remise10: 0,
             remise20: 0,
-            nets: acte.montant
+            nets: Math.round(acte.montant * (100 + getMajorationDOMTOM(selectedDepartement))) / 100
           };
           setEmolumentsDetail(detail);
-          setEmoluments(acte.montant);
+          setEmoluments(detail.nets);
         } else if (acte.type === 'proportionnel' && montantActe && acte.tranches) {
           const montant = parseFloat(montantActe.replace(/\s/g, ''));
           if (!isNaN(montant)) {
             const detailBase = calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
+            if (selectedActe === 'certificat_propriete' && montant <= 3120) {
+              detailBase.bruts = 15.09; detailBase.majoration = Math.round(15.09 * getMajorationDOMTOM(selectedDepartement)) / 100;
+              detailBase.avantRemise = Math.round((detailBase.bruts + detailBase.majoration)*100)/100; detailBase.nets = detailBase.avantRemise; detailBase.remise20 = 0;
+            }
             // Sûretés accessoires : l'émolument est une quotité de celui de
             // l'acte principal (A444-127/136/148).
             const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -734,7 +740,7 @@ function PretaxeContent() {
             } else if (typeTaxe === 'partage') {
               calculerCSI(montantActe, setDebours); // publication : CSI 0,10 %
               calculerDroitPartage(montantActe, taxes.regimePartage ?? 'standard', setTaxes);
-            } else if (publie) {
+            } else if (publie || selectedActe === 'attestation_propriete') {
               calculerCSI(montantActe, setDebours);
             }
           }
@@ -957,6 +963,7 @@ function PretaxeContent() {
             </div>
           )}
           
+          {ASSIETTES_SUCCESSORALES[selectedActe] && <p className="mt-4 p-4 bg-blue-50 rounded-xl text-sm">{ASSIETTES_SUCCESSORALES[selectedActe]} Les formalités et débours sont à ajuster aux prestations effectivement réalisées. <a className="underline" href="/succession">Calcul des droits de succession à l’État</a></p>}
           {getMajorationDOMTOM(selectedDepartement) > 0 && (
             <div className="mt-6 bg-orange-50 border border-orange-200 rounded-xl p-4">
               <div className="flex items-start">

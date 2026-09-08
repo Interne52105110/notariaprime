@@ -5,6 +5,8 @@
 
 "use client";
 
+import { impotRachatHuitAns } from '@/lib/assurance-vie';
+import { droitsSuccession } from '@/lib/succession';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Shield, TrendingUp, Calculator, PieChart as PieChartIcon,
@@ -35,6 +37,9 @@ interface Beneficiaire {
   nom: string;
   lien: LienBeneficiaire;
   pourcentage: string;
+  abattementConsomme?: string;
+  rappel?: string;
+  capital990DejaRecu?: string;
 }
 
 interface ResultatRachat {
@@ -170,9 +175,11 @@ function calculerRachat(
   tmi: number,
   // Cumul des primes versees NETTES de rachats depuis le 27/09/2017 (et non l'encours / valeur de rachat).
   // C'est ce montant que l'art. 125-0 A compare au seuil de 150 000 EUR.
-  totalPrimesNettesApres2017: number
+  totalPrimesNettesApres2017: number,
+  totalPrimesAvant2017 = 0,
+  abattementDejaUtilise = 0
 ): ResultatRachat | null {
-  if (valeurContrat <= 0 || primesVersees <= 0 || montantRachat <= 0) return null;
+  if (valeurContrat <= 0 || primesVersees <= 0 || montantRachat <= 0 || montantRachat > valeurContrat || partPrimesAvant2017 < 0 || partPrimesAvant2017 > 100) return null;
 
   const totalProduits = Math.max(0, valeurContrat - primesVersees);
   const ratioProduits = totalProduits / valeurContrat;
@@ -183,7 +190,7 @@ function calculerRachat(
   // Abattement si > 8 ans
   let abattement = 0;
   if (anciennete === 'plus8') {
-    abattement = situation === 'couple' ? 9200 : 4600;
+    abattement = Math.max(0,(situation === 'couple' ? 9200 : 4600)-abattementDejaUtilise);
   }
 
   const produitsApresAbattement = Math.max(0, produitsImposables - abattement);
@@ -204,7 +211,7 @@ function calculerRachat(
     // Approximation par tranche proportionnelle : on ventile les produits "apres 2017" au prorata
     // de la part des primes <= 150k vs > 150k (faute de detail prime par prime).
     const primesNettes = Math.max(0, totalPrimesNettesApres2017);
-    const partPrimesSousSeuil = primesNettes > 0 ? Math.min(primesNettes, 150000) / primesNettes : 1;
+    const partPrimesSousSeuil = primesNettes > 0 ? Math.min(primesNettes, Math.max(0,150000-totalPrimesAvant2017)) / primesNettes : 1;
     const partPrimesAuDela = 1 - partPrimesSousSeuil;
     const tauxApres = partPrimesSousSeuil * 0.075 + partPrimesAuDela * 0.128;
     tauxPFUMoyen = partAvant2017 * tauxAvant + partApres2017 * tauxApres;
@@ -219,7 +226,7 @@ function calculerRachat(
     tauxPFUMoyen = partAvant2017 * tauxAvant + partApres2017 * tauxApres;
   }
 
-  const impotPFU = produitsApresAbattement * tauxPFUMoyen;
+  const impotPFU = anciennete === 'plus8' ? impotRachatHuitAns(produitsImposables*partAvant2017,produitsImposables*partApres2017,totalPrimesAvant2017,totalPrimesNettesApres2017,abattement) : produitsApresAbattement * tauxPFUMoyen;
   const impotIR = produitsApresAbattement * tmi;
   const prelevementsSociaux = produitsImposables * TAUX_PS;
 
@@ -297,7 +304,7 @@ function calculerSuccession(
   const primesApres70 = Math.max(0, montantApres70Brut - gainsApres70);
 
   const totalPourcentage = beneficiaires.reduce((sum, b) => sum + parseNumber(b.pourcentage), 0);
-  if (totalPourcentage <= 0) return null;
+  if (Math.abs(totalPourcentage-100)>0.001 || beneficiaires.some(b=>parseNumber(b.pourcentage)<0) || partAvant70<0 || partAvant70>100 || gainsApres70<0 || gainsApres70>montantApres70Brut) return null;
 
   // Art. 757 B : l'abattement global de 30 500 EUR se repartit entre les beneficiaires
   // NON EXONERES (hors conjoint/PACS) AU PRORATA de leurs parts dans les primes taxables,
@@ -335,9 +342,10 @@ function calculerSuccession(
     }
 
     // Art. 990 I (avant 70 ans)
-    const abattement990I = Math.min(partAvant70Benef, ABATTEMENT_990I);
+    const abattement990I = Math.min(partAvant70Benef, Math.max(0,ABATTEMENT_990I-parseNumber(b.capital990DejaRecu ?? '0')));
     const baseTaxable990I = Math.max(0, partAvant70Benef - abattement990I);
-    const droits990I = calculerDroits990I(baseTaxable990I);
+    const base990Anterieure = Math.max(0,parseNumber(b.capital990DejaRecu ?? '0')-ABATTEMENT_990I);
+    const droits990I = calculerDroits990I(baseTaxable990I+base990Anterieure)-calculerDroits990I(base990Anterieure);
 
     // Art. 757 B (apres 70 ans) - abattement global de 30 500 EUR reparti AU PRORATA
     // de la part de chaque beneficiaire non exonere dans les primes taxables.
@@ -347,21 +355,8 @@ function calculerSuccession(
     const abattement757B = Math.min(primesApres70Benef, quotePartAbattement);
     const baseTaxable757B = Math.max(0, primesApres70Benef - abattement757B);
 
-    // Pour art. 757 B, on applique le bareme classique selon le lien
-    const lienBareme = b.lien === 'frere-soeur' ? 'frere-soeur' : b.lien === 'neveu-niece' ? 'neveu-niece' : b.lien === 'enfant' ? 'enfant' : 'autre';
-    let droits757B = 0;
-    {
-      const bareme = BAREME_SUCCESSION_CLASSIQUE[lienBareme] || BAREME_SUCCESSION_CLASSIQUE['autre'];
-      let reste757 = baseTaxable757B;
-      let trancheInf = 0;
-      for (const tranche of bareme.tranches) {
-        if (reste757 <= 0) break;
-        const mt = Math.min(reste757, tranche.max - trancheInf);
-        droits757B += mt * tranche.taux;
-        reste757 -= mt;
-        trancheInf = tranche.max;
-      }
-    }
+    // Même abattement et mêmes tranches que la succession ordinaire, après consommation antérieure.
+    const droits757B = droitsSuccession({partNette:baseTaxable757B,lien:b.lien,abattementConsomme:parseNumber(b.abattementConsomme ?? '0'),baseAnterieureTaxable:parseNumber(b.rappel ?? '0')}).droits;
 
     const totalDroits = droits990I + droits757B;
 
@@ -630,6 +625,8 @@ function AssuranceVieContent() {
   const [primesNettesApres2017, setPrimesNettesApres2017] = useState('');
 
   // ===== ETAT SUCCESSION =====
+  const [primesAvantTousContrats,setPrimesAvantTousContrats] = useState('');
+  const [abattementRachatConsomme,setAbattementRachatConsomme] = useState('');
   const [valeurContratDeces, setValeurContratDeces] = useState('');
   const [partAvant70, setPartAvant70] = useState('70');
   const [gainsApres70, setGainsApres70] = useState('');
@@ -656,9 +653,10 @@ function AssuranceVieContent() {
       situation,
       tmi,
       // A defaut de saisie, on retient le total des primes versees du contrat (approximation prudente).
-      parseNumber(primesNettesApres2017) || parseNumber(primesVersees)
+      (primesNettesApres2017.trim() ? parseNumber(primesNettesApres2017) : parseNumber(primesVersees)*(1-parseNumber(partPrimesAvant2017)/100)),
+      parseNumber(primesAvantTousContrats), parseNumber(abattementRachatConsomme)
     );
-  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, primesNettesApres2017]);
+  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, primesNettesApres2017, primesAvantTousContrats, abattementRachatConsomme]);
 
   const resultatSuccession = useMemo(() => {
     return calculerSuccession(
@@ -879,7 +877,7 @@ function AssuranceVieContent() {
           </div>
           <h1 className={`font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-4 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
             Simulateur Assurance-Vie
-          </h1>
+          </h1><div className="mt-4 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><p>Contrats courants souscrits depuis le 20 novembre 1991 ; capitaux relevant de l’article 990 I issus des versements depuis le 13 octobre 1998. Pour un ancien contrat exonéré, utilisez les bases fournies par l’assureur. Les parts avant/après 2017 doivent correspondre aux produits du rachat, selon son décompte. Prélèvements sociaux : estimation avant déduction des prélèvements déjà acquittés sur le fonds euros.</p><label className="block">Primes nettes avant le 27/09/2017, tous contrats (€)<input type="number" min="0" value={primesAvantTousContrats} onChange={e=>setPrimesAvantTousContrats(e.target.value)} className="block border rounded p-2"/></label><label className="block">Abattement annuel de rachat déjà utilisé (€)<input type="number" min="0" value={abattementRachatConsomme} onChange={e=>setAbattementRachatConsomme(e.target.value)} className="block border rounded p-2"/></label></div>
           <p className={`text-gray-600 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-lg'}`}>
             Fiscalite des rachats, transmission successorale, projection de capitalisation.
             Comparez les strategies pour optimiser votre contrat d&apos;assurance-vie.
@@ -1420,7 +1418,7 @@ function AssuranceVieContent() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid sm:grid-cols-3 gap-3 mb-3">{[['abattementConsomme','Abattement successoral déjà utilisé (€)'],['rappel','Base taxable succession / rappel déjà taxée (€)'],['capital990DejaRecu','Capital 990 I reçu sur les autres contrats (€)']].map(([key,label])=><label key={key} className="text-xs">{label}<input type="number" min="0" className="block w-full border rounded p-2" value={b[key as keyof Beneficiaire] ?? ''} onChange={e=>modifierBeneficiaire(b.id,key as keyof Beneficiaire,e.target.value)}/></label>)}</div><div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="text-xs font-semibold text-gray-600 mb-1 block">Nom</label>
                           <input
