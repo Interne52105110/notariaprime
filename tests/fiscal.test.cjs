@@ -164,3 +164,31 @@ test('viager : coefficient professionnel distinct de la durée du scénario', ()
 test('viager : la fraction imposable suit l’âge au premier versement sans réduire la rente', () => {
   for(const [age,fraction] of [[49,.7],[50,.5],[59,.5],[60,.4],[69,.4],[70,.3]]) assert.equal(viager.fractionRenteImposable(age),fraction);
 });
+
+const holding = require('../src/lib/holding.ts');
+const holdingBase = {valeur:200000,bati:160000,loyers:20000,charges:2000,taxe:1000,emprunt:0,taux:0,duree:10,amortissement:.025,comptabilite:1000,gestion:0,tmi:30,distribuer:false,tauxReduit:false};
+test('holding : amortissement non décaissé et IS mère-fille compris dans la trésorerie',()=>{
+ const r=holding.projectionHolding(holdingBase,1)[0];
+ assert.equal(r.amort,4000);assert.equal(r.isSCI,3000);assert.equal(r.beneficeSCI,9000);
+ assert.equal(r.remontee,9000);assert.equal(r.isHolding,112.5);
+ assert.equal(r.netGroupe,12887.5);assert.equal(r.cashSCI,4000);assert.equal(r.cashHolding,8887.5);
+ assert.equal(r.cumulHolding,r.cashSCI+r.cashHolding);
+});
+test('holding : prêt sans intérêt, capital remboursé non déductible, dividendes bornés au cash',()=>{
+ assert.deepEqual(holding.echeanceAnnuelle(120000,0,10,1),{interets:0,principal:12000});
+ const r=holding.projectionHolding({...holdingBase,emprunt:120000},1)[0];
+ assert.equal(r.isSCI,3000);assert.equal(r.principal,12000);assert.equal(r.remontee,1000);
+ assert.equal(r.netDirect,17000-12000-17000*.472);assert.equal(r.netGroupe,987.5);
+});
+test('holding : distribution personnelle et réserves distinctes, zéro rendement implicite',()=>{
+ const r=holding.projectionHolding({...holdingBase,distribuer:true},1)[0];
+ assert.equal(r.distribution,8887.5);assert.equal(r.pfu,8887.5*.314);assert.equal(r.cashSCI,4000);
+ const a=holding.projectionHolding({...holdingBase,amortissement:0},2);
+ assert.equal(a[1].cumulHolding,2*a[0].cumulHolding);
+});
+test('holding : amortissement plafonné au bâti et report des déficits avant IS',()=>{
+ const a=holding.projectionHolding({...holdingBase,bati:20000,amortissement:1},3);
+ assert.equal(a[0].isSCI,0);assert.equal(a[1].amort,0);assert.equal(a[1].baseSCI,12000);
+ assert.equal(a.reduce((s,x)=>s+x.amort,0),20000);
+ assert.equal(holding.impotSociete(50000,true),8250);assert.equal(holding.impotSociete(50000,false),12500);
+});

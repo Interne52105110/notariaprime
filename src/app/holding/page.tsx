@@ -5,6 +5,7 @@
 
 "use client";
 
+import { projectionHolding } from '@/lib/holding';
 import { BAREME_IR_2026 } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -48,6 +49,8 @@ interface FormData {
   fraisGestionHolding: string;
   fraisComptables: string;
   tauxAmortissement: string;
+  partBati?: string;
+  tauxReduitIS?: boolean;
   decoteIlliquidite: string;
   ageDonateur: string;
   nombreEnfants: string;
@@ -231,7 +234,9 @@ export default function HoldingPatrimoniale() {
     fraisGestionHolding: '2 000',
     fraisComptables: '1 500',
     tauxAmortissement: '2.5',
-    decoteIlliquidite: '20',
+    partBati: '80',
+    tauxReduitIS: false,
+    decoteIlliquidite: '0',
     ageDonateur: '55',
     nombreEnfants: '2'
   });
@@ -351,124 +356,62 @@ export default function HoldingPatrimoniale() {
     const tauxAmortissement = parseNumber(formData.tauxAmortissement) / 100;
     const decoteIlliquidite = parseNumber(formData.decoteIlliquidite) / 100;
     const ageDonateur = parseNumber(formData.ageDonateur);
-    const nombreEnfants = Math.max(1, parseNumber(formData.nombreEnfants));
+    const nombreEnfants = Math.max(1, Math.floor(parseNumber(formData.nombreEnfants)));
     const tmi = formData.tmi;
 
-    // Interets emprunt annee 1
-    const interetsAn1 = formData.empruntActif
-      ? calculerInteretsAnnuels(montantEmprunt, tauxEmprunt, dureeEmprunt * 12, 1)
-      : 0;
-
-    // Valeur du bati (80% de la valeur totale, terrain non amortissable)
-    const valeurBati = totalValeur * 0.80;
-    const amortissementAnnuel = valeurBati * tauxAmortissement;
-
-    // ====== DETENTION DIRECTE (IR) ======
     const revenusBruts = totalLoyerAnnuel;
+    const valeurBati = totalValeur * Math.min(100,Math.max(0,parseNumber(formData.partBati ?? '80'))) / 100;
+    const series = projectionHolding({ valeur:totalValeur, bati:valeurBati, loyers:revenusBruts,
+      charges:totalChargesAnnuelles, taxe:totalTaxeFonciere,
+      emprunt:formData.empruntActif ? Math.max(0,montantEmprunt) : 0,
+      taux:Math.max(0,tauxEmprunt), duree:Math.max(1/12,dureeEmprunt),
+      amortissement:Math.min(1,Math.max(0,tauxAmortissement)), comptabilite:fraisComptables,
+      gestion:fraisGestion, tmi, distribuer:formData.objectif !== 'capitalisation', tauxReduit:formData.tauxReduitIS === true });
+    const premiere = series[0];
+    const interetsAn1 = premiere.interets;
+    const principalAn1 = premiere.principal;
+    const amortissementAnnuel = premiere.amort;
     const chargesDeductiblesIR = totalChargesAnnuelles + totalTaxeFonciere + interetsAn1;
-    const revenuFoncierNet = Math.max(0, revenusBruts - chargesDeductiblesIR);
-    const irFoncier = calculerIRSurRevensFonciers(revenuFoncierNet, tmi);
+    const revenuFoncierNet = Math.max(0,revenusBruts-chargesDeductiblesIR);
+    const irFoncier = revenuFoncierNet * tmi / 100;
     const psFoncier = revenuFoncierNet * TAUX_PS_FONCIER;
-    const totalImpotDirect = irFoncier + psFoncier;
-    const netDisponibleDirect = revenusBruts - totalChargesAnnuelles - totalTaxeFonciere - interetsAn1 - totalImpotDirect;
-
-    // ====== VIA HOLDING IS ======
-    const chargesDeductiblesIS = totalChargesAnnuelles + totalTaxeFonciere + interetsAn1 + amortissementAnnuel + fraisGestion + fraisComptables;
-    const resultatFiscalIS = Math.max(0, revenusBruts - chargesDeductiblesIS);
-    const montantIS = calculerIS(resultatFiscalIS);
-    const beneficeApresIS = resultatFiscalIS - montantIS;
-
-    // Si distribution: flat tax
-    const montantDistribue = formData.objectif === 'capitalisation' ? 0 : beneficeApresIS;
-    const flatTaxSurDistribution = montantDistribue * FLAT_TAX_TOTAL;
-    const netDistribue = montantDistribue - flatTaxSurDistribution;
-
-    // Si capitalisation: tresorerie restant en societe
-    const tresorerieHolding = formData.objectif === 'capitalisation' ? beneficeApresIS : 0;
-
-    const totalImpotHolding = montantIS + flatTaxSurDistribution;
-    const netDisponibleHolding = formData.objectif === 'capitalisation'
-      ? beneficeApresIS // reste en societe
-      : netDistribue;
-
-    const differenceAnnuelle = (formData.objectif === 'capitalisation' ? beneficeApresIS : netDistribue) - netDisponibleDirect;
-
-    // ====== PROJECTIONS 10/20/30 ANS ======
-    const projections: Array<{
-      annee: number;
-      cumulDirect: number;
-      cumulHolding: number;
-      differenceAnnuelle: number;
-    }> = [];
-
-    let cumulDirect = 0;
-    let cumulHolding = 0;
-
-    for (let annee = 1; annee <= 30; annee++) {
-      const interetsAnnee = formData.empruntActif && annee <= dureeEmprunt
-        ? calculerInteretsAnnuels(montantEmprunt, tauxEmprunt, dureeEmprunt * 12, annee)
-        : 0;
-
-      // Direct
-      const chargesIRAnnee = totalChargesAnnuelles + totalTaxeFonciere + interetsAnnee;
-      const revNetIRAnnee = Math.max(0, revenusBruts - chargesIRAnnee);
-      const irAnnee = calculerIRSurRevensFonciers(revNetIRAnnee, tmi);
-      const psAnnee = revNetIRAnnee * TAUX_PS_FONCIER;
-      const netDirectAnnee = revenusBruts - totalChargesAnnuelles - totalTaxeFonciere - interetsAnnee - irAnnee - psAnnee;
-
-      // Holding
-      const chargesISAnnee = totalChargesAnnuelles + totalTaxeFonciere + interetsAnnee + amortissementAnnuel + fraisGestion + fraisComptables;
-      const resultatISAnnee = Math.max(0, revenusBruts - chargesISAnnee);
-      const isAnnee = calculerIS(resultatISAnnee);
-      const benefAnnee = resultatISAnnee - isAnnee;
-
-      let netHoldingAnnee: number;
-      if (formData.objectif === 'capitalisation') {
-        // Tresorerie reinvestie a 3% net par an
-        netHoldingAnnee = benefAnnee;
-        cumulHolding = cumulHolding * 1.03 + netHoldingAnnee;
-      } else {
-        const distrib = benefAnnee;
-        const flatTax = distrib * FLAT_TAX_TOTAL;
-        netHoldingAnnee = distrib - flatTax;
-        cumulHolding += netHoldingAnnee;
-      }
-
-      cumulDirect += netDirectAnnee;
-
-      projections.push({
-        annee,
-        cumulDirect: Math.round(cumulDirect),
-        cumulHolding: Math.round(cumulHolding),
-        differenceAnnuelle: Math.round(netHoldingAnnee - netDirectAnnee)
-      });
-    }
-
-    // ====== FLUX FINANCIERS ======
-    const fluxMereFille = beneficeApresIS;
-    const quotePart5 = fluxMereFille * QUOTE_PART_MERE_FILLE;
-    const isQuotePart = quotePart5 * IS_TAUX_NORMAL;
-    const netRemonteMereFille = fluxMereFille - isQuotePart;
-
+    const totalImpotDirect = premiere.impotDirect;
+    const netDisponibleDirect = premiere.netDirect;
+    const chargesDeductiblesIS = chargesDeductiblesIR + amortissementAnnuel + fraisComptables;
+    const resultatFiscalIS = premiere.baseSCI;
+    const montantIS = premiere.isSCI;
+    const beneficeApresIS = premiere.beneficeSCI;
+    const montantDistribue = premiere.distribution;
+    const flatTaxSurDistribution = premiere.pfu;
+    const netDistribue = premiere.netDistribue;
+    const tresorerieHolding = premiere.cashSCI + premiere.cashHolding;
+    const totalImpotHolding = premiere.isSCI + premiere.isHolding + premiere.pfu;
+    const netDisponibleHolding = formData.objectif === 'capitalisation' ? premiere.netGroupe : netDistribue;
+    const differenceAnnuelle = premiere.differenceAnnuelle;
+    const projections = series.map(a => ({ annee:a.annee, cumulDirect:Math.round(a.cumulDirect), cumulHolding:Math.round(a.cumulHolding), differenceAnnuelle:Math.round(a.differenceAnnuelle) }));
+    const fluxMereFille = premiere.remontee;
+    const quotePart5 = premiere.quotePart;
+    const isQuotePart = premiere.isHolding;
+    const netRemonteMereFille = premiere.remontee - fraisGestion - premiere.isHolding;
     const capaciteAutofinancementDirect = netDisponibleDirect;
-    const capaciteAutofinancementHolding = beneficeApresIS;
+    const capaciteAutofinancementHolding = premiere.netGroupe;
 
     const repartitionFlux = [
-      { name: 'IS sur loyers', value: Math.round(montantIS) },
+      { name: 'IS SCI et holding', value: Math.round(montantIS + isQuotePart) },
       { name: 'Frais de structure', value: Math.round(fraisGestion + fraisComptables) },
       { name: formData.objectif === 'capitalisation' ? 'Tresorerie reinvestie' : 'Distribution nette', value: Math.round(formData.objectif === 'capitalisation' ? tresorerieHolding : netDistribue) },
       ...(formData.objectif !== 'capitalisation' ? [{ name: 'Flat tax dividendes', value: Math.round(flatTaxSurDistribution) }] : [])
     ].filter(f => f.value > 0);
 
     // ====== TRANSMISSION ======
-    const valeurPartsHolding = totalValeur - montantEmprunt; // actif net
-    const valeurPartsAvecDecote = valeurPartsHolding * (1 - decoteIlliquidite);
+    const valeurPartsHolding = Math.max(0,totalValeur - (formData.empruntActif ? montantEmprunt : 0)); // actif net
+    const valeurPartsAvecDecote = valeurPartsHolding * (1 - Math.min(1,Math.max(0,decoteIlliquidite)));
     const { usufruit: pctUsufruit, nuePropriete: pctNuePropriete } = getValeurUsufruit(ageDonateur);
     const valeurNuePropriete = valeurPartsAvecDecote * (pctNuePropriete / 100);
     const valeurNueProprieteParEnfant = valeurNuePropriete / nombreEnfants;
 
     // Donation directe du bien
-    const valeurBienParEnfant = totalValeur / nombreEnfants;
+    const valeurBienParEnfant = totalValeur * pctNuePropriete / 100 / nombreEnfants;
     const baseImposableDirecte = Math.max(0, valeurBienParEnfant - ABATTEMENT_DONATION_ENFANT);
     const droitsDonationDirecte = calculerDroitsDonation(baseImposableDirecte) * nombreEnfants;
 
@@ -515,7 +458,7 @@ export default function HoldingPatrimoniale() {
         name: 'Via holding',
         IR: 0,
         PS: Math.round(formData.objectif !== 'capitalisation' ? montantDistribue * FLAT_TAX_PS : 0),
-        IS: Math.round(montantIS),
+        IS: Math.round(montantIS + isQuotePart),
         'Flat tax IR': Math.round(formData.objectif !== 'capitalisation' ? montantDistribue * FLAT_TAX_IR : 0),
         Charges: Math.round(totalChargesAnnuelles + totalTaxeFonciere),
         'Frais structure': Math.round(fraisGestion + fraisComptables)
@@ -527,6 +470,7 @@ export default function HoldingPatrimoniale() {
       revenusBruts,
       chargesDeductiblesIR,
       interetsAn1,
+      principalAn1,
       revenuFoncierNet,
       irFoncier,
       psFoncier,
@@ -1028,6 +972,16 @@ export default function HoldingPatrimoniale() {
               </div>
 
               {/* Resultats comparatifs */}
+              <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+                <p>Comparaison : location nue en direct contre SCI à l’IS détenue à 100 % par une holding à l’IS éligible au régime mère-fille (CGI 145 et 216), sans intégration fiscale. Les frais comptables sont supportés par la SCI ; les frais de gestion par la holding. La quote-part de 5 % est une base taxable, pas une sortie de trésorerie.</p>
+                <div className="my-4 grid gap-4 md:grid-cols-2">
+                  <label>Part du bâti amortissable (% de la valeur)<input type="number" min="0" max="100" step="any" className="ml-2 rounded border p-2" value={formData.partBati ?? '80'} onChange={e=>updateField('partBati',e.target.value)}/></label>
+                  <label><input type="checkbox" checked={formData.tauxReduitIS === true} onChange={e=>updateField('tauxReduitIS',e.target.checked)}/> Les deux sociétés remplissent les conditions du taux réduit d’IS : CA ≤ 10 M€, capital entièrement libéré, détention à 75 % par personnes physiques directement ou via une société éligible.</label>
+                </div>
+                <p>Les mensualités comprennent les intérêts et le capital. L’amortissement réduit le résultat fiscal, sans décaissement. Les distributions sont plafonnées aux réserves et à la trésorerie disponibles ; les pertes et déficits IS sont reportés. La réserve légale éventuelle et les dates de décision de distribution restent à prévoir dans le dossier.</p>
+                <p className="mt-2">Projections à loyers et charges constants, sans rendement implicite de la trésorerie. Le cumul en société est avant une future fiscalité de sortie ; le cumul direct est personnel. Valeur de revente, fiscalité de plus-value, apport initial, frais d’acquisition et CSG déductible exclus. L’IR est estimé à TMI constante ; l’économie d’un déficit foncier éventuel n’est pas calculée. Une trésorerie négative signale un besoin de financement.</p>
+                <p className="mt-2">Année 1 : capital remboursé {formatEuros(resultats.principalAn1)} ; frais holding {formatEuros(parseNumber(formData.fraisGestionHolding))} ; IS holding {formatEuros(resultats.isQuotePart)}, inclus dans le total fiscal de {formatEuros(resultats.totalImpotHolding)}.</p>
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Colonne : Detention directe */}
@@ -1074,7 +1028,7 @@ export default function HoldingPatrimoniale() {
                       <span className="font-bold text-red-700">{formatEuros(resultats.totalImpotDirect)}</span>
                     </div>
                     <div className="flex justify-between py-3 bg-gradient-to-r from-orange-50 to-red-50 -mx-2 px-4 rounded-xl mt-2">
-                      <span className="font-bold text-gray-900">Net disponible annuel</span>
+                      <span className="font-bold text-gray-900">Net après remboursement du capital ({formatEuros(resultats.principalAn1)})</span>
                       <span className="text-xl font-bold text-orange-600">{formatEuros(resultats.netDisponibleDirect)}</span>
                     </div>
                   </div>
@@ -1106,8 +1060,8 @@ export default function HoldingPatrimoniale() {
                       <span className="text-xs text-gray-500">{formatEuros(resultats.amortissementAnnuel)}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100 pl-4">
-                      <span className="text-xs text-gray-500">dont frais de structure</span>
-                      <span className="text-xs text-gray-500">{formatEuros(resultats.fraisStructure)}</span>
+                      <span className="text-xs text-gray-500">dont comptabilité SCI (frais holding séparés)</span>
+                      <span className="text-xs text-gray-500">{formatEuros(parseNumber(formData.fraisComptables))}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">Resultat fiscal IS</span>
@@ -1118,7 +1072,7 @@ export default function HoldingPatrimoniale() {
                       <span className="font-semibold text-red-600">- {formatEuros(resultats.montantIS)}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">Benefice apres IS</span>
+                      <span className="text-sm text-gray-600">Bénéfice SCI après IS (avant distribution)</span>
                       <span className="font-semibold text-gray-900">{formatEuros(resultats.beneficeApresIS)}</span>
                     </div>
 
@@ -1144,7 +1098,7 @@ export default function HoldingPatrimoniale() {
 
                     <div className="flex justify-between py-3 bg-gradient-to-r from-indigo-50 to-purple-50 -mx-2 px-4 rounded-xl mt-2">
                       <span className="font-bold text-gray-900">
-                        {formData.objectif === 'capitalisation' ? 'Tresorerie en societe' : 'Net distribue annuel'}
+                        {formData.objectif === 'capitalisation' ? 'Trésorerie SCI + holding après capital remboursé' : 'Net distribué annuel'}
                       </span>
                       <span className="text-xl font-bold text-indigo-600">{formatEuros(resultats.netDisponibleHolding)}</span>
                     </div>
@@ -1339,7 +1293,7 @@ export default function HoldingPatrimoniale() {
                     <p className="text-sm text-blue-700 mb-2">Detention des biens immobiliers</p>
                     <div className="space-y-1 text-sm">
                       <p>Loyers percus : <span className="font-bold">{formatEuros(resultats.revenusBruts)}</span></p>
-                      <p>Charges et taxes : <span className="font-bold text-red-600">- {formatEuros(resultats.chargesDeductiblesIS - resultats.amortissementAnnuel - resultats.fraisStructure)}</span></p>
+                      <p>Charges et taxes : <span className="font-bold text-red-600">- {formatEuros(resultats.chargesDeductiblesIS - resultats.amortissementAnnuel)}</span></p>
                       <p>Amortissement : <span className="font-bold text-red-600">- {formatEuros(resultats.amortissementAnnuel)}</span></p>
                       <p>IS paye : <span className="font-bold text-red-600">- {formatEuros(resultats.montantIS)}</span></p>
                     </div>
@@ -1365,8 +1319,8 @@ export default function HoldingPatrimoniale() {
                     <p className="text-sm text-indigo-700 mb-2">Regime mere-fille</p>
                     <div className="space-y-1 text-sm">
                       <p>Dividendes recus : <span className="font-bold">{formatEuros(resultats.fluxMereFille)}</span></p>
-                      <p>Quote-part frais (5%) : <span className="font-bold text-red-600">- {formatEuros(resultats.quotePart5)}</span></p>
-                      <p>IS sur quote-part : <span className="font-bold text-red-600">- {formatEuros(resultats.isQuotePart)}</span></p>
+                      <p>Quote-part taxable (5 %, non décaissée) : <span className="font-bold text-red-600">{formatEuros(resultats.quotePart5)}</span></p>
+                      <p>IS holding : <span className="font-bold text-red-600">- {formatEuros(resultats.isQuotePart)}</span></p>
                       <p>Net disponible holding : <span className="font-bold text-green-600">{formatEuros(resultats.netRemonteMereFille)}</span></p>
                     </div>
                   </div>
@@ -1438,7 +1392,7 @@ export default function HoldingPatrimoniale() {
                         <span className="font-semibold">{formatEuros(resultats.quotePart5)}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">IS sur quote-part (25%)</span>
+                        <span className="text-gray-600">IS holding après frais et reports</span>
                         <span className="font-semibold text-red-600">{formatEuros(resultats.isQuotePart)}</span>
                       </div>
                       <div className="flex justify-between py-2 bg-green-50 -mx-2 px-2 rounded-lg">
@@ -1566,6 +1520,7 @@ export default function HoldingPatrimoniale() {
                 </div>
               </div>
 
+              <p className="rounded-xl bg-amber-50 p-5 text-sm">Illustration à la date initiale : un parent, enfants à parts égales, abattements de 100 000 € entièrement disponibles, sans donation antérieure depuis quinze ans. La nue-propriété est comparée dans les deux colonnes. La dette diminue l’actif net des parts ; en direct, aucun transfert de dette déductible au donataire n’est supposé (conditions du CGI 776 bis). La valeur des parts doit être expertisée ; la décote n’est ni automatique ni forfaitaire. Frais d’acte et fiscalité d’un apport préalable exclus. Pour une donation avec antériorités, utilisez le <a href="/donation" className="underline">module donation</a>.</p>
               {/* Comparaison donation */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -1576,8 +1531,8 @@ export default function HoldingPatrimoniale() {
                       <Home className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">Donation directe du bien</h3>
-                      <p className="text-xs text-gray-500">Pleine propriete du bien immobilier</p>
+                      <h3 className="text-lg font-bold text-gray-900">Donation directe de la nue-propriété</h3>
+                      <p className="text-xs text-gray-500">Même pourcentage de nue-propriété, sans transfert de dette</p>
                     </div>
                   </div>
                   <div className="space-y-3 text-sm">
@@ -1655,7 +1610,7 @@ export default function HoldingPatrimoniale() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-green-800">Economie de droits de donation</h3>
-                      <p className="text-sm text-green-700">Grace a la decote d&apos;illiquidite et au demembrement</p>
+                      <p className="text-sm text-green-700">Selon les valeurs nettes et la décote justifiée renseignées</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1934,31 +1889,31 @@ function FAQSection({ openIndex, setOpenIndex }: { openIndex: number | null; set
     },
     {
       q: "Quand creer une holding est-il interessant ?",
-      r: "La creation d'une holding patrimoniale devient interessante dans plusieurs situations : lorsque votre tranche marginale d'imposition (TMI) est elevee (30% et plus), car le taux IS (15% puis 25%) est inferieur au TMI + prelevements sociaux ; lorsque vous detenez plusieurs biens immobiliers et souhaitez rationaliser leur gestion ; lorsque votre objectif est la capitalisation a long terme plutot que la distribution de revenus ; et lorsque vous anticipez une transmission de patrimoine a vos enfants. En general, la holding est pertinente a partir d'un patrimoine immobilier de 500 000 euros et des revenus locatifs annuels superieurs a 30 000 euros."
+      r: "La creation d'une holding patrimoniale devient interessante dans plusieurs situations : lorsque votre tranche marginale d'imposition (TMI) est elevee (30% et plus), car le taux IS (15% puis 25%) est inferieur au TMI + prelevements sociaux ; lorsque vous detenez plusieurs biens immobiliers et souhaitez rationaliser leur gestion ; lorsque votre objectif est la capitalisation a long terme plutot que la distribution de revenus ; et lorsque vous anticipez une transmission de patrimoine a vos enfants. Aucun seuil de patrimoine ne garantit son intérêt : comparez les frais, les besoins personnels, les remboursements et la fiscalité de sortie."
     },
     {
       q: "Quel est le cout de creation et de gestion ?",
-      r: "La creation d'une holding coute entre 1 500 et 3 000 euros (frais juridiques, redaction des statuts, immatriculation). Les couts de gestion annuels comprennent : la comptabilite (1 500 a 3 000 euros par societe selon la complexite), l'expert-comptable pour les declarations fiscales, l'assemblee generale annuelle et le depot des comptes, la cotisation fonciere des entreprises (CFE), et eventuellement les honoraires d'un commissaire aux comptes si les seuils sont depasses. Au total, comptez entre 3 000 et 6 000 euros de frais annuels pour une holding avec une a deux filiales. Ces couts doivent etre compenses par les economies fiscales realisees."
+      r: "La creation d'une holding coute entre 1 500 et 3 000 euros (frais juridiques, redaction des statuts, immatriculation). Ces montants sont des hypothèses budgétaires, pas un tarif réglementé. Les coûts réels de gestion comprennent : la comptabilite (1 500 a 3 000 euros par societe selon la complexite), l'expert-comptable pour les declarations fiscales, l'assemblee generale annuelle et le depot des comptes, la cotisation fonciere des entreprises (CFE), et eventuellement les honoraires d'un commissaire aux comptes si les seuils sont depasses. Au total, comptez entre 3 000 et 6 000 euros de frais annuels pour une holding avec une a deux filiales. Ces couts doivent etre compenses par les economies fiscales realisees."
     },
     {
       q: "Comment fonctionne le regime mere-fille ?",
-      r: "Le regime mere-fille (Articles 145 et 216 du CGI) permet a la societe mere (la holding) de percevoir les dividendes de ses filiales en quasi exoneration d'impot. Les conditions sont : la holding doit detenir au moins 5% du capital de la filiale depuis au moins 2 ans, et les deux societes doivent etre soumises a l'IS. Concretement, les dividendes remontes de la SCI vers la holding sont exoneres d'IS, sauf une quote-part de frais et charges de 5% qui est reintegree dans le resultat imposable. Le cout fiscal reel est donc de 5% x 25% = 1,25% des dividendes remontes, ce qui est tres avantageux par rapport a l'imposition directe."
+      r: "Le regime mere-fille (Articles 145 et 216 du CGI) permet a la societe mere (la holding) de percevoir les dividendes de ses filiales en quasi exoneration d'impot. Les conditions sont : la holding doit detenir au moins 5% du capital de la filiale avec conservation pendant au moins 2 ans (le régime peut s’appliquer avant ce terme sous cette condition), et les deux societes doivent etre soumises a l'IS. Concretement, les dividendes remontes de la SCI vers la holding sont exoneres d'IS, sauf une quote-part de frais et charges de 5% qui est reintegree dans le resultat imposable. À taux normal, avant déduction des frais et reports déficitaires de la holding, 5% x 25% représente 1,25% des dividendes remontés, ce qui est tres avantageux par rapport a l'imposition directe."
     },
     {
       q: "Holding et IFI : quel impact ?",
-      r: "La holding ne permet pas d'echapper a l'Impot sur la Fortune Immobiliere (IFI). L'article 965 du CGI prevoit la transparence fiscale pour l'IFI : les parts de societes detenant de l'immobilier sont incluses dans l'assiette de l'IFI a hauteur de la fraction de la valeur des parts representant des actifs immobiliers. Cependant, des strategies d'optimisation existent : la decote d'illiquidite sur les parts de holding (10 a 25%) peut reduire l'assiette taxable, et la dette de la societe vient en deduction de la valeur des actifs immobiliers. La creation d'une holding ne doit donc pas etre motivee par l'IFI mais par l'optimisation de la fiscalite des revenus et de la transmission."
+      r: "La holding ne permet pas d'echapper a l'Impot sur la Fortune Immobiliere (IFI). L'article 965 du CGI prevoit la transparence fiscale pour l'IFI : les parts de societes detenant de l'immobilier sont incluses dans l'assiette de l'IFI a hauteur de la fraction de la valeur des parts representant des actifs immobiliers. La valorisation des parts et la prise en compte des dettes suivent les règles spécifiques de l’IFI, dont les exclusions et limitations de dettes. Aucune décote forfaitaire n’est garantie. La creation d'une holding ne doit donc pas etre motivee par l'IFI mais par l'optimisation de la fiscalite des revenus et de la transmission."
     },
     {
       q: "Comment transmettre via une holding ?",
-      r: "La transmission via holding offre plusieurs avantages. Premierement, les parts de holding beneficient d'une decote d'illiquidite (15 a 25%) car elles ne sont pas cotees et sont difficilement cessibles, ce qui reduit la base taxable aux droits de donation. Deuxiemement, le demembrement des parts permet au donateur de conserver l'usufruit (et donc les revenus) tout en transmettant la nue-propriete aux enfants. La valeur de la nue-propriete depend de l'age du donateur selon le bareme de l'article 669 du CGI. Troisiemement, au deces du donateur, l'usufruit rejoint la nue-propriete sans droits supplementaires. Quatriemement, il est possible de fractionner la transmission dans le temps en utilisant les abattements renouvelables tous les 15 ans."
+      r: "La transmission via holding offre plusieurs avantages. Premièrement, une éventuelle décote de valeur doit être justifiée par les caractéristiques réelles des parts ; leur caractère non coté ne donne droit à aucun taux automatique. Deuxiemement, le demembrement des parts permet au donateur de conserver l'usufruit (et donc les revenus) tout en transmettant la nue-propriete aux enfants. La valeur de la nue-propriete depend de l'age du donateur selon le bareme de l'article 669 du CGI. Troisiemement, au deces du donateur, l'usufruit rejoint la nue-propriete sans droits supplementaires. Quatriemement, il est possible de fractionner la transmission dans le temps en utilisant les abattements renouvelables tous les 15 ans."
     },
     {
       q: "Peut-on integrer un bien existant dans une holding ?",
-      r: "Oui, mais l'operation genere des couts fiscaux. L'apport d'un bien immobilier a une SCI puis la creation d'une holding au-dessus implique : des droits d'enregistrement sur l'apport (5% pour un immeuble apporte a titre onereux), une eventuelle plus-value de cession si l'apport est considere comme une vente, des frais de notaire, et des frais de restructuration juridique. Des mecanismes d'optimisation existent, comme l'apport en societe a l'IS suivi d'un report d'imposition de la plus-value (article 151 octies du CGI pour les professionnels, ou regime des apports partiels d'actif). Il est recommande de structurer la holding en amont de l'acquisition des biens pour eviter ces surcouts."
+      r: "Oui, mais l'operation genere des couts fiscaux. L'apport d'un bien immobilier a une SCI puis la creation d'une holding au-dessus implique : des droits d’enregistrement variables selon le régime de l’apport, une éventuelle plus-value immobilière, des frais de notaire, et des frais de restructuration juridique. Les régimes de report professionnels, dont l’article 151 octies, ne s’appliquent pas automatiquement à l’apport d’un immeuble du patrimoine privé. Il est recommande de structurer la holding en amont de l'acquisition des biens pour eviter ces surcouts."
     },
     {
       q: "Holding IS vs SCI IR : quelle difference ?",
-      r: "La SCI a l'IR est transparente fiscalement : les revenus fonciers sont imposes directement entre les mains des associes au bareme progressif + 17,2% de prelevements sociaux (les revenus fonciers ne sont pas impactes par la hausse LFSS 2026), mais l'amortissement du bien n'est pas deductible. La SCI a l'IS (ou le montage holding IS + SCI IS) permet de deduire l'amortissement du bien (reduction significative du resultat fiscal), de beneficier du taux IS reduit de 15% sur les premiers 42 500 euros, et de capitaliser la tresorerie dans la societe. En contrepartie, les plus-values sont calculees sur la valeur comptable nette (apres amortissement), ce qui les rend potentiellement plus elevees, et la distribution aux associes supporte la flat tax de 31,4% depuis 2026 (12,8% IR + 18,6% PS). Le choix depend de votre TMI, de votre objectif (distribution ou capitalisation) et de votre horizon temporel."
+      r: "La SCI a l'IR est transparente fiscalement : les revenus fonciers sont imposes directement entre les mains des associes au bareme progressif + 17,2% de prelevements sociaux (les revenus fonciers ne sont pas impactes par la hausse LFSS 2026), mais l'amortissement du bien n'est pas deductible. La SCI a l'IS (ou le montage holding IS + SCI IS) permet de deduire l'amortissement du bien (reduction significative du resultat fiscal), de bénéficier, si ses conditions sont remplies, du taux IS réduit de 15% sur les premiers 42 500 euros, et de capitaliser la tresorerie dans la societe. En contrepartie, les plus-values sont calculees sur la valeur comptable nette (apres amortissement), ce qui les rend potentiellement plus elevees, et la distribution aux associes supporte la flat tax de 31,4% depuis 2026 (12,8% IR + 18,6% PS). Le choix depend de votre TMI, de votre objectif (distribution ou capitalisation) et de votre horizon temporel."
     },
     {
       q: "Quels sont les risques d'une holding ?",

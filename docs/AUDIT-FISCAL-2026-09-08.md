@@ -64,3 +64,11 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Comparaisons de bouquets, sensibilité à la durée, répartition de la taxe foncière et impression conservées. Validation d’un bouquet excessif et invalidation des résultats lors d’une modification.
 - Sources : https://www.service-public.gouv.fr/particuliers/vosdroits/F2762 ; https://www.service-public.gouv.fr/particuliers/vosdroits/F3173 ; CGI 762 bis, 1400, 158-6 ; Code civil 1975.
 - Validation : 73 tests unitaires réussis, compilation/lint/types, scénario navigateur à taux nul, fraction imposable, bouquet invalide, invalidation et viewport 390 px.
+
+## Lot holding — 8 septembre 2026
+- Moteur annuel séparé SCI IS / holding IS : résultat comptable, amortissement non décaissé plafonné au bâti, échéancier du prêt (taux zéro accepté), capital remboursé, trésorerie, reports de pertes et déficits, plafonnement des distributions.
+- Quote-part mère-fille de 5 % incluse dans l’IS de la holding après ses frais et déficits ; suppression du rendement de réinvestissement de 3 % appliqué arbitrairement à une seule branche de la comparaison.
+- Taux réduit d’IS soumis à confirmation explicite, part du bâti paramétrable, défaut de décote des parts ramené à zéro. La nue-propriété est comparée dans les deux scénarios de donation. L’emprunt désactivé ne réduit plus la valeur des parts.
+- Hypothèses affichées : SCI détenue à 100 %, mère-fille éligible hors intégration fiscale, TMI constante, financement à prévoir si trésorerie négative, frais d’entrée et fiscalité de sortie exclus ; réserves légales et dates de décision non simulées.
+- Sources : CGI 145, 216, 219, 209, 669 et 776 bis ; https://entreprendre.service-public.gouv.fr/vosdroits/F23575 ; https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000048831340/2026-02-15.
+- Validation : 77 tests réussis (dont amortissement/cash, prêt sans intérêt, distribution et déficits), build/lint/types, navigation comparaison/flux/transmission et mobile. Routes de production succession et viager accessibles sans exception navigateur.
