@@ -292,3 +292,24 @@ test('retraite : taux plein automatique ne crée pas de surcote sans durée requ
  const r=fn({...retraiteProjection,objectif:'surcote',trimestres:120,trimestresRegime:120,trimestresFutursAn:0},new Date('2026-09-08T12:00:00Z'));
  assert.equal(r.age,69);assert.equal(r.decote,0);assert.equal(r.surcote,0);assert.equal(r.ratio,120/169);
 });
+
+test('assurance-vie : 30 500 € répartis tous contrats hors bénéficiaires exonérés',()=>{
+ const a=require('../src/lib/assurance-vie.ts');
+ assert.equal(a.abattement757B(50000,200000),7625);
+ assert.equal(a.abattement757B(10000,10000),10000);
+ assert.equal(a.abattement757B(0,0),0);
+ assert.throws(()=>a.abattement757B(20000,10000));
+});
+test('assurance-vie : solde social de l’assureur prioritaire, y compris zéro et restitution',()=>{
+ const a=require('../src/lib/assurance-vie.ts');
+ assert.ok(Math.abs(a.soldeSocialRachat(10000)-1720)<1e-8);
+ assert.equal(a.soldeSocialRachat(10000,0),0);
+ assert.equal(a.soldeSocialRachat(10000,-120),-120);
+});
+test('assurance-vie : rendement effectif annuel, taux nul, perte et durée nulle',()=>{
+ const a=require('../src/lib/assurance-vie.ts');
+ assert.ok(Math.abs(a.projectionAssuranceVie(100000,0,.03,1)[0].total-103000)<1e-7);
+ assert.equal(a.projectionAssuranceVie(1000,100,0,1)[0].total,2200);
+ assert.ok(Math.abs(a.projectionAssuranceVie(100000,0,-.1,1)[0].total-90000)<1e-7);
+ assert.deepEqual(a.projectionAssuranceVie(100000,0,.03,0),[]);
+});

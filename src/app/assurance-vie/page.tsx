@@ -5,7 +5,7 @@
 
 "use client";
 
-import { impotRachatHuitAns } from '@/lib/assurance-vie';
+import { impotRachatHuitAns, abattement757B as partageAbattement757B, soldeSocialRachat, projectionAssuranceVie } from '@/lib/assurance-vie';
 import { droitsSuccession } from '@/lib/succession';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -177,14 +177,16 @@ function calculerRachat(
   // C'est ce montant que l'art. 125-0 A compare au seuil de 150 000 EUR.
   totalPrimesNettesApres2017: number,
   totalPrimesAvant2017 = 0,
-  abattementDejaUtilise = 0
+  abattementDejaUtilise = 0,
+  produitsAssureur?: number, soldePSAssureur?: number
 ): ResultatRachat | null {
   if (valeurContrat <= 0 || primesVersees <= 0 || montantRachat <= 0 || montantRachat > valeurContrat || partPrimesAvant2017 < 0 || partPrimesAvant2017 > 100) return null;
 
   const totalProduits = Math.max(0, valeurContrat - primesVersees);
   const ratioProduits = totalProduits / valeurContrat;
 
-  const produitsImposables = montantRachat * ratioProduits;
+  const produitsImposables = produitsAssureur ?? montantRachat * ratioProduits;
+  if(!Number.isFinite(produitsImposables)||produitsImposables<0||produitsImposables>montantRachat)return null;
   const partCapital = montantRachat - produitsImposables;
 
   // Abattement si > 8 ans
@@ -228,7 +230,7 @@ function calculerRachat(
 
   const impotPFU = anciennete === 'plus8' ? impotRachatHuitAns(produitsImposables*partAvant2017,produitsImposables*partApres2017,totalPrimesAvant2017,totalPrimesNettesApres2017,abattement) : produitsApresAbattement * tauxPFUMoyen;
   const impotIR = produitsApresAbattement * tmi;
-  const prelevementsSociaux = produitsImposables * TAUX_PS;
+  const prelevementsSociaux = soldeSocialRachat(produitsImposables,soldePSAssureur);
 
   const netPercuPFU = montantRachat - impotPFU - prelevementsSociaux;
   const netPercuIR = montantRachat - impotIR - prelevementsSociaux;
@@ -273,35 +275,20 @@ function calculerDroits990I(baseTaxable: number): number {
   return droits;
 }
 
-function calculerDroitsSuccessionClassique(baseTaxable: number, lien: LienBeneficiaire): number {
-  const bareme = BAREME_SUCCESSION_CLASSIQUE[lien] || BAREME_SUCCESSION_CLASSIQUE['autre'];
-  let droits = 0;
-  let reste = Math.max(0, baseTaxable - bareme.abattement);
-  let trancheInf = 0;
-
-  for (const tranche of bareme.tranches) {
-    if (reste <= 0) break;
-    const montantTranche = Math.min(reste, tranche.max - trancheInf);
-    droits += montantTranche * tranche.taux;
-    reste -= montantTranche;
-    trancheInf = tranche.max;
-  }
-
-  return droits;
-}
-
 function calculerSuccession(
   valeurContrat: number,
   beneficiaires: Beneficiaire[],
   partAvant70: number,
-  gainsApres70: number
+  gainsApres70: number,
+  autresBases757B = 0, base757BAssureur?: number
 ): ResultatSuccession | null {
   if (valeurContrat <= 0 || beneficiaires.length === 0) return null;
 
   const montantAvant70 = valeurContrat * (partAvant70 / 100);
   const montantApres70Brut = valeurContrat * ((100 - partAvant70) / 100);
   // Seules les primes (hors gains) sont taxees pour art. 757 B
-  const primesApres70 = Math.max(0, montantApres70Brut - gainsApres70);
+  const primesApres70 = base757BAssureur ?? Math.max(0, montantApres70Brut - gainsApres70);
+  if(!Number.isFinite(primesApres70)||primesApres70<0||primesApres70>montantApres70Brut||autresBases757B<0)return null;
 
   const totalPourcentage = beneficiaires.reduce((sum, b) => sum + parseNumber(b.pourcentage), 0);
   if (Math.abs(totalPourcentage-100)>0.001 || beneficiaires.some(b=>parseNumber(b.pourcentage)<0) || partAvant70<0 || partAvant70>100 || gainsApres70<0 || gainsApres70>montantApres70Brut) return null;
@@ -349,10 +336,7 @@ function calculerSuccession(
 
     // Art. 757 B (apres 70 ans) - abattement global de 30 500 EUR reparti AU PRORATA
     // de la part de chaque beneficiaire non exonere dans les primes taxables.
-    const quotePartAbattement = totalPrimesApres70NonExo > 0
-      ? ABATTEMENT_757B * (primesApres70Benef / totalPrimesApres70NonExo)
-      : 0;
-    const abattement757B = Math.min(primesApres70Benef, quotePartAbattement);
+    const abattement757B = partageAbattement757B(primesApres70Benef,totalPrimesApres70NonExo+autresBases757B);
     const baseTaxable757B = Math.max(0, primesApres70Benef - abattement757B);
 
     // Même abattement et mêmes tranches que la succession ordinaire, après consommation antérieure.
@@ -387,7 +371,7 @@ function calculerSuccession(
     if (b.lien === 'conjoint') continue;
     const pct = parseNumber(b.pourcentage) / 100;
     const capitalRecu = valeurContrat * pct;
-    droitsClassiqueTotal += calculerDroitsSuccessionClassique(capitalRecu, b.lien);
+    droitsClassiqueTotal += droitsSuccession({partNette:capitalRecu,lien:b.lien,abattementConsomme:parseNumber(b.abattementConsomme ?? '0'),baseAnterieureTaxable:parseNumber(b.rappel ?? '0')}).droits;
   }
 
   return {
@@ -399,32 +383,7 @@ function calculerSuccession(
   };
 }
 
-function genererProjection(
-  versementInitial: number,
-  versementMensuel: number,
-  rendementAnnuel: number,
-  dureeAnnees: number
-): { annee: number; versements: number; interets: number; total: number }[] {
-  const data: { annee: number; versements: number; interets: number; total: number }[] = [];
-  let totalVerse = versementInitial;
-  let totalCapital = versementInitial;
-  const tauxMensuel = rendementAnnuel / 12;
-
-  for (let annee = 1; annee <= dureeAnnees; annee++) {
-    for (let mois = 0; mois < 12; mois++) {
-      totalCapital = totalCapital * (1 + tauxMensuel) + versementMensuel;
-      totalVerse += versementMensuel;
-    }
-    data.push({
-      annee,
-      versements: Math.round(totalVerse),
-      interets: Math.round(totalCapital - totalVerse),
-      total: Math.round(totalCapital)
-    });
-  }
-
-  return data;
-}
+const genererProjection = projectionAssuranceVie;
 
 // ============================================
 // COMPOSANT FAQ
@@ -444,7 +403,7 @@ function FAQSection() {
         },
         {
           q: "Quel est l'interet fiscal apres 8 ans ?",
-          r: "Apres 8 ans de detention, l'assurance-vie offre ses meilleurs avantages :\n\n**Abattement annuel sur les gains :**\n- 4 600 EUR pour une personne seule\n- 9 200 EUR pour un couple\n\n**Taux d'imposition reduit :**\n- 7,5 % sur les produits (primes versees avant le 27/09/2017)\n- 7,5 % sur la fraction de produits afferente aux primes versees nettes <= 150 000 EUR (primes apres 27/09/2017)\n- 12,8 % sur la fraction afferente aux primes au-dela de 150 000 EUR\n\nLe seuil de 150 000 EUR s'apprecie sur le cumul des primes versees nettes de rachats (tous contrats), et non sur l'encours. Les prelevements sociaux (17,2 %) s'ajoutent dans tous les cas.\n\nCes taux sont nettement inferieurs au bareme progressif de l'IR pour les TMI elevees.",
+          r: "Apres 8 ans de detention, l'assurance-vie offre ses meilleurs avantages :\n\n**Abattement annuel sur les gains :**\n- 4 600 EUR pour une personne seule\n- 9 200 EUR pour un couple\n\n**Taux d'imposition reduit :**\n- 7,5 % sur les produits (primes versees avant le 27/09/2017)\n- 7,5 % sur la fraction de produits afferente aux primes versees nettes <= 150 000 EUR (primes apres 27/09/2017)\n- 12,8 % sur la fraction afferente aux primes au-dela de 150 000 EUR\n\nLe seuil de 150 000 EUR s'apprecie sur le cumul des primes versees nettes de rachats (tous contrats), et non sur l'encours. Les prélèvements sociaux dépendent des produits déjà prélevés, des exonérations et de la résidence fiscale.\n\nCes taux sont nettement inferieurs au bareme progressif de l'IR pour les TMI elevees.",
           source: "Article 125-0 A du CGI"
         },
         {
@@ -464,12 +423,12 @@ function FAQSection() {
         },
         {
           q: "Que se passe-t-il pour les versements apres 70 ans ?",
-          r: "Les versements realises apres 70 ans relevent de l'article 757 B du CGI :\n\n**Regime specifique :**\n- Abattement global de 30 500 EUR partage entre tous les beneficiaires\n- Au-dela : droits de succession selon le bareme classique (selon le lien de parente)\n- **Avantage majeur :** seules les primes sont taxees, les gains et interets generes sont TOTALEMENT EXONERES\n\n**Strategie :** Un versement de 30 500 EUR apres 70 ans place a 3 % pendant 15 ans genere environ 17 500 EUR d'interets transmis en franchise totale de droits.",
+          r: "Pour les contrats relevant de l’article 757 B, l’assiette des primes après 70 ans est déterminée avant un abattement global de 30 500 €, partagé entre contrats et bénéficiaires non exonérés. Les gains sont exonérés de droits de mutation, mais pas nécessairement de prélèvements sociaux. Après rachats ou pertes, le certificat fiscal de l’assureur est nécessaire. L’abattement personnel successoral et les tranches peuvent déjà être consommés par les autres biens ou donations rappelables.",
           source: "Article 757 B du CGI"
         },
         {
           q: "Comment optimiser la clause beneficiaire ?",
-          r: "La redaction de la clause beneficiaire est cruciale :\n\n**Bonnes pratiques :**\n- Nommer precisement les beneficiaires (nom, prenom, date de naissance)\n- Prevoir des beneficiaires subsidiaires (en cas de predeces)\n- Utiliser la clause demembree (usufruit au conjoint, nue-propriete aux enfants)\n\n**Clause demembree type :**\n\"Mon conjoint pour l'usufruit, mes enfants nes ou a naitre pour la nue-propriete, a parts egales entre eux\"\n\n**Avantage :** le conjoint percoit les revenus de son vivant, et au second deces les enfants recoivent le capital sans droits supplementaires.\n\n**Attention :** la clause standard \"mon conjoint, a defaut mes enfants\" ne permet pas le demembrement.",
+          r: "Une clause bénéficiaire doit identifier les bénéficiaires et prévoir les substitutions souhaitées. Une clause démembrée peut créer un usufruit ou un quasi-usufruit sur le capital, avec des droits et obligations différents : elle ne se résume pas au versement des intérêts. La répartition fiscale des abattements, la créance de restitution et sa déductibilité au second décès dépendent du montage et des textes applicables. Ces cas ne sont pas calculés dans ce module ; faire rédiger et vérifier la clause.",
           source: "Article L132-8 du Code des assurances"
         }
       ]
@@ -479,7 +438,7 @@ function FAQSection() {
       questions: [
         {
           q: "Faut-il un ou plusieurs contrats d'assurance-vie ?",
-          r: "**Plusieurs contrats presentent des avantages :**\n\n- **Diversification des assureurs** : protection en cas de defaillance (garantie FGAP : 70 000 EUR par assureur)\n- **Gestion differenciee** : un contrat securitaire (fonds euros), un contrat dynamique (UC)\n- **Optimisation des rachats** : racheter sur le contrat le plus ancien (meilleure fiscalite)\n- **Beneficiaires differents** : adapter la clause par contrat\n\n**En pratique :** 2 a 3 contrats est souvent optimal. Au-dela, la gestion devient complexe.",
+          r: "**Plusieurs contrats presentent des avantages :**\n\n- **Diversification des assureurs** : protection en cas de defaillance (garantie FGAP : 70 000 EUR par assureur)\n- **Gestion differenciee** : un contrat securitaire (fonds euros), un contrat dynamique (UC)\n- **Optimisation des rachats** : racheter sur le contrat le plus ancien (meilleure fiscalite)\n- **Beneficiaires differents** : adapter la clause par contrat\n\nLe nombre de contrats dépend des objectifs et des frais ; il ne multiplie pas les plafonds fiscaux globaux.",
           source: "Article L423-1 du Code des assurances (FGAP)"
         },
         {
@@ -494,7 +453,7 @@ function FAQSection() {
         },
         {
           q: "Quelle strategie de rachat pour minimiser l'impot ?",
-          r: "**Optimisation des rachats :**\n\n1. **Attendre les 8 ans** : pour beneficier de l'abattement et du taux reduit\n2. **Etaler les rachats** : utiliser l'abattement annuel de 4 600/9 200 EUR chaque annee\n3. **Racheter en fin d'annee** : si besoin de liquidites, racheter en decembre et janvier pour doubler l'abattement\n4. **Comparer PFU et bareme** : le bareme IR est plus avantageux si votre TMI est < 12,8 % (TMI 0 ou 11 %)\n5. **Rester sous 150 000 EUR d'encours** : pour beneficier du taux de 7,5 % meme apres 2017\n6. **Privilegier les rachats sur les contrats les plus anciens** : meilleure fiscalite"
+          r: "**Optimisation des rachats :**\n\n1. **Attendre les 8 ans** : pour beneficier de l'abattement et du taux reduit\n2. **Etaler les rachats** : utiliser l'abattement annuel de 4 600/9 200 EUR chaque annee\n3. **Racheter en fin d'annee** : si besoin de liquidites, racheter en decembre et janvier pour doubler l'abattement\n4. **Comparer PFU et bareme** : tenir compte du taux forfaitaire réellement applicable (7,5 ou 12,8 %), des autres revenus mobiliers et de la CSG déductible\n5. **Vérifier les primes nettes tous contrats au 31 décembre précédent** : pour beneficier du taux de 7,5 % meme apres 2017\n6. **Privilegier les rachats sur les contrats les plus anciens** : meilleure fiscalite"
         }
       ]
     }
@@ -617,6 +576,10 @@ function AssuranceVieContent() {
   const [anciennete, setAnciennete] = useState<AncienneteContrat>('plus8');
   const [primesVersees, setPrimesVersees] = useState('');
   const [valeurContrat, setValeurContrat] = useState('');
+  const [produitsAssureur,setProduitsAssureur] = useState('');
+  const [soldePSAssureur,setSoldePSAssureur] = useState('');
+  const [autresBases757B,setAutresBases757B] = useState('');
+  const [base757BAssureur,setBase757BAssureur] = useState('');
   const [partPrimesAvant2017, setPartPrimesAvant2017] = useState('0');
   const [montantRachat, setMontantRachat] = useState('');
   const [situation, setSituation] = useState<SituationFamiliale>('celibataire');
@@ -644,6 +607,7 @@ function AssuranceVieContent() {
   // ===== CALCULS =====
 
   const resultatRachat = useMemo(() => {
+    if(anciennete==='plus8'&&parseNumber(partPrimesAvant2017)<100&&(!primesNettesApres2017.trim()||!primesAvantTousContrats.trim()))return null;
     return calculerRachat(
       anciennete,
       parseNumber(primesVersees),
@@ -652,27 +616,28 @@ function AssuranceVieContent() {
       parseNumber(montantRachat),
       situation,
       tmi,
-      // A defaut de saisie, on retient le total des primes versees du contrat (approximation prudente).
-      (primesNettesApres2017.trim() ? parseNumber(primesNettesApres2017) : parseNumber(primesVersees)*(1-parseNumber(partPrimesAvant2017)/100)),
-      parseNumber(primesAvantTousContrats), parseNumber(abattementRachatConsomme)
+      // Cumul tous contrats renseigné indépendamment de la ventilation des produits.
+      parseNumber(primesNettesApres2017),
+      parseNumber(primesAvantTousContrats), parseNumber(abattementRachatConsomme),
+      produitsAssureur.trim()?parseNumber(produitsAssureur):undefined, soldePSAssureur.trim()?parseNumber(soldePSAssureur):undefined
     );
-  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, primesNettesApres2017, primesAvantTousContrats, abattementRachatConsomme]);
+  }, [anciennete, primesVersees, valeurContrat, partPrimesAvant2017, montantRachat, situation, tmi, primesNettesApres2017, primesAvantTousContrats, abattementRachatConsomme, produitsAssureur, soldePSAssureur]);
 
   const resultatSuccession = useMemo(() => {
     return calculerSuccession(
       parseNumber(valeurContratDeces),
       beneficiaires,
       parseNumber(partAvant70),
-      parseNumber(gainsApres70)
+      parseNumber(gainsApres70), parseNumber(autresBases757B),base757BAssureur.trim()?parseNumber(base757BAssureur):undefined
     );
-  }, [valeurContratDeces, beneficiaires, partAvant70, gainsApres70]);
+  }, [valeurContratDeces, beneficiaires, partAvant70, gainsApres70, autresBases757B, base757BAssureur]);
 
   const projectionData = useMemo(() => {
     return genererProjection(
       parseNumber(projVersementInitial),
       parseNumber(projVersementMensuel),
       parseNumber(projRendement) / 100,
-      Math.min(parseInt(projDuree) || 20, 40)
+      Math.max(0,Math.min(Number(projDuree),40))
     );
   }, [projVersementInitial, projVersementMensuel, projRendement, projDuree]);
 
@@ -829,16 +794,16 @@ function AssuranceVieContent() {
     const vm = parseNumber(projVersementMensuel);
 
     return projectionData.filter((_, i) => i % 2 === 1 || i === 0 || i === projectionData.length - 1).map(p => {
-      const gains = p.interets;
+      const gains = Math.max(0,p.interets);
       const valeur = p.total;
       const primes = p.versements;
       const rachat50pct = valeur * 0.5;
-      const produits50 = rachat50pct * (gains / valeur);
+      const produits50 = valeur>0?rachat50pct * (gains / valeur):0;
       const abattement = 4600;
 
       let taxePFU = 0;
       if (p.annee >= 8) {
-        taxePFU = Math.max(0, produits50 - abattement) * 0.075 + produits50 * TAUX_PS;
+        taxePFU = impotRachatHuitAns(0,produits50,0,Math.max(0,primes-vm*12),abattement) + produits50 * TAUX_PS;
       } else if (p.annee >= 4) {
         taxePFU = produits50 * 0.128 + produits50 * TAUX_PS;
       } else {
@@ -877,7 +842,7 @@ function AssuranceVieContent() {
           </div>
           <h1 className={`font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-4 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
             Simulateur Assurance-Vie
-          </h1><div className="mt-4 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><p>Contrats courants souscrits depuis le 20 novembre 1991 ; capitaux relevant de l’article 990 I issus des versements depuis le 13 octobre 1998. Pour un ancien contrat exonéré, utilisez les bases fournies par l’assureur. Les parts avant/après 2017 doivent correspondre aux produits du rachat, selon son décompte. Prélèvements sociaux : estimation avant déduction des prélèvements déjà acquittés sur le fonds euros.</p><label className="block">Primes nettes avant le 27/09/2017, tous contrats (€)<input type="number" min="0" value={primesAvantTousContrats} onChange={e=>setPrimesAvantTousContrats(e.target.value)} className="block border rounded p-2"/></label><label className="block">Abattement annuel de rachat déjà utilisé (€)<input type="number" min="0" value={abattementRachatConsomme} onChange={e=>setAbattementRachatConsomme(e.target.value)} className="block border rounded p-2"/></label></div>
+          </h1><div className="mt-4 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><p>Contrats courants souscrits depuis le 20 novembre 1991 ; capitaux relevant de l’article 990 I issus des versements depuis le 13 octobre 1998. Les anciens contrats et primes bénéficiant d’une exonération historique sont hors périmètre. Les parts avant/après 2017 doivent correspondre aux produits du rachat, selon son décompte. Rachat réservé au résident fiscal français : solde social de l’assureur à renseigner pour éviter de taxer à nouveau des produits déjà prélevés, notamment sur fonds euros. Hors contrats rente-survie, épargne handicap et exonérations particulières. L’IR au barème est approché par la TMI : l’option globale sur les revenus mobiliers et la CSG déductible ne sont pas liquidées ici.</p><label className="block">Primes nettes avant le 27/09/2017, tous contrats au 31/12 précédent (€), zéro accepté<input type="number" min="0" value={primesAvantTousContrats} onChange={e=>setPrimesAvantTousContrats(e.target.value)} className="block border rounded p-2"/></label><label className="block">Abattement annuel de rachat déjà utilisé (€)<input type="number" min="0" value={abattementRachatConsomme} onChange={e=>setAbattementRachatConsomme(e.target.value)} className="block border rounded p-2"/></label><label className="block">Produits du rachat indiqués par l’assureur (€), facultatif<input type="number" min="0" value={produitsAssureur} onChange={e=>setProduitsAssureur(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Solde des prélèvements sociaux du rachat (€), facultatif<input type="number" value={soldePSAssureur} onChange={e=>setSoldePSAssureur(e.target.value)} className="block w-full border rounded p-2"/><span>Solde restant après PS déjà payés ; zéro accepté, négatif en cas de restitution confirmée. À défaut, estimation de 17,2 % sur tous les produits du rachat.</span></label><p>Pour un rachat de huit ans ou plus avec produits après 2017, renseigner les primes nettes avant ET après 2017 tous contrats, même nulles. Aucun prorata des primes n’est déduit du prorata des produits. <a className="underline" href="https://www.impots.gouv.fr/particulier/questions/jai-effectue-des-retraits-sur-mon-contrat-dassurance-vie-quelles-sont-les">DGFiP : imposition des rachats</a> ; <a className="underline" href="https://www.impots.gouv.fr/particulier/lassurance-vie-et-le-pea-0">Prélèvements sociaux</a>.</p></div>
           <p className={`text-gray-600 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-lg'}`}>
             Fiscalite des rachats, transmission successorale, projection de capitalisation.
             Comparez les strategies pour optimiser votre contrat d&apos;assurance-vie.
@@ -947,7 +912,7 @@ function AssuranceVieContent() {
                 {/* Primes versees */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Total des primes versees
+                    Primes encore investies après rachats en capital
                   </label>
                   <div className="relative">
                     <input
@@ -981,7 +946,7 @@ function AssuranceVieContent() {
                 {/* Part primes avant/apres 2017 */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Part des primes versees avant le 27/09/2017
+                    Part des produits du rachat attachée aux primes avant le 27/09/2017
                   </label>
                   <div className="flex items-center gap-4">
                     <input
@@ -1078,14 +1043,14 @@ function AssuranceVieContent() {
                 {/* Total des primes versees nettes depuis le 27/09/2017 */}
                 <div className="mb-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Total des primes versees nettes (depuis le 27/09/2017)
+                    Primes nettes depuis le 27/09/2017, tous contrats au 31/12 précédent
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       value={primesNettesApres2017}
                       onChange={e => setPrimesNettesApres2017(formatMontant(e.target.value))}
-                      placeholder="Laisser vide = total des primes versees"
+                      placeholder="Renseigner, y compris zéro"
                       className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                     />
                     <Euro className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1176,7 +1141,7 @@ function AssuranceVieContent() {
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.impotPFU)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">PS (17,2 %)</span>
+                              <span className="text-gray-600">Solde prélèvements sociaux</span>
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.prelevementsSociaux)}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 pt-2">
@@ -1208,7 +1173,7 @@ function AssuranceVieContent() {
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.impotIR)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">PS (17,2 %)</span>
+                              <span className="text-gray-600">Solde prélèvements sociaux</span>
                               <span className="font-semibold text-red-600">{formatEuro.format(resultatRachat.prelevementsSociaux)}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 pt-2">
@@ -1228,16 +1193,16 @@ function AssuranceVieContent() {
                         <div className="flex items-start gap-3">
                           <Landmark className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <div className="text-sm">
-                            <p className="font-semibold text-indigo-900 mb-1">Recommandation</p>
+                            <p className="font-semibold text-indigo-900 mb-1">Comparaison indicative à TMI constante</p>
                             {resultatRachat.netPercuPFU >= resultatRachat.netPercuIR ? (
                               <p className="text-indigo-800">
-                                Le <strong>PFU (Prelevement Forfaitaire Unique)</strong> est plus avantageux dans votre situation.
-                                Vous economisez <strong>{formatEuro.format(resultatRachat.netPercuPFU - resultatRachat.netPercuIR)}</strong> par rapport au bareme IR.
+                                Le <strong>PFU (Prelevement Forfaitaire Unique)</strong> produit le net le plus élevé avec ces seules hypothèses.
+                                Écart estimé : <strong>{formatEuro.format(resultatRachat.netPercuPFU - resultatRachat.netPercuIR)}</strong> par rapport au bareme IR.
                               </p>
                             ) : (
                               <p className="text-indigo-800">
-                                L&apos;option pour le <strong>bareme progressif de l&apos;IR</strong> est plus avantageuse dans votre situation.
-                                Vous economisez <strong>{formatEuro.format(resultatRachat.netPercuIR - resultatRachat.netPercuPFU)}</strong> par rapport au PFU.
+                                L&apos;option pour le <strong>bareme progressif de l&apos;IR</strong> produit le net le plus élevé avec ces seules hypothèses.
+                                Écart estimé : <strong>{formatEuro.format(resultatRachat.netPercuIR - resultatRachat.netPercuPFU)}</strong> par rapport au PFU.
                               </p>
                             )}
                           </div>
@@ -1301,7 +1266,7 @@ function AssuranceVieContent() {
                 <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-12 text-center">
                   <Calculator className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-400 mb-2">Resultats du rachat</h3>
-                  <p className="text-gray-400">Renseignez les parametres pour voir la simulation</p>
+                  <p className="text-gray-400">Renseignez les paramètres et les cumuls de primes tous contrats ; vérifiez que le rachat ne dépasse pas la valeur du contrat.</p>
                 </div>
               )}
             </div>
@@ -1324,7 +1289,7 @@ function AssuranceVieContent() {
                 {/* Valeur contrat au deces */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Valeur du contrat au deces
+                    Capital décès après prélèvements sociaux, avant droits
                   </label>
                   <div className="relative">
                     <input
@@ -1341,7 +1306,7 @@ function AssuranceVieContent() {
                 {/* Repartition avant/apres 70 ans */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Part des primes versees avant 70 ans
+                    Part du capital décès relevant de l’article 990 I
                   </label>
                   <div className="flex items-center gap-4">
                     <input
@@ -1362,10 +1327,11 @@ function AssuranceVieContent() {
                   </div>
                 </div>
 
+                <div className="mb-5 space-y-3 text-sm"><label className="block">Assiette 757 B avant abattement fournie par l’assureur (€), facultatif<input type="number" min="0" value={base757BAssureur} onChange={e=>setBase757BAssureur(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Autres contrats : bases 757 B des bénéficiaires non exonérés, avant abattement (€)<input type="number" min="0" value={autresBases757B} onChange={e=>setAutresBases757B(e.target.value)} className="block w-full border rounded p-2"/></label><p>Les 30 500 € sont partagés sur tous les contrats du même assuré, au prorata des bases non exonérées. Renseigner les autres contrats, y compris leurs autres bénéficiaires. Après rachats ou pertes, utiliser impérativement l’assiette de l’assureur : les primes fiscalement retenues ne se déduisent pas toujours du capital restant. La ventilation des bénéficiaires ci-dessous s’applique aux deux fractions ; des clauses différentes nécessitent des liquidations distinctes.</p><p>Les bases déjà taxées et abattements personnels consommés doivent inclure la succession ordinaire, les donations rappelables et les autres contrats concernés. La comparaison hors assurance-vie utilise les mêmes données antérieures. Exonération du frère/sœur sous conditions, handicap et démembrement de clause non simulés. <a className="underline" href="https://bofip.impots.gouv.fr/bofip/3456-PGP.html/identifiant=BOI-ENR-DMTG-10-10-20-20-20230330">BOFiP : article 757 B et répartition de l’abattement</a>.</p></div>
                 {/* Gains apres 70 ans */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Gains sur primes versees apres 70 ans (exoneres)
+                    Gains après 70 ans exonérés de droits de mutation
                   </label>
                   <div className="relative">
                     <input
@@ -1378,7 +1344,7 @@ function AssuranceVieContent() {
                     <Euro className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Art. 757 B : seules les primes sont taxees, les interets sont exoneres
+                    Art. 757 B : les gains sont exonérés de droits de mutation ; solde des prélèvements sociaux distinct.
                   </p>
                 </div>
               </div>
@@ -1673,13 +1639,13 @@ function AssuranceVieContent() {
 
               <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-5">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Rendement annuel estime
+                  Rendement effectif annuel net de frais, avant fiscalité
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={projRendement}
-                    onChange={e => setProjRendement(e.target.value.replace(/[^\d.,]/g, ''))}
+                    onChange={e => setProjRendement(e.target.value.replace(/[^\d.,-]/g, ''))}
                     className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                   />
                   <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -1802,11 +1768,12 @@ function AssuranceVieContent() {
                   </ResponsiveContainer>
                 </div>
 
+                <p className="text-sm text-gray-600">Projection d’un contrat ouvert au début de 2026, versements en fin de mois, rendement effectif annuel net des frais avant fiscalité. Scénarios de rachats indépendants : célibataire, abattement intact, aucun autre contrat, prélèvements sociaux non déjà acquittés ; seuil de primes au 31 décembre précédent. Aucune garantie de rendement.</p>
                 {/* Impact fiscal selon date de rachat */}
                 <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Calculator className="w-5 h-5 text-indigo-600" />
-                    Impact fiscal selon la date de rachat (rachat de 50 % du contrat)
+                    Impact fiscal de rachats alternatifs de 50 % du contrat
                   </h3>
 
                   <div className="overflow-x-auto">
@@ -1841,29 +1808,7 @@ function AssuranceVieContent() {
                   </div>
                 </div>
 
-                {/* Rendements types */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Info className="w-5 h-5 text-indigo-600" />
-                    Rendements types en 2025
-                  </h3>
-                  <div className={`grid gap-4 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
-                    {[
-                      { label: 'Fonds euros', rendement: '2,5 - 3,5 %', risque: 'Faible', color: 'bg-green-100 text-green-700' },
-                      { label: 'Obligations', rendement: '~3 %', risque: 'Modere', color: 'bg-blue-100 text-blue-700' },
-                      { label: 'SCPI', rendement: '~4 %', risque: 'Modere', color: 'bg-amber-100 text-amber-700' },
-                      { label: 'Actions', rendement: '~7 %', risque: 'Eleve', color: 'bg-red-100 text-red-700' }
-                    ].map(item => (
-                      <div key={item.label} className="bg-white rounded-xl p-4 border border-gray-200">
-                        <p className="font-bold text-gray-900 mb-1">{item.label}</p>
-                        <p className="text-lg font-bold text-indigo-700 mb-1">{item.rendement}</p>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${item.color}`}>
-                          Risque {item.risque}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <p className="rounded-xl bg-indigo-50 p-4 text-sm">Le rendement saisi est une hypothèse de calcul. Les supports en unités de compte peuvent perdre de la valeur ; les frais, garanties et modalités de chaque contrat doivent être vérifiés dans sa documentation.</p>
               </>
             )}
           </div>
