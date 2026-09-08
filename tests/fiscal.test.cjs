@@ -367,3 +367,45 @@ test('foncier : projection cumule réellement, travaux uniquement en première a
  assert.equal(r[0]['Regime Reel (cumule)'],-5594);
  assert.equal(r[1]['Regime Reel (cumule)'],751);
 });
+
+const meubleCas={type:'classique',recettes:12000,n1:12000,n2:12000,conditionsMicro:true,autresRevenus:40000,charges:2000,fraisReel:600,amortissement:5000,reportAmortissement:0,deficitImputable:0,tmi:30,ps:18.6,socialForce:false};
+test('meublé : seuils 2026, N-1 ou N-2, abattement minimum sans déficit',()=>{
+ const f=require('../src/lib/lmnp.ts').microMeuble;
+ assert.equal(f('tourisme_classe',90000,80000,100000,true).eligible,true);
+ assert.equal(f('classique',12000,83601,83601,true).eligible,false);
+ assert.equal(f('tourisme_non_classe',12000,12000,12000,true).abattement,3600);
+ assert.equal(f('classique',200,0,0,true).base,0);
+ assert.equal(f('classique',500,0,0,true).base,195);
+ assert.equal(f('classique',12000,0,0,false).eligible,false);
+});
+test('meublé : comparaison avec mêmes charges décaissées et frais du réel',()=>{
+ const r=require('../src/lib/lmnp.ts').liquidationMeuble(meubleCas);
+ assert.equal(r.cashMicro,7084);assert.ok(Math.abs(r.cashReel-7261.6)<1e-7);
+ assert.equal(r.baseReel,4400);assert.equal(r.amortissementDeduit,5000);
+});
+test('meublé : amortissement plafonné, reports et déficit sans crédit fiscal fictif',()=>{
+ const f=require('../src/lib/lmnp.ts').liquidationMeuble;
+ const a=f({...meubleCas,charges:15000,reportAmortissement:1000});
+ assert.equal(a.amortissementDeduit,0);assert.equal(a.reportAmortissement,6000);assert.equal(a.deficitCree,3600);assert.equal(a.irReel,0);
+ const b=f({...meubleCas,deficitImputable:10000});assert.equal(b.deficitUtilise,4400);assert.equal(b.deficitRestant,5600);assert.equal(b.baseReel,0);
+});
+test('meublé : LMNP touristique cotisant, pas de double prélèvement ni forfait40',()=>{
+ const f=require('../src/lib/lmnp.ts').liquidationMeuble;
+ assert.throws(()=>f({...meubleCas,type:'tourisme_classe',recettes:30000}));
+ const r=f({...meubleCas,type:'tourisme_classe',recettes:30000,cotisationsMicro:1800,cotisationsReel:4000,cotisationsDeductibles:3500});
+ assert.equal(r.lmp,false);assert.equal(r.cotisant,true);assert.equal(r.socialReel,4000);assert.equal(r.socialMicro,1800);assert.equal(r.baseReel,18900);
+ assert.equal(f({...meubleCas,recettes:23000,autresRevenus:10000}).lmp,false);
+ assert.equal(f({...meubleCas,recettes:30000,autresRevenus:30000}).lmp,false);
+});
+test('meublé : terrain entièrement exclu, durée nulle rejetée',()=>{
+ const f=require('../src/lib/lmnp.ts').planAmortissementMeuble;
+ assert.deepEqual(f(250000,20,15000,40,10),{base:200000,immo:5000,mobilier:1500,total:6500});
+ assert.equal(f(250000,100,0,40,10).total,0);assert.throws(()=>f(1,101,0,40,10));assert.throws(()=>f(1,20,0,0,10));
+});
+test('meublé : revente réintègre seulement le montant fiscal fourni, exception résidence',()=>{
+ const f=require('../src/lib/lmnp.ts').plusValueMeuble;
+ const p={acquisition:100000,vente:120000,fraisAcquisition:7500,fraisVente:2500,travaux:0,reintegration:10000,exceptionResidence:false,dateAcquisition:'2022-01-01',dateVente:'2026-01-01',ps:17.2};
+ assert.equal(f(p).brute,20000);assert.equal(f(p).total,7240);
+ assert.equal(f({...p,exceptionResidence:true}).brute,10000);
+ assert.equal(f({...p,dateVente:'2052-01-01'}).total,0);
+});

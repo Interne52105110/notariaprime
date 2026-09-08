@@ -134,3 +134,15 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Limites affichées : loyers annuels représentés par leur moyenne mensuelle, charges nettes récupérables, TMI constante, revenu global suffisant supposé pour l’économie potentielle ; décote/CSG déductible et report de déficit global six ans non liquidés. Remboursement du capital, réductions locatives et nouveau bailleur privé hors calcul.
 - Validation : 103 tests, build/types/lint, navigateur et mobile. Loyers 12 000 €, charges 2 000 € : soldes micro 6 035,20 € / réel 5 289,44 €. Loyers 15 000 €, intérêts 18 000 €, travaux 20 000 € dont 2 000 € énergétiques : imputation 12 700 €, report 10 320 € (forfait local 20 € compris).
 - Sources : https://bofip.impots.gouv.fr/bofip/3973-PGP.html/identifiant=BOI-RFPI-DECLA-10-20250306 ; https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000054373682/2026-07-08 ; https://bofip.impots.gouv.fr/bofip/4142-PGP.html/identifiant=BOI-RFPI-BASE-30-20-20250916 ; https://bofip.impots.gouv.fr/bofip/5808-PGP.html/identifiant=BOI-RFPI-BASE-20-80-20170901.
+
+
+## Lot location meublée — 109 tests
+
+- Micro-BIC revenus 2026 : 83 600 €/50 % (classé et classique), 15 000 €/30 % non classé partout ; N-1 ou N-2, minimum 305 € plafonné aux recettes, conditions structure/option confirmées.
+- Statut fiscal LMP distinct de l’affiliation sociale touristique >23 000 €. Suppression du forfait SSI 40 % ; cotisations et part déductible issues de l’estimation Urssaf, pas de double PS. Définition des autres revenus du foyer corrigée (pensions incluses).
+- Trésorerie : charges communes identiques, frais comptables supplémentaires au réel, plafonnement article 39 C, stocks amortissements/déficits distincts. Pas de crédit fiscal fictif pour une perte. Solde déficitaire antérieur fourni après vérification des millésimes et expiration décennale.
+- Amortissement : valeur terrain exclue, durées explicites modifiables, dotation théorique distincte de la déduction. Ancienne répartition n’amortissant que 85 % du bâti supprimée.
+- Revente LMNP : dates révolues, frais et travaux admissibles, montant immobilier réellement déduit et réintégrable fourni, exceptions légales des résidences, surtaxe et PS immobiliers 17,2 % (ou solidarité 7,5 % si éligible). Suppression de la comparaison LMP qui calculait la mauvaise VNC et exonérait automatiquement après cinq ans de détention.
+- Limites explicites : périmètre annuel, une catégorie sans activité mixte/para-hôtelière/usage privé, IR au TMI, pas d’imputation globale LMP, pas de projection 20 ans répétant à tort la première année. Cession professionnelle orientée vers son module, dont revue approfondie reste à terminer. Sauvegarde locale versionnée, impression/PDF.
+- Validation : 109 tests, build/types/lint, parcours Chromium annuel/social/revente/invalidation/mobile sans erreur JS.
+- Sources : CGI 50-0 version 01/07/2026 ; BOI-BAREME-000044-20260819 ; BOI-BIC-CHAMP-40-20-20260819 ; DGFiP régimes d’imposition, prélèvements sociaux et plus-values ; outil Urssaf économie collaborative. Liens détaillés dans l’onglet Règles et sources.

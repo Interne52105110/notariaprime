@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       <CalculatorJsonLd
         name="Calculateur LMNP 2026 — amortissement, fiscalité, régime réel"
-        description="Simulez votre fiscalité LMNP (Loueur Meublé Non Professionnel) : amortissement bien + mobilier, régime réel vs micro-BIC, déficit reportable, plus-value. Conforme PLF 2026."
+        description="Simulez votre fiscalité LMNP (Loueur Meublé Non Professionnel) : amortissement bien + mobilier, régime réel vs micro-BIC, déficit reportable, plus-value. Règles 2026, hypothèses et limites détaillées."
         path="/lmnp"
       />
       {children}

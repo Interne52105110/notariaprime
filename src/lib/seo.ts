@@ -44,7 +44,7 @@ const PAGE_META: Record<string, PageMeta> = {
   },
   "/lmnp": {
     title: "Calculateur LMNP 2026 — amortissement, fiscalité, régime réel",
-    description: "Simulez votre fiscalité LMNP (Loueur Meublé Non Professionnel) : amortissement bien + mobilier, régime réel vs micro-BIC, déficit reportable, plus-value. Conforme PLF 2026.",
+    description: "Simulez votre fiscalité LMNP (Loueur Meublé Non Professionnel) : amortissement bien + mobilier, régime réel vs micro-BIC, déficit reportable, plus-value. Règles 2026, hypothèses et limites détaillées.",
     keywords: ["LMNP", "loueur meublé", "amortissement LMNP", "régime réel", "micro-BIC", "Censi-Bouvard"],
   },
   "/plusvalue": {
