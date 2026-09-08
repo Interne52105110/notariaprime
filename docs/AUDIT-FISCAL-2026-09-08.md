@@ -158,3 +158,12 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Suppression des projections/suggestions qui assimilaient automatiquement attendre5ans à une exonération. Pas de recommandation de régime sans qualification du dossier.
 - Limites : un actif homogène, pas de compensation multi-actifs/MV reportées, pas de crédit fiscal fictif sur pertes ; activités agricoles et cas internationaux/spéciaux hors périmètre ; IR auTMI ; cotisations issues d’estimation externe.
 - Validation :115tests, build/types/lint ; ChromiumIR/conditions/IS/titresmoins2ans/mobile sans erreurJS. SourcesDGFiPjuin-août2026, SP F33162 (18,6%LT confirmé), BOFiP6156/6230/11406/3610, liens sur page.
+
+
+## Lot prêt immobilier — 118 tests
+
+- Suppression des taux de marché 2025 non actualisés, du changement automatique de taux à chaque durée et des exemples de coûts erronés.
+- Échéancier mensuel au centime, dernière échéance ajustée, taux nul et durée validés. Assurance initiale ou capital restant dû ; taux et quotité contractuels explicites. Coût du crédit distinct du capital remboursé.
+- Taux effectif calculé par actualisation des flux (frais initiaux et assurance saisis), explicitement estimatif et non simple addition de taux. Pas de validation juridique automatique duTAEG/usure.
+- FAQ remplacée : amortissement non constant, HCSF35%/25ans avecexceptions, IRA au plus petit des deux plafonds et non au choix, pas de pondération universelle70%desrevenus ni rentabilité garantie du rachat.
+- ExportCSV testé, tableau mobile, tauxnul et invalidation, build/types/lint et118testsPASS. SourcesBDF/HCSF/ServicePublicF1669.

@@ -447,3 +447,21 @@ test('cession IS : tranche réduite seulement disponible, aucune fiscalité pers
  const r=f({...cessionCas,regime:'is',resultatIS:40000,isReduit:true});assert.equal(r.impotSociete,4750);assert.equal(r.ir,0);assert.equal(r.social,0);
  assert.equal(f({...cessionCas,regime:'is'}).impotSociete,5000);
 });
+
+test('prêt : taux nul, capital exactement soldé et coût hors principal',()=>{
+ const f=require('../src/lib/pret.ts').echeancierPret;
+ const r=f({capital:120000,mois:120,taux:0,assurance:0,assuranceRestant:false,frais:0});assert.equal(r.mensualite,1000);assert.equal(r.cout,0);assert.equal(r.lignes[119].restant,0);assert.ok(r.tauxEffectif<1e-8);
+ const z=f({capital:1000,mois:3,taux:0,assurance:0,assuranceRestant:false,frais:0});assert.equal(z.lignes[2].capital,333.34);
+});
+test('prêt : mensualité actuarielle et assurance initiale ou décroissante',()=>{
+ const f=require('../src/lib/pret.ts').echeancierPret;
+ const p={capital:200000,mois:240,taux:3,assurance:.3,assuranceRestant:false,frais:1000};const a=f(p),b=f({...p,assuranceRestant:true});
+ assert.equal(a.mensualite,1109.2);assert.equal(a.assurance,12000);assert.equal(a.lignes[0].paiement,1159.2);assert.ok(b.assurance<a.assurance);
+ assert.ok(Math.abs(a.lignes.reduce((s,l)=>s+l.capital,0)-200000)<1e-6);assert.ok(a.tauxEffectif>3.04);assert.ok(a.tauxEffectif>b.tauxEffectif);
+});
+test('prêt : invalides rejetés et frais de financement augmentent le taux effectif',()=>{
+ const f=require('../src/lib/pret.ts').echeancierPret;const p={capital:100000,mois:120,taux:3,assurance:0,assuranceRestant:false,frais:0};
+ assert.ok(Math.abs(f(p).tauxEffectif-((1+.03/12)**12-1)*100)<.001);
+ assert.ok(f({...p,frais:2000}).tauxEffectif>f(p).tauxEffectif);
+ for(const x of [{mois:0},{mois:2.5},{taux:-1},{frais:100000},{capital:0}])assert.throws(()=>f({...p,...x}));
+});
