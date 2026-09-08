@@ -384,7 +384,8 @@ export default function SimulateurInvestissementLocatif() {
     if (saved[index]) {
       const d = saved[index].data;
       if (d.formData) setFormData(d.formData);
-      if (d.dispConfig) setDispConfig(d.dispConfig);
+      if (d.dispConfig) setDispConfig(prev=>({...prev,...d.dispConfig,dispositif:d.dispConfig.dispositif==='lmnp'?'aucun':d.dispConfig.dispositif}));
+      if(d.dispConfig?.dispositif==='lmnp')alert('Cette ancienne simulation LMNP doit être reprise dans le module Location meublée. Le scénario est chargé sans dispositif fiscal.');
       if (d.projConfig) setProjConfig(d.projConfig);
       setShowLoadModal(false);
       alert('Simulation chargee avec succes !');
@@ -762,7 +763,7 @@ export default function SimulateurInvestissementLocatif() {
           <label className="block"><input type="checkbox" checked={dispConfig.deficitEnergetique===true} onChange={e=>setDispConfig(c=>({...c,deficitEnergetique:e.target.checked}))}/> Déficit foncier : tous les travaux déductibles saisis sont éligibles à la majoration énergétique (devis, dates de paiement et passage E/F/G vers A/B/C/D avant fin 2027 vérifiés).</label>
         </div>
         <p className="mt-3">Les budgets Malraux sont supposés payés en 2026. Le déficit foncier suppose des travaux déductibles payés en 2026, un revenu global suffisant et le maintien de la location ; le report foncier est suivi dix ans. Les travaux ouvrant droit à Pinel, Denormandie ou Malraux ne sont pas aussi déduits des revenus fonciers.</p>
-        <p className="mt-3">Le rendement net-net est calculé après intérêts, assurance et impôts, avant remboursement du capital ; le cash-flow inclut ce remboursement. Le TRI inclut l’IR et les PS locatifs, mais reste avant frais et fiscalité de cession. Il n’est pas annoncé quand les flux ne permettent pas un TRI unique selon le critère de signes retenu. Les valorisations et loyers futurs sont des hypothèses ; les charges augmentent de 2 % par an.</p>
+        <p className="mt-3">Le rendement net-net est calculé après intérêts, assurance et impôts, avant remboursement du capital ; le cash-flow inclut ce remboursement. Le TRI inclut l’IR et les PS locatifs, mais reste avant frais et fiscalité de cession. Il n’est pas annoncé quand les flux ne permettent pas un TRI unique selon le critère de signes retenu. La valeur future part du prix d’acquisition : les travaux sont une dépense et ne sont pas présumés augmenter la valeur euro pour euro. Les valorisations et loyers futurs sont des hypothèses ; les charges augmentent de 2 % par an.</p>
         <a className="mt-3 inline-block underline" href="https://bofip.impots.gouv.fr/bofip/10130-PGP.html/identifiant=BOI-BAREME-000017-20260310">BOFiP — plafonds locatifs 2026</a>
       </section>
 
