@@ -6,6 +6,8 @@
 
 "use client";
 
+import { plafondLoyer2026, reductionsLocatives, triAnnuel, revenuFoncierAnnuel } from '@/lib/investissement';
+import { echeanceAnnuelle } from '@/lib/holding';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Home,
@@ -99,6 +101,15 @@ interface DispositifConfig {
   intermediationLocAvantages: boolean;
   secteurMalraux: SecteurMalraux;
   montantTravauxMalraux: string;
+  anneeAcquisition?: string;
+  premiereAnneeReduction?: string;
+  initialPinel?: 6 | 9;
+  pinelPlus?: boolean;
+  conditionsConfirmees?: boolean;
+  irDisponible?: string;
+  nichesDisponibles?: string;
+  surfaceAnnexes?: string;
+  deficitEnergetique?: boolean;
 }
 
 interface ProjectionConfig {
@@ -112,11 +123,11 @@ interface ProjectionConfig {
 // ============================================
 
 const PLAFONDS_LOYER_PINEL: Record<string, number> = {
-  'Abis': 18.89,
-  'A': 14.03,
-  'B1': 11.31,
-  'B2': 9.83,
-  'C': 9.83
+  'Abis': 19.71,
+  'A': 14.64,
+  'B1': 11.8,
+  'B2': 10.26,
+  'C': 10.26
 };
 
 const TAUX_PINEL: Record<number, number> = {
@@ -147,31 +158,31 @@ const PRELEVEMENTS_SOCIAUX = 0.172;
 
 const PLAFONDS_RESSOURCES_PINEL: Record<string, Record<string, number>> = {
   'A bis': {
-    'Personne seule': 43475,
-    'Couple': 64976,
-    'Pers. seule ou couple + 1 pers. à charge': 85175,
-    'Pers. seule ou couple + 2 pers. à charge': 101693,
-    'Pers. seule ou couple + 3 pers. à charge': 120995,
-    'Pers. seule ou couple + 4 pers. à charge': 136151,
-    'Majoration par personne supplémentaire': 15168
+    'Personne seule': 44344,
+    'Couple': 66276,
+    'Pers. seule ou couple + 1 pers. à charge': 86878,
+    'Pers. seule ou couple + 2 pers. à charge': 103727,
+    'Pers. seule ou couple + 3 pers. à charge': 123415,
+    'Pers. seule ou couple + 4 pers. à charge': 138874,
+    'Majoration par personne supplémentaire': 15471
   },
   'A': {
-    'Personne seule': 43475,
-    'Couple': 64976,
-    'Pers. seule ou couple + 1 pers. à charge': 78104,
-    'Pers. seule ou couple + 2 pers. à charge': 93556,
-    'Pers. seule ou couple + 3 pers. à charge': 110753,
-    'Pers. seule ou couple + 4 pers. à charge': 124630,
-    'Majoration par personne supplémentaire': 13886
+    'Personne seule': 44344,
+    'Couple': 66276,
+    'Pers. seule ou couple + 1 pers. à charge': 79666,
+    'Pers. seule ou couple + 2 pers. à charge': 95427,
+    'Pers. seule ou couple + 3 pers. à charge': 112968,
+    'Pers. seule ou couple + 4 pers. à charge': 127122,
+    'Majoration par personne supplémentaire': 14164
   },
   'B1': {
-    'Personne seule': 35435,
-    'Couple': 47321,
-    'Pers. seule ou couple + 1 pers. à charge': 56905,
-    'Pers. seule ou couple + 2 pers. à charge': 68699,
-    'Pers. seule ou couple + 3 pers. à charge': 80816,
-    'Pers. seule ou couple + 4 pers. à charge': 91078,
-    'Majoration par personne supplémentaire': 10161
+    'Personne seule': 36144,
+    'Couple': 48268,
+    'Pers. seule ou couple + 1 pers. à charge': 58043,
+    'Pers. seule ou couple + 2 pers. à charge': 70073,
+    'Pers. seule ou couple + 3 pers. à charge': 82432,
+    'Pers. seule ou couple + 4 pers. à charge': 92900,
+    'Majoration par personne supplémentaire': 10364
   }
 };
 
@@ -286,109 +297,8 @@ function calculerRendementNetNet(
   return (revenuNetNet / prixRevient) * 100;
 }
 
-function calculerAvantageFiscalPinel(
-  prixAcquisition: number,
-  surface: number,
-  duree: DureePinel
-): { avantageTotal: number; avantageAnnuel: number; eligible: boolean; raison: string } {
-  const plafondM2 = surface * PLAFOND_M2_PINEL;
-  const baseEligible = Math.min(prixAcquisition, PLAFOND_INVESTISSEMENT_PINEL, plafondM2);
-  const taux = TAUX_PINEL[duree] || 0;
-  const avantageTotal = baseEligible * taux;
-  const avantageAnnuel = avantageTotal / duree;
-
-  const eligible = true;
-  let raison = '';
-  if (prixAcquisition > PLAFOND_INVESTISSEMENT_PINEL) {
-    raison = `Prix plafonné à ${formatEuros(PLAFOND_INVESTISSEMENT_PINEL)}. `;
-  }
-  if (prixAcquisition > plafondM2) {
-    raison += `Prix plafonné à ${formatEuros(plafondM2)} (5 500 €/m²). `;
-  }
-
-  return { avantageTotal, avantageAnnuel, eligible, raison };
-}
-
-function calculerAvantageFiscalDenormandie(
-  prixAcquisition: number,
-  montantTravaux: number,
-  surface: number,
-  duree: DureePinel
-): { avantageTotal: number; avantageAnnuel: number; eligible: boolean; raison: string } {
-  const coutTotal = prixAcquisition + montantTravaux;
-  const tauxTravaux = coutTotal > 0 ? montantTravaux / coutTotal : 0;
-  const eligible = tauxTravaux >= 0.25;
-  let raison = '';
-  if (!eligible) {
-    raison = `Travaux insuffisants : ${(tauxTravaux * 100).toFixed(1)}% (minimum 25% requis).`;
-  }
-  const plafondM2 = surface * PLAFOND_M2_PINEL;
-  const baseEligible = Math.min(coutTotal, PLAFOND_INVESTISSEMENT_PINEL, plafondM2);
-  const taux = TAUX_PINEL[duree] || 0;
-  const avantageTotal = eligible ? baseEligible * taux : 0;
-  const avantageAnnuel = eligible ? avantageTotal / duree : 0;
-
-  return { avantageTotal, avantageAnnuel, eligible, raison };
-}
-
-function calculerAvantageFiscalLocAvantages(
-  loyerAnnuel: number,
-  niveau: NiveauLocAvantages,
-  intermediation: boolean,
-  duree: number
-): { avantageTotal: number; avantageAnnuel: number; taux: number } {
-  const config = TAUX_LOC_AVANTAGES[niveau];
-  const taux = intermediation ? config.avec : config.sans;
-  if (niveau === 'loc3' && !intermediation) {
-    return { avantageTotal: 0, avantageAnnuel: 0, taux: 0 };
-  }
-  const avantageAnnuel = loyerAnnuel * taux;
-  const avantageTotal = avantageAnnuel * duree;
-  return { avantageTotal, avantageAnnuel, taux };
-}
-
-function calculerDeficitFoncier(
-  montantTravaux: number,
-  revenusFonciers: number,
-  renovationEnergetique: boolean
-): { deductionAnnee1: number; reportable: number; plafond: number } {
-  const plafond = renovationEnergetique ? PLAFOND_DEFICIT_FONCIER_RENOVATION : PLAFOND_DEFICIT_FONCIER;
-  const deficit = montantTravaux - revenusFonciers;
-  const deductionAnnee1 = Math.min(Math.max(deficit, 0), plafond);
-  const reportable = Math.max(deficit - deductionAnnee1, 0);
-  return { deductionAnnee1, reportable, plafond };
-}
-
-function calculerAvantageFiscalMalraux(
-  montantTravaux: number,
-  secteur: SecteurMalraux,
-  duree: number
-): { avantageTotal: number; avantageAnnuel: number; taux: number } {
-  const taux = TAUX_MALRAUX[secteur];
-  const travauxEligibles = Math.min(montantTravaux, PLAFOND_TRAVAUX_MALRAUX);
-  const avantageTotal = travauxEligibles * taux;
-  const avantageAnnuel = avantageTotal / Math.min(duree, 4);
-  return { avantageTotal, avantageAnnuel, taux };
-}
-
 function calculerTRI(cashFlows: number[]): number {
-  // Newton-Raphson method for IRR
-  let guess = 0.05;
-  for (let iter = 0; iter < 200; iter++) {
-    let npv = 0;
-    let dnpv = 0;
-    for (let t = 0; t < cashFlows.length; t++) {
-      const discount = Math.pow(1 + guess, t);
-      npv += cashFlows[t] / discount;
-      dnpv -= t * cashFlows[t] / Math.pow(1 + guess, t + 1);
-    }
-    if (Math.abs(npv) < 0.01) break;
-    if (dnpv === 0) break;
-    guess = guess - npv / dnpv;
-    if (guess < -0.99) guess = -0.5;
-    if (guess > 2) guess = 0.5;
-  }
-  return guess * 100;
+  return triAnnuel(cashFlows) ?? NaN;
 }
 
 // ============================================
@@ -430,7 +340,8 @@ export default function SimulateurInvestissementLocatif() {
     niveauLocAvantages: 'loc1',
     intermediationLocAvantages: false,
     secteurMalraux: 'sauvegarde',
-    montantTravauxMalraux: '100000'
+    montantTravauxMalraux: '0',
+    anneeAcquisition:'2026', premiereAnneeReduction:'2026', initialPinel:9, pinelPlus:false, conditionsConfirmees:false, irDisponible:'10000', nichesDisponibles:'10000', surfaceAnnexes:'0', deficitEnergetique:false
   });
 
   const [showPlafondsRessources, setShowPlafondsRessources] = useState(false);
@@ -514,11 +425,11 @@ export default function SimulateurInvestissementLocatif() {
   useEffect(() => {
     const prix = parseNumber(formData.prixAcquisition);
     const frais = parseNumber(formData.fraisNotaireMontant);
-    const travaux = parseNumber(formData.montantTravaux);
+    const travaux = Math.max(parseNumber(formData.montantTravaux),dispConfig.dispositif==='malraux'?parseNumber(dispConfig.montantTravauxMalraux):0);
     const apport = parseNumber(formData.apport);
     const emprunt = Math.max(0, prix + frais + travaux - apport);
     setFormData(prev => ({ ...prev, montantEmprunt: Math.round(emprunt).toString() }));
-  }, [formData.prixAcquisition, formData.fraisNotaireMontant, formData.montantTravaux, formData.apport]);
+  }, [formData.prixAcquisition, formData.fraisNotaireMontant, formData.apport, dispConfig.dispositif, dispConfig.montantTravauxMalraux]);
 
   // ============================================
   // CALCULS PRINCIPAUX (useMemo)
@@ -528,7 +439,7 @@ export default function SimulateurInvestissementLocatif() {
     const prix = parseNumber(formData.prixAcquisition);
     const fraisNotaire = parseNumber(formData.fraisNotaireMontant);
     const surface = parseNumber(formData.surface);
-    const travaux = parseNumber(formData.montantTravaux);
+    const travaux = Math.max(parseNumber(formData.montantTravaux),dispConfig.dispositif==='malraux'?parseNumber(dispConfig.montantTravauxMalraux):0);
     const loyerMensuel = parseNumber(formData.loyerMensuel);
     const loyerAnnuel = loyerMensuel * 12;
     const charges = parseNumber(formData.chargesMensuelles);
@@ -555,47 +466,49 @@ export default function SimulateurInvestissementLocatif() {
       loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire, travaux
     );
 
-    // Avantage fiscal selon dispositif
-    let avantageFiscalAnnuel = 0;
-    let avantageFiscalTotal = 0;
-    let eligibilite = { eligible: true, raison: '' };
-
-    if (dispConfig.dispositif === 'pinel') {
-      const r = calculerAvantageFiscalPinel(prix, surface, dispConfig.dureePinel);
-      avantageFiscalAnnuel = r.avantageAnnuel;
-      avantageFiscalTotal = r.avantageTotal;
-      eligibilite = { eligible: r.eligible, raison: r.raison };
-    } else if (dispConfig.dispositif === 'denormandie') {
-      const r = calculerAvantageFiscalDenormandie(prix, travaux, surface, dispConfig.dureePinel);
-      avantageFiscalAnnuel = r.avantageAnnuel;
-      avantageFiscalTotal = r.avantageTotal;
-      eligibilite = { eligible: r.eligible, raison: r.raison };
-    } else if (dispConfig.dispositif === 'loc_avantages') {
-      const r = calculerAvantageFiscalLocAvantages(
-        loyerAnnuel, dispConfig.niveauLocAvantages, dispConfig.intermediationLocAvantages, 6
-      );
-      avantageFiscalAnnuel = r.avantageAnnuel;
-      avantageFiscalTotal = r.avantageTotal;
-    } else if (dispConfig.dispositif === 'deficit_foncier') {
-      const r = calculerDeficitFoncier(travaux, loyerAnnuel - charges * 12 - taxeFonciere, false);
-      avantageFiscalAnnuel = r.deductionAnnee1 * (formData.tmi / 100);
-      avantageFiscalTotal = avantageFiscalAnnuel;
-    } else if (dispConfig.dispositif === 'malraux') {
-      const mt = parseNumber(dispConfig.montantTravauxMalraux);
-      const r = calculerAvantageFiscalMalraux(mt, dispConfig.secteurMalraux, 4);
-      avantageFiscalAnnuel = r.avantageAnnuel;
-      avantageFiscalTotal = r.avantageTotal;
+    const anneeAcquisition=parseNumber(dispConfig.anneeAcquisition??'2026');
+    const premiereReduction=parseNumber(dispConfig.premiereAnneeReduction??'2026');
+    const surfaceUtile=surface+Math.min(8,Math.max(0,parseNumber(dispConfig.surfaceAnnexes??'0'))/2);
+    const loyerMaximum=plafondLoyer2026(formData.zone,surfaceUtile);
+    let eligibilite={eligible:dispConfig.dispositif==='aucun'||dispConfig.dispositif==='deficit_foncier'||dispConfig.conditionsConfirmees===true,raison:''};
+    let calendrier:number[]=Array(12).fill(0);
+    if(['pinel','denormandie'].includes(dispConfig.dispositif)){
+      const estPinel=dispConfig.dispositif==='pinel';
+      calendrier=reductionsLocatives({dispositif:estPinel?'pinel':'denormandie',base:prix+fraisNotaire+(estPinel?0:travaux),surface,anneeAcquisition,duree:dispConfig.dureePinel,initial:dispConfig.dureePinel===6?6:(dispConfig.initialPinel??9),pinelPlus:dispConfig.pinelPlus});
+      if(estPinel&&(anneeAcquisition>2024||anneeAcquisition<2015)){eligibilite={eligible:false,raison:'Pinel : opérations de 2015 à 2024 dans ce modèle. Aucune nouvelle acquisition éligible depuis 2025.'};}
+      if(!estPinel&&(anneeAcquisition<2019||anneeAcquisition>2027||travaux/(prix+fraisNotaire+travaux)<.25)){eligibilite={eligible:false,raison:'Denormandie : acquisition de 2019 à 2027 et travaux éligibles représentant au moins 25 % du coût total, frais compris.'};}
+      if(loyerMensuel>loyerMaximum){eligibilite={eligible:false,raison:'Le loyer saisi dépasse le plafond national 2026 corrigé de la surface utile.'};}
+      if(premiereReduction<anneeAcquisition||premiereReduction>2026){eligibilite={eligible:false,raison:'La première réduction doit suivre l’acquisition et être au plus tard en 2026 pour cette projection.'};}
     }
+    if(dispConfig.dispositif==='loc_avantages'&&dispConfig.niveauLocAvantages==='loc3'&&!dispConfig.intermediationLocAvantages)eligibilite={eligible:false,raison:'Loc 3 exige une intermédiation locative.'};
+    if(!eligibilite.eligible&&!eligibilite.raison)eligibilite.raison='Confirmez les conditions particulières du dispositif avant de retenir son avantage fiscal.';
+    const pretAn1=echeanceAnnuelle(montantEmprunt,Math.max(0,tauxEmprunt),formData.dureeEmprunt,1);
+    const revenuEffectif=loyerAnnuel*(1-Math.min(100,Math.max(0,vacance))/100);
+    const fiscal=revenuFoncierAnnuel(revenuEffectif,pretAn1.interets+mensualiteAssurance*12,charges*12+taxeFonciere,dispConfig.dispositif==='deficit_foncier'?travaux:0,dispConfig.deficitEnergetique?10700+Math.min(10700,travaux):10700);
+    const irDisponible=Math.max(0,parseNumber(dispConfig.irDisponible??'10000'));
+    const nichesDisponibles=Math.min(10000,Math.max(0,parseNumber(dispConfig.nichesDisponibles??'10000')));
+    const reductionPourAnnee=(annee:number,loyers:number)=>{
+      if(!eligibilite.eligible)return 0;
+      const rang=2026+annee-1-premiereReduction;
+      if(dispConfig.dispositif==='pinel'||dispConfig.dispositif==='denormandie')return rang>=0?(calendrier[rang]??0):0;
+      if(dispConfig.dispositif==='loc_avantages')return rang>=0&&rang<6?loyers*(dispConfig.intermediationLocAvantages?TAUX_LOC_AVANTAGES[dispConfig.niveauLocAvantages].avec:TAUX_LOC_AVANTAGES[dispConfig.niveauLocAvantages].sans):0;
+      // Budget Malraux payé en 2026 ; aucun étalement fictif des paiements.
+      if(dispConfig.dispositif==='malraux')return annee===1?Math.min(parseNumber(dispConfig.montantTravauxMalraux),400000)*TAUX_MALRAUX[dispConfig.secteurMalraux]:0;
+      return 0;
+    };
+    const plafondReduction=dispConfig.dispositif==='malraux'?irDisponible:Math.min(irDisponible,nichesDisponibles);
+    const avantageFiscalAnnuel=Math.min(reductionPourAnnee(1,revenuEffectif),plafondReduction)+fiscal.global*(formData.tmi/100);
+    const avantageFiscalTotal=(dispConfig.dispositif==='malraux'?Math.min(reductionPourAnnee(1,revenuEffectif),irDisponible*4):Array.from({length:30},(_,i)=>Math.min(reductionPourAnnee(i+1,revenuEffectif),plafondReduction)).reduce((a,b)=>a+b,0))+fiscal.global*(formData.tmi/100);
 
-    const rendementNetNet = calculerRendementNetNet(
-      loyerAnnuel, charges, taxeFonciere, vacance, prix, fraisNotaire, formData.tmi, avantageFiscalAnnuel, travaux
-    );
+    const fiscalSans=revenuFoncierAnnuel(revenuEffectif,pretAn1.interets+mensualiteAssurance*12,charges*12+taxeFonciere,0);
+    const ecartFiscal=(fiscalSans.imposable-fiscal.imposable)*(formData.tmi/100+PRELEVEMENTS_SOCIAUX)+avantageFiscalAnnuel-fiscalSans.global*formData.tmi/100;
+    const rendementNetNet = prixRevient>0?(revenuEffectif-charges*12-taxeFonciere-pretAn1.interets-mensualiteAssurance*12-fiscal.imposable*(formData.tmi/100+PRELEVEMENTS_SOCIAUX)+avantageFiscalAnnuel)/prixRevient*100:0;
 
     // Cash flow mensuel
     const loyerEffectifMensuel = loyerMensuel * (1 - vacance / 100);
     const chargesAnnuelles = charges * 12 + taxeFonciere;
     const revenuNetAnnuel = loyerEffectifMensuel * 12 - chargesAnnuelles;
-    const impotAnnuel = Math.max(0, revenuNetAnnuel) * (formData.tmi / 100 + PRELEVEMENTS_SOCIAUX);
+    const impotAnnuel = fiscal.imposable * (formData.tmi / 100 + PRELEVEMENTS_SOCIAUX);
     const cashFlowMensuel = loyerEffectifMensuel - mensualiteTotale - charges - taxeFonciere / 12
       - impotAnnuel / 12 + avantageFiscalAnnuel / 12;
 
@@ -608,7 +521,7 @@ export default function SimulateurInvestissementLocatif() {
 
     // Plafond loyer Pinel
     const plafondLoyerPinel = PLAFONDS_LOYER_PINEL[formData.zone] || 0;
-    const loyerPlafondPinel = plafondLoyerPinel * surface;
+    const loyerPlafondPinel = loyerMaximum;
 
     return {
       prix,
@@ -640,7 +553,7 @@ export default function SimulateurInvestissementLocatif() {
       loyerPlafondPinel,
       impotAnnuel,
       chargesAnnuelles,
-      revenuNetAnnuel
+      revenuNetAnnuel, ecartFiscal, reductionPourAnnee, fiscal, irDisponible, nichesDisponibles
     };
   }, [formData, dispConfig]);
 
@@ -745,72 +658,41 @@ export default function SimulateurInvestissementLocatif() {
     }> = [];
 
     let capitalRestant = montantEmprunt;
-    let loyerCumule = 0;
-    let chargesCumulees = 0;
-    let cashFlowCumule = 0;
-
-    for (let annee = 1; annee <= duree; annee++) {
-      const valeurBien = resultats.prix * Math.pow(1 + tauxValo, annee);
-      const loyerAnnuel = resultats.loyerAnnuel * Math.pow(1 + tauxLoyer, annee - 1);
-      const loyerEffectif = loyerAnnuel * (1 - resultats.vacance / 100);
-      const chargesAnnee = resultats.chargesAnnuelles * Math.pow(1 + 0.02, annee - 1);
-
-      // Amortissement capital sur l'annee
-      for (let m = 0; m < 12; m++) {
-        const moisGlobal = (annee - 1) * 12 + m;
-        if (moisGlobal < dureeEmpruntMois && capitalRestant > 0) {
-          const interetsMois = capitalRestant * tauxMensuel;
-          const capitalMois = resultats.mensualiteHorsAssurance - interetsMois;
-          capitalRestant = Math.max(0, capitalRestant - capitalMois);
-        }
-      }
-
-      loyerCumule += loyerEffectif;
-      chargesCumulees += chargesAnnee;
-
-      const mensualiteAnnuelle = annee <= formData.dureeEmprunt
-        ? resultats.mensualiteTotale * 12
-        : 0;
-      const cashFlowAnnee = loyerEffectif - chargesAnnee - mensualiteAnnuelle + resultats.avantageFiscalAnnuel;
-      cashFlowCumule += cashFlowAnnee;
-
-      const patrimoine = valeurBien - capitalRestant;
-
-      data.push({
-        annee,
-        valeurBien: Math.round(valeurBien),
-        capitalRembourse: Math.round(montantEmprunt - capitalRestant),
-        capitalRestant: Math.round(capitalRestant),
-        loyerCumule: Math.round(loyerCumule),
-        chargesCumulees: Math.round(chargesCumulees),
-        cashFlowCumule: Math.round(cashFlowCumule),
-        patrimoine: Math.round(patrimoine)
-      });
-    }
-
-    // Calcul TRI
-    const apport = parseNumber(formData.apport);
-    const cashFlows: number[] = [-(apport + resultats.travaux)];
-    for (let i = 0; i < duree; i++) {
-      const d = data[i];
-      const mensualiteAnnuelle = i < formData.dureeEmprunt
-        ? resultats.mensualiteTotale * 12
-        : 0;
-      const loyerAnnuel = resultats.loyerAnnuel * Math.pow(1 + tauxLoyer, i);
-      const loyerEffectif = loyerAnnuel * (1 - resultats.vacance / 100);
-      const chargesAnnee = resultats.chargesAnnuelles * Math.pow(1 + 0.02, i);
-      let cf = loyerEffectif - chargesAnnee - mensualiteAnnuelle + resultats.avantageFiscalAnnuel;
-      if (i === duree - 1) {
-        cf += d.valeurBien - d.capitalRestant;
-      }
-      cashFlows.push(cf);
+    let loyerCumule = 0, chargesCumulees = 0, cashFlowCumule = 0;
+    let reports: {annee:number;montant:number}[]=[];
+    let reportMalraux=0;
+    const cashFlows:number[]=[-(resultats.prixRevient-montantEmprunt)];
+    for(let annee=1;annee<=duree;annee++){
+      const valeurBien=resultats.prix*Math.pow(1+tauxValo,annee);
+      const loyerEffectif=resultats.loyerAnnuel*Math.pow(1+tauxLoyer,annee-1)*(1-Math.min(100,Math.max(0,resultats.vacance))/100);
+      const chargesAnnee=resultats.chargesAnnuelles*Math.pow(1.02,annee-1);
+      const pret=echeanceAnnuelle(montantEmprunt,Math.max(0,tauxEmprunt),formData.dureeEmprunt,annee);
+      capitalRestant=Math.max(0,capitalRestant-pret.principal);
+      const assurance=annee<=formData.dureeEmprunt?resultats.mensualiteAssurance*12:0;
+      const travauxDeductibles=dispConfig.dispositif==='deficit_foncier'&&annee===1?resultats.travaux:0;
+      const fiscal=revenuFoncierAnnuel(loyerEffectif,pret.interets+assurance,chargesAnnee,travauxDeductibles,dispConfig.deficitEnergetique?10700+Math.min(10700,travauxDeductibles):10700);
+      let base=fiscal.imposable;
+      reports=reports.filter(r=>annee-r.annee<=10);
+      for(const report of reports){const utilisation=Math.min(base,report.montant);base-=utilisation;report.montant-=utilisation;}
+      if(fiscal.report>0)reports.push({annee,montant:fiscal.report});
+      const impot=base*(formData.tmi/100+PRELEVEMENTS_SOCIAUX);
+      let potentiel=resultats.reductionPourAnnee(annee,loyerEffectif);
+      if(dispConfig.dispositif==='malraux'&&annee<=4)potentiel+=reportMalraux;
+      const reduction=Math.min(potentiel,resultats.irDisponible,dispConfig.dispositif==='malraux'?Infinity:resultats.nichesDisponibles);
+      reportMalraux=dispConfig.dispositif==='malraux'&&annee<4?Math.max(0,potentiel-reduction):0;
+      const avantage=reduction+fiscal.global*formData.tmi/100;
+      const cashFlowAnnee=loyerEffectif-chargesAnnee-pret.interets-pret.principal-assurance-impot+avantage;
+      loyerCumule+=loyerEffectif;chargesCumulees+=chargesAnnee;cashFlowCumule+=cashFlowAnnee;
+      const patrimoine=valeurBien-capitalRestant;
+      data.push({annee,valeurBien:Math.round(valeurBien),capitalRembourse:Math.round(montantEmprunt-capitalRestant),capitalRestant:Math.round(capitalRestant),loyerCumule:Math.round(loyerCumule),chargesCumulees:Math.round(chargesCumulees),cashFlowCumule:Math.round(cashFlowCumule),patrimoine:Math.round(patrimoine),impot:Math.round(impot),avantageFiscal:Math.round(avantage)});
+      cashFlows.push(cashFlowAnnee+(annee===duree?patrimoine:0));
     }
 
     const tri = calculerTRI(cashFlows);
     const plusValue = data.length > 0 ? data[data.length - 1].valeurBien - resultats.prix : 0;
 
     return { data, tri, plusValue, cashFlows };
-  }, [resultats, projConfig, formData.tauxEmprunt, formData.dureeEmprunt, formData.apport]);
+  }, [resultats, projConfig, formData.tauxEmprunt, formData.dureeEmprunt, formData.apport, formData.tmi, dispConfig]);
 
   // ============================================
   // DONNEES GRAPHIQUES (useMemo)
@@ -862,6 +744,28 @@ export default function SimulateurInvestissementLocatif() {
 
   return (
     <MainLayout>
+      <section className="mx-auto my-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+        <h2 className="mb-3 text-lg font-semibold">Hypothèses fiscales et calendrier</h2>
+        <p>Projection à partir de 2026 en location nue au réel. Les intérêts et l’assurance du prêt sont déduits de l’assiette foncière ; le capital remboursé est une sortie de trésorerie. Les travaux sont financés dès le départ et ne sont pas ajoutés une deuxième fois à l’apport. Les frais d’acquisition automatiques sont une provision : renseignez votre devis de <a href="/pretaxe" className="underline">prétaxe</a>. Pour la location meublée, utilisez le <a href="/lmnp" className="underline">simulateur LMNP</a>.</p>
+        <div className="my-4 grid gap-4 md:grid-cols-3">
+          <label>Année d’acquisition<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2027" value={dispConfig.anneeAcquisition??'2026'} onChange={e=>setDispConfig(c=>({...c,anneeAcquisition:e.target.value}))}/></label>
+          <label>Première année de réduction d’impôt<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2026" value={dispConfig.premiereAnneeReduction??'2026'} onChange={e=>setDispConfig(c=>({...c,premiereAnneeReduction:e.target.value}))}/></label>
+          <label>Surface des annexes admissibles (m²)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.surfaceAnnexes??'0'} onChange={e=>setDispConfig(c=>({...c,surfaceAnnexes:e.target.value}))}/></label>
+          <label>IR annuel disponible avant cette réduction (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.irDisponible??'10000'} onChange={e=>setDispConfig(c=>({...c,irDisponible:e.target.value}))}/></label>
+          <label>Plafond annuel de niches encore disponible (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" max="10000" value={dispConfig.nichesDisponibles??'10000'} onChange={e=>setDispConfig(c=>({...c,nichesDisponibles:e.target.value}))}/></label>
+          <label>Engagement initial Pinel / Denormandie<select className="mt-1 w-full rounded border p-2" value={dispConfig.initialPinel??9} onChange={e=>setDispConfig(c=>({...c,initialPinel:Number(e.target.value) as 6|9}))}><option value={6}>6 ans</option><option value={9}>9 ans</option></select></label>
+        </div>
+        <p>Le loyer plafond 2026 utilise la surface utile (habitable + moitié des annexes admissibles, limitée à 8 m²) et le coefficient 0,7 + 19/S, arrondi à deux décimales et plafonné à 1,2. Les plafonds préfectoraux peuvent être inférieurs. L’IR disponible doit inclure l’impôt sur les loyers et rester disponible après les autres réductions ; il est supposé constant. Malraux est hors plafonnement global, avec report de la réduction non utilisée sur trois années.</p>
+        <div className="mt-4 space-y-3">
+          <label className="block"><input type="checkbox" checked={dispConfig.conditionsConfirmees===true} onChange={e=>setDispConfig(c=>({...c,conditionsConfirmees:e.target.checked}))}/> Conditions du dispositif sélectionné vérifiées : logement et commune éligibles, nature/délai des travaux, locataire et ressources, loyer local, engagement de location et formalités. Loc’Avantages : convention Anah valide ; Malraux : restauration complète et autorisations adaptées au secteur.</label>
+          <label className="block"><input type="checkbox" checked={dispConfig.pinelPlus===true} onChange={e=>setDispConfig(c=>({...c,pinelPlus:e.target.checked}))}/> Pinel 2023/2024 : maintien des taux pleins confirmé (Pinel+ ou quartier prioritaire éligible).</label>
+          <label className="block"><input type="checkbox" checked={dispConfig.deficitEnergetique===true} onChange={e=>setDispConfig(c=>({...c,deficitEnergetique:e.target.checked}))}/> Déficit foncier : tous les travaux déductibles saisis sont éligibles à la majoration énergétique (devis, dates de paiement et passage E/F/G vers A/B/C/D avant fin 2027 vérifiés).</label>
+        </div>
+        <p className="mt-3">Les budgets Malraux sont supposés payés en 2026. Le déficit foncier suppose des travaux déductibles payés en 2026, un revenu global suffisant et le maintien de la location ; le report foncier est suivi dix ans. Les travaux ouvrant droit à Pinel, Denormandie ou Malraux ne sont pas aussi déduits des revenus fonciers.</p>
+        <p className="mt-3">Le rendement net-net est calculé après intérêts, assurance et impôts, avant remboursement du capital ; le cash-flow inclut ce remboursement. Le TRI inclut l’IR et les PS locatifs, mais reste avant frais et fiscalité de cession. Il n’est pas annoncé quand les flux ne permettent pas un TRI unique selon le critère de signes retenu. Les valorisations et loyers futurs sont des hypothèses ; les charges augmentent de 2 % par an.</p>
+        <a className="mt-3 inline-block underline" href="https://bofip.impots.gouv.fr/bofip/10130-PGP.html/identifiant=BOI-BAREME-000017-20260310">BOFiP — plafonds locatifs 2026</a>
+      </section>
+
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 px-4">
         <div className="max-w-7xl mx-auto space-y-8">
 
@@ -1481,7 +1385,7 @@ export default function SimulateurInvestissementLocatif() {
                   ].map((d) => (
                     <button
                       key={d.id}
-                      onClick={() => updateDisp('dispositif', d.id)}
+                      onClick={() => {if(d.id==='lmnp')window.location.assign('/lmnp');else updateDisp('dispositif', d.id);}}
                       className={`p-4 rounded-xl text-left transition-all border-2 ${
                         dispConfig.dispositif === d.id
                           ? 'bg-indigo-50 text-indigo-900 border-indigo-300 shadow-md'
@@ -1539,7 +1443,7 @@ export default function SimulateurInvestissementLocatif() {
                               }`}
                             >
                               <p>{duree} ans</p>
-                              <p className="text-xs mt-1 opacity-70">Taux : {(TAUX_PINEL[duree] * 100)}%</p>
+                              <p className="text-xs mt-1 opacity-70">Taux : {((parseNumber(dispConfig.anneeAcquisition??'2026')<=2022||dispConfig.pinelPlus?({6:.12,9:.18,12:.21}):parseNumber(dispConfig.anneeAcquisition??'2026')===2023?({6:.105,9:.15,12:.175}):TAUX_PINEL)[duree]*100).toFixed(1)}%</p>
                             </button>
                           ))}
                         </div>
@@ -1625,7 +1529,7 @@ export default function SimulateurInvestissementLocatif() {
                               }`}
                             >
                               <p>{duree} ans</p>
-                              <p className="text-xs mt-1 opacity-70">Taux : {(TAUX_PINEL[duree] * 100)}%</p>
+                              <p className="text-xs mt-1 opacity-70">Taux : {({6:12,9:18,12:21})[duree]}%</p>
                             </button>
                           ))}
                         </div>
@@ -1780,7 +1684,7 @@ export default function SimulateurInvestissementLocatif() {
                         </li>
                         <li className="flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <strong>21 400 €/an</strong> pour les travaux de renovation energetique (jusqu&apos;au 31/12/2025)
+                          <strong>21 400 €/an</strong> pour les travaux de renovation energetique (sous conditions renforcées jusqu’au 31/12/2027)
                         </li>
                       </ul>
                       <p className="text-sm text-gray-600">
@@ -1812,8 +1716,8 @@ export default function SimulateurInvestissementLocatif() {
                         </label>
                         <div className="grid grid-cols-2 gap-3">
                           {[
-                            { id: 'zppaup' as SecteurMalraux, label: 'ZPPAUP / AVAP', taux: '22%' },
-                            { id: 'sauvegarde' as SecteurMalraux, label: 'Secteur sauvegarde / QAD', taux: '30%' }
+                            { id: 'zppaup' as SecteurMalraux, label: 'SPR avec PVAP / restauration d’utilité publique', taux: '22%' },
+                            { id: 'sauvegarde' as SecteurMalraux, label: 'SPR avec PSMV approuvé', taux: '30%' }
                           ].map(s => (
                             <button
                               key={s.id}
@@ -1872,7 +1776,7 @@ export default function SimulateurInvestissementLocatif() {
                           <p className="text-sm font-bold text-cyan-800">Micro-BIC</p>
                           <p className="text-xs text-cyan-700 mt-1">
                             Abattement forfaitaire de 50% sur les recettes (plafond 77 700 €/an).
-                            Abattement reduit a 30% pour les meubles de tourisme non classes depuis 2024.
+                            Abattement reduit a 30% pour les meubles de tourisme non classes pour les revenus perçus depuis 2025.
                           </p>
                         </div>
                         <div className="bg-cyan-50 rounded-lg p-3">
@@ -1886,8 +1790,7 @@ export default function SimulateurInvestissementLocatif() {
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
                         <p className="text-xs text-amber-800 flex items-center gap-2">
                           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                          Depuis 2025, la plus-value de revente ne beneficie plus de l&apos;exclusion de l&apos;amortissement
-                          pour les meubles de tourisme. Le regime general (particuliers) reste inchange.
+                          Depuis le 15 février 2025, les amortissements déduits au réel LMNP sont en principe réintégrés dans le calcul de plus-value, sous exceptions pour certaines résidences. Utilisez le simulateur LMNP dédié.
                         </p>
                       </div>
                     </div>
@@ -1904,12 +1807,12 @@ export default function SimulateurInvestissementLocatif() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl p-5 text-white">
-                        <p className="text-sm text-indigo-100">Avantage fiscal annuel</p>
+                        <p className="text-sm text-indigo-100">Réduction et imputation globale — année 1</p>
                         <p className="text-3xl font-black mt-1">{formatEuros(Math.round(resultats.avantageFiscalAnnuel))}</p>
                         <p className="text-xs text-indigo-200 mt-1">soit {formatEuros(Math.round(resultats.avantageFiscalAnnuel / 12))}/mois</p>
                       </div>
                       <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl p-5 text-white">
-                        <p className="text-sm text-green-100">Avantage fiscal total</p>
+                        <p className="text-sm text-green-100">Cumul à loyers constants, hors économie des reports fonciers</p>
                         <p className="text-3xl font-black mt-1">{formatEuros(Math.round(resultats.avantageFiscalTotal))}</p>
                         <p className="text-xs text-green-200 mt-1">sur la duree du dispositif</p>
                       </div>
@@ -1942,19 +1845,16 @@ export default function SimulateurInvestissementLocatif() {
                         <tbody>
                           <tr className="border-b">
                             <td className="p-3 text-gray-600">Rendement net-net</td>
-                            <td className="p-3 text-right font-semibold">{formatPct(calculerRendementNetNet(
-                              resultats.loyerAnnuel, resultats.charges, resultats.taxeFonciere,
-                              resultats.vacance, resultats.prix, resultats.fraisNotaire, formData.tmi, 0
-                            ))}</td>
+                            <td className="p-3 text-right font-semibold">{formatPct(resultats.rendementNetNet-(resultats.prixRevient>0?resultats.ecartFiscal/resultats.prixRevient*100:0))}</td>
                             <td className="p-3 text-right font-bold text-indigo-700">{formatPct(resultats.rendementNetNet)}</td>
                           </tr>
                           <tr className="border-b">
                             <td className="p-3 text-gray-600">Cash flow mensuel</td>
-                            <td className="p-3 text-right font-semibold">{formatEuros(Math.round(resultats.cashFlowMensuel - resultats.avantageFiscalAnnuel / 12))}</td>
+                            <td className="p-3 text-right font-semibold">{formatEuros(Math.round(resultats.cashFlowMensuel - resultats.ecartFiscal / 12))}</td>
                             <td className="p-3 text-right font-bold text-indigo-700">{formatEuros(Math.round(resultats.cashFlowMensuel))}</td>
                           </tr>
                           <tr>
-                            <td className="p-3 text-gray-600">Economie fiscale totale</td>
+                            <td className="p-3 text-gray-600">Réductions et imputation globale cumulées</td>
                             <td className="p-3 text-right font-semibold">-</td>
                             <td className="p-3 text-right font-bold text-green-600">{formatEuros(Math.round(resultats.avantageFiscalTotal))}</td>
                           </tr>
@@ -2029,7 +1929,7 @@ export default function SimulateurInvestissementLocatif() {
                   </div>
                   <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 text-white shadow-lg">
                     <p className="text-sm text-emerald-100">TRI global</p>
-                    <p className="text-2xl font-black mt-1">{isFinite(projectionData.tri) ? formatPct(projectionData.tri) : 'N/A'}</p>
+                    <p className="text-2xl font-black mt-1">{isFinite(projectionData.tri) ? formatPct(projectionData.tri) : 'Non déterminé'}</p>
                     <p className="text-xs text-emerald-200 mt-1">taux de rendement interne</p>
                   </div>
                   <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
@@ -2315,7 +2215,7 @@ function FAQSection() {
         },
         {
           q: "Quelle difference entre rendement brut, net et net-net ?",
-          r: "Le rendement brut = (loyer annuel / (prix achat + travaux)) x 100. C'est un indicateur rapide de comparaison entre biens, mais il ne tient compte d'aucune charge. Le rendement net = ((loyer - charges annuelles) / (prix + frais notaire + travaux)) x 100. Il integre les charges de copropriete, la taxe fonciere, l'assurance, les frais de gestion et la vacance locative. Le rendement net-net = rendement net apres deduction de l'impot sur les revenus fonciers (TMI + prelevements sociaux 17,2%) et ajout de l'eventuel avantage fiscal. C'est le seul indicateur qui reflete votre rentabilite reelle. Exemple : un bien a 200 000€ loue 800€/mois = 4,8% brut, ~3,5% net, ~2,3% net-net pour une TMI a 30%."
+          r: "Le rendement brut = (loyer annuel / (prix achat + travaux)) x 100. C'est un indicateur rapide de comparaison entre biens, mais il ne tient compte d'aucune charge. Le rendement net = ((loyer - charges annuelles) / (prix + frais notaire + travaux)) x 100. Il integre les charges de copropriete, la taxe fonciere, l'assurance, les frais de gestion et la vacance locative. Le rendement net-net de ce scénario déduit aussi les intérêts et l’assurance du prêt puis l’impôt sur les revenus fonciers, et ajoute les réductions retenues. Le cash-flow déduit en plus le capital remboursé. Il reste un indicateur sous hypothèses, avant fiscalité et frais de cession. Exemple : un bien a 200 000€ loue 800€/mois = 4,8% brut, ~3,5% net, ~2,3% net-net pour une TMI a 30%."
         },
         {
           q: "Comment estimer le cash flow d'un investissement locatif ?",
@@ -2328,15 +2228,15 @@ function FAQSection() {
       questions: [
         {
           q: "Le dispositif Pinel est-il encore valable en 2025 ?",
-          r: "Le dispositif Pinel a officiellement pris fin le 31 decembre 2024. Les investisseurs ayant acquis un bien avant cette date continuent de beneficier de la reduction d'impot pendant toute la duree de leur engagement (6, 9 ou 12 ans). Les taux reduits de 2024 etaient : 9% sur 6 ans, 12% sur 9 ans, et 14% sur 12 ans, pour un plafond de 300 000€ d'investissement et 5 500€/m². Les zones eligibles etaient A bis, A et B1. Aucun dispositif equivalent n'a ete annonce pour le remplacer. Les alternatives actuelles sont le Denormandie (ancien avec travaux), Loc'Avantages, le deficit foncier ou le statut LMNP."
+          r: "Le dispositif Pinel a officiellement pris fin le 31 decembre 2024. Les investisseurs ayant acquis un bien avant cette date continuent de beneficier de la reduction d'impot pendant toute la duree de leur engagement (6, 9 ou 12 ans). Les taux reduits de 2024 etaient : 9% sur 6 ans, 12% sur 9 ans, et 14% sur 12 ans, pour un plafond de 300 000€ d'investissement et 5 500€/m². Les zones eligibles etaient A bis, A et B1. Les dispositifs adoptés depuis, dont l’amortissement du bailleur privé prévu par la loi de finances 2026, suivent des conditions différentes et ne sont pas simulés dans cet onglet. Les alternatives actuelles sont le Denormandie (ancien avec travaux), Loc'Avantages, le deficit foncier ou le statut LMNP."
         },
         {
           q: "Qu'est-ce que le dispositif Denormandie ?",
-          r: "Le Denormandie est un dispositif fiscal pour l'investissement dans l'ancien avec travaux, proroge jusqu'au 31 decembre 2027. Il offre les memes avantages que le Pinel (reduction d'impot de 9%, 12% ou 14% selon la duree d'engagement) mais s'applique aux logements anciens necessitant des travaux representant au moins 25% du cout total de l'operation. Les travaux eligibles sont : amelioration, renovation energetique, transformation en logement, modernisation. Les zones concernees sont les communes labellisees 'Coeur de ville' et celles ayant signe une convention ORT (Operation de Revitalisation de Territoire), soit plus de 300 villes moyennes."
+          r: "Le Denormandie est un dispositif fiscal pour l'investissement dans l'ancien avec travaux, proroge jusqu'au 31 decembre 2027. Il offre une réduction d’impôt de 12%, 18% ou 21% pour six, neuf ou douze ans mais s'applique aux logements anciens necessitant des travaux representant au moins 25% du cout total de l'operation. Les travaux eligibles sont : amelioration, renovation energetique, transformation en logement, modernisation. Les zones concernees sont les communes labellisees 'Coeur de ville' et celles ayant signe une convention ORT (Operation de Revitalisation de Territoire), soit plus de 300 villes moyennes."
         },
         {
           q: "Comment fonctionne le deficit foncier ?",
-          r: "Le deficit foncier permet de deduire les charges et travaux de vos revenus fonciers, et d'imputer l'excedent sur votre revenu global. Les depenses deductibles sont : travaux d'entretien, de reparation et d'amelioration (pas de construction/agrandissement), interets d'emprunt (uniquement des revenus fonciers), charges de copropriete, assurances, frais de gestion. Le plafond d'imputation sur le revenu global est de 10 700€/an (21 400€ pour les travaux de renovation energetique jusqu'au 31/12/2025). Le deficit non impute se reporte sur les revenus fonciers des 10 annees suivantes. Condition : conserver le bien en location pendant 3 ans apres l'imputation."
+          r: "Le deficit foncier permet de deduire les charges et travaux de vos revenus fonciers, et d'imputer l'excedent sur votre revenu global. Les depenses deductibles sont : travaux d'entretien, de reparation et d'amelioration (pas de construction/agrandissement), interets d'emprunt (uniquement des revenus fonciers), charges de copropriete, assurances, frais de gestion. Le plafond d'imputation sur le revenu global est de 10 700€/an (21 400€ pour les travaux de renovation energetique sous conditions jusqu’au 31/12/2027). Le deficit non impute se reporte sur les revenus fonciers des 10 annees suivantes. Condition : conserver le bien en location pendant 3 ans apres l'imputation."
         }
       ]
     },
@@ -2353,7 +2253,7 @@ function FAQSection() {
         },
         {
           q: "Faut-il investir dans le neuf ou l'ancien ?",
-          r: "Neuf : frais de notaire reduits (~2,5%), pas de travaux pendant 10 ans (garanties), normes energetiques actuelles (RE 2020), eligible a certains dispositifs (Pinel historique). Inconvenients : prix au m² plus eleve (20-30% de plus), rendement brut plus faible. Ancien : prix d'achat inferieur, meilleurs rendements locatifs, emplacement souvent plus central, possibilite de creer de la valeur avec des travaux. Inconvenients : frais de notaire plus eleves (~7,5%), travaux potentiels, performance energetique parfois faible. Ancien avec travaux : le meilleur des deux mondes avec les dispositifs Denormandie ou deficit foncier, mais necessite plus de gestion de projet. Pour un premier investissement, l'ancien bien situe est souvent le choix le plus pertinent."
+          r: "Neuf : frais de notaire reduits (~2,5%), garanties de construction selon leur champ, sans garantie d’absence de travaux pendant dix ans, normes energetiques actuelles (RE 2020), eligible a certains dispositifs (Pinel historique). Inconvenients : prix au m² plus eleve (20-30% de plus), rendement brut plus faible. Ancien : prix d'achat inferieur, meilleurs rendements locatifs, emplacement souvent plus central, possibilite de creer de la valeur avec des travaux. Inconvenients : frais de notaire plus eleves (~7,5%), travaux potentiels, performance energetique parfois faible. Ancien avec travaux : le meilleur des deux mondes avec les dispositifs Denormandie ou deficit foncier, mais necessite plus de gestion de projet. Pour un premier investissement, l'ancien bien situe est souvent le choix le plus pertinent."
         },
         {
           q: "Comment optimiser la fiscalite de son investissement locatif ?",

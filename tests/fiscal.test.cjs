@@ -218,3 +218,30 @@ test('statuts : SCI location nue inclut 17,2 % et EI ne prend pas l’abattement
  const ir=statuts.social2026({entrepriseIR:true,brut:60000,activite:'commerciale'});
  assert.equal(ei.irEstime,ir.ir);assert.equal(ei.revenuNetGlobal,ir.net-ir.ir);
 });
+
+const investissement = require('../src/lib/investissement.ts');
+test('Denormandie : 21 % sur 12 ans, 2 % les neuf premières années puis 1 %',()=>{
+ const r=investissement.reductionsLocatives({dispositif:'denormandie',base:200000,surface:60,anneeAcquisition:2026,duree:12,initial:9});
+ assert.deepEqual(r,[4000,4000,4000,4000,4000,4000,4000,4000,4000,2000,2000,2000]);
+ assert.equal(r.reduce((a,b)=>a+b,0),42000);
+});
+test('Pinel : extinction, millésime 2023/2024 et prolongations',()=>{
+ const base={dispositif:'pinel',base:300000,surface:100,duree:12,initial:9};
+ assert.equal(investissement.reductionsLocatives({...base,anneeAcquisition:2026}).reduce((a,b)=>a+b,0),0);
+ assert.ok(Math.abs(investissement.reductionsLocatives({...base,anneeAcquisition:2024}).reduce((a,b)=>a+b,0)-42000)<1e-6);
+ assert.ok(Math.abs(investissement.reductionsLocatives({...base,initial:6,anneeAcquisition:2023}).reduce((a,b)=>a+b,0)-52500)<1e-6);
+ assert.equal(investissement.reductionsLocatives({...base,anneeAcquisition:2024,pinelPlus:true}).reduce((a,b)=>a+b,0),63000);
+});
+test('plafond Pinel 2026 : coefficient de surface arrondi et plafonné',()=>{
+ assert.ok(Math.abs(investissement.plafondLoyer2026('A',45)-737.856)<1e-8);
+ assert.equal(investissement.plafondLoyer2026('Abis',20),19.71*20*1.2);
+});
+test('TRI : racine contrôlée, aucun taux inventé en absence de solution unique',()=>{
+ assert.ok(Math.abs(investissement.triAnnuel([-100,110])-10)<1e-6);
+ assert.equal(investissement.triAnnuel([100,110]),null);
+ assert.equal(investissement.triAnnuel([-100,230,-132]),null);
+});
+test('revenus fonciers : déficit intérêts reporté sans imputation sur le revenu global',()=>{
+ assert.deepEqual(investissement.revenuFoncierAnnuel(15000,18000,0,20000),{imposable:0,global:10700,report:12300});
+ assert.deepEqual(investissement.revenuFoncierAnnuel(15000,3000,2000,0),{imposable:10000,global:0,report:0});
+});
