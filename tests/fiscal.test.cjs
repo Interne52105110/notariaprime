@@ -338,3 +338,32 @@ test('plus-value : abattement 150 VE nécessite confirmation, taux et dates vali
  assert.equal(f(true,70,'2026-01-01','2026-09-08'),0);
  assert.equal(f(false,60,'2026-01-01','2026-09-08'),0);
 });
+
+const foncierCas={loyers:15000,interets:18000,autresCharges:0,travaux:20000,locaux:1,tmi:30,tauxPS:17.2,annee:2026,renovation:true,travauxEligibles:2000,microConfirme:true,reports:[]};
+test('foncier : déficit énergétique majoré seulement des dépenses qualifiées',()=>{
+ const f=require('../src/lib/foncier.ts');
+ const r=f.liquidationFoncier(foncierCas);
+ assert.equal(r.deficitFoncier.imputationRevenuGlobal,12700);
+ assert.equal(r.deficitFoncier.reportSurRevenusFonciers,10320);
+ assert.equal(f.liquidationFoncier({...foncierCas,annee:2028}).deficitFoncier.imputationRevenuGlobal,10700);
+ assert.throws(()=>f.liquidationFoncier({...foncierCas,travauxEligibles:25000}));
+});
+test('foncier : reports consommés par ancienneté, expiration après dix ans',()=>{
+ const f=require('../src/lib/foncier.ts');
+ const r=f.consommerReportsFoncier([{annee:2015,montant:1000},{annee:2016,montant:2000},{annee:2020,montant:3000}],2026,2500);
+ assert.equal(r.revenu,0);assert.equal(r.utilise,2500);assert.deepEqual(r.reports,[{annee:2020,montant:2500}]);
+});
+test('foncier : charges décaissées identiques dans les deux régimes, forfait20 non décaissé',()=>{
+ const f=require('../src/lib/foncier.ts');
+ const r=f.liquidationFoncier({...foncierCas,loyers:12000,interets:0,autresCharges:2000,travaux:0,renovation:false,travauxEligibles:0});
+ assert.ok(Math.abs(r.micro.revenuNetApresImpot-6035.2)<1e-7);
+ assert.ok(Math.abs(r.reel.revenuNetApresImpot-5289.44)<1e-7);
+ assert.equal(r.regimeOptimal,'micro');
+ assert.equal(f.liquidationFoncier({...foncierCas,microConfirme:false}).economie,0);
+});
+test('foncier : projection cumule réellement, travaux uniquement en première année',()=>{
+ const f=require('../src/lib/foncier.ts');
+ const r=f.projectionFoncier({...foncierCas,loyers:12000,interets:0,travaux:20000,renovation:false,travauxEligibles:0});
+ assert.equal(r[0]['Regime Reel (cumule)'],-5594);
+ assert.equal(r[1]['Regime Reel (cumule)'],751);
+});

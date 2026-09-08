@@ -1,5 +1,7 @@
 # NotariaPrime — revue des calculs du 8 septembre 2026
 
+État intermédiaire : revue encore en cours, 99 tests réussis au lot plus-values immobilières `d1d8216`, déploiement confirmé.
+
 Cette revue porte sur les règles et défauts listés ci-dessous. Elle ne constitue pas une certification exhaustive de tous les actes notariés, régimes spéciaux ou simulateurs du site. Les projections supposent la stabilité des règles choisies ; elles ne prédisent pas les lois futures.
 
 ## Corrections et contrôles
@@ -32,15 +34,15 @@ Cette revue porte sur les règles et défauts listés ci-dessous. Elle ne consti
 
 ## Périmètre et limites concrètes
 
-- Droits de succession (impôt dû à l’État, distinct des frais des actes notariaux) : l’ancien onglet réutilisait le calcul de donation, sans liquidation successorale distincte. Il est désactivé explicitement pour empêcher un résultat présenté sous le mauvais régime. Les actes notariaux de succession restent présents dans la prétaxe ; leurs émoluments, formalités, débours et taxes d’acte ne sont pas les droits de succession.
-- Donation : calcul par couple donateur/bénéficiaire, abattements disponibles à confirmer. Les historiques complexes et plafonds partiellement consommés de dons spéciaux nécessitent un calcul individualisé. La réduction de droits de 50 % de l’article 790 pour certaines donations Dutreil en pleine propriété avant 70 ans n’est pas calculée ; le formulaire le précise.
+- Droits de succession (impôt dû à l’État, distinct des frais des actes notariaux) : l’ancien onglet réutilisait le calcul de donation, sans liquidation successorale distincte. Il a été remplacé par le module fiscal distinct `/succession`, qui utilise des parts nettes civiles déjà déterminées. Les actes notariaux de succession restent présents dans la prétaxe ; leurs émoluments, formalités, débours et taxes d’acte ne sont pas les droits de succession.
+- Donation : calcul par couple donateur/bénéficiaire, abattements disponibles à confirmer. Les historiques complexes et plafonds partiellement consommés de dons spéciaux nécessitent un calcul individualisé. La réduction de droits de 50 % de l’article 790 pour certaines donations Dutreil en pleine propriété avant 70 ans est calculée par double liquidation de la fraction éligible.
 - SCI transmission : valeur nette des parts saisie par l’utilisateur, un seul parent, partage égal entre enfants associés (un enfant si aucun), abattement intact. Ce calcul n’est pas une valorisation comptable de la société ni une liquidation successorale complète.
 - Prétaxe : estimation de frais. Débours/formalités restent dépendants du dossier. Neuf : assiette hors TVA immobilière. Tarifs Alsace-Moselle, actes composites, réductions locales spécifiques, exonérations personnelles et mutations complexes nécessitent une taxe adaptée.
 - IFI : résident fiscal français pour le plafonnement ; revenus mondiaux nets et IR/PS N-1 à renseigner. Zéro explicite est distingué du champ vide. Les prêts in fine/familiaux, justification permettant d’écarter la limite des dettes, démembrements complexes et déductibilité de l’IFI lui-même demandent un traitement distinct.
 - Plus-values : droits démembrés, multiples cédants, exonérations non-résidents et opérations d’aménagement demandent une vérification des actes et conditions. Le simulateur ne liquide pas tous ces cas spéciaux. L’exonération retraite exige confirmation des critères N-2 ; aucun plafond historique fixe n’est présumé valable.
-- Les modules retraite, viager, investissements, holding, statut juridique et assurance-vie n’ont pas fait l’objet d’une validation juridique exhaustive dans cette revue. Les modèles sociaux, rendements et projections restent des hypothèses.
+- Les revues détaillées retraite, viager, investissements, holding, statuts et assurance-vie figurent dans les lots ci-dessous. Leurs hypothèses et limites explicites demeurent applicables ; aucune certification juridique universelle n’est revendiquée.
 
-## Validation technique
+## Validation technique — premier lot (historique)
 
 Tests automatisés des règles et cas limites dans `tests/fiscal.test.cjs`, exécutés avec `npm test`. Les tests s’appuient sur des exemples chiffrés et frontières de barème, pas seulement sur les constantes. 41 tests unitaires réussis ; parcours navigateur donation (deux bénéficiaires), prétaxe ancien/neuf, IFI, et chargement de 17 routes. Contrôles TypeScript, lint et compilation de production avant publication. Les avertissements préexistants du lint ne sont pas assimilés à des validations fiscales.
 
@@ -123,3 +125,12 @@ Sources complémentaires : [CGI 790](https://www.legifrance.gouv.fr/codes/sectio
 - Résultats invalidés dès modification. FAQ corrigée notamment sur la donation (nouvelle valeur et nouvelle date), la surtaxe, l’absence de durée d’un an garantissant la résidence principale et les dispenses de déclaration. Mise à jour des mentions 2026.
 - Validation : 99 tests et build/types/lint ; navigateur quote-part 50 % (achat 100 000 €, frais 10 000 €, vente 200 000 €, frais 5 000 €) = PV 42 500 €, impôts 15 385 €, ou 11 262,50 € avec PS 7,5 % ; seuil de 15 000 €, invalidation/mobile ; droit acquis 60 000 €, vendu 90 000 €, frais 1 000/2 000 € = PV 27 000 €, impôts 9 774 €, identiques quel que soit l’âge indicatif saisi.
 - Sources : BOI-RFPI-PVI-20-10-20-10 (https://bofip.impots.gouv.fr/bofip/309-PGP.html/identifiant=BOI-RFPI-PVI-20-10-20-10-20120912), BOI-RFPI-PVI-10-40-70 (https://bofip.impots.gouv.fr/bofip/4290-PGP.html/identifiant=BOI-RFPI-PVI-10-40-70-20140414), BOI-RFPI-TPVIE-20 (https://bofip.impots.gouv.fr/bofip/8597-PGP.html/identifiant=BOI-RFPI-TPVIE-20-20170308), BOI-RFPI-PVI-10-40-30 (https://bofip.impots.gouv.fr/bofip/7284-PGP.html/identifiant=BOI-RFPI-PVI-10-40-30-20210707), CGI 150 VE modifié par LF2026 art.54 ; https://www.impots.gouv.fr/international-particulier/questions/je-suis-non-resident-suis-je-redevable-des-contributions.
+
+## Lot revenus fonciers approfondi — 8 septembre 2026
+- Les deux régimes déduisent les mêmes charges réellement décaissées du solde financier. Le forfait fiscal de 20 € par local ne crée pas de décaissement. Assurance et frais d’emprunt suivent les intérêts dans l’ordre de détermination du déficit.
+- Micro-foncier : éligibilité et absence d’option réelle irrévocable à confirmer, en plus du seuil de 15 000 €. FAQ corrigée : Pinel/Denormandie n’excluent pas à eux seuls le micro ; les parts de SCI/SCPI ne l’interdisent pas toujours. Aucun conseil automatique de prêt in fine.
+- Déficit énergétique 2026–2027 : 10 700 € majorés des seuls travaux éligibles, au maximum 21 400 €, passage E/F/G vers A/B/C/D au 31/12/2027. Contrôle de cohérence du sous-montant de travaux.
+- Reports fonciers antérieurs par millésime, utilisation des plus anciens d’abord, expiration après dix ans ; reports créés suivis dans la projection. Travaux décaissés seulement en première année ; suppression de la baisse arbitraire de 5 % des intérêts et de la multiplication d’un flux annuel variable par le nombre d’années.
+- Limites affichées : loyers annuels représentés par leur moyenne mensuelle, charges nettes récupérables, TMI constante, revenu global suffisant supposé pour l’économie potentielle ; décote/CSG déductible et report de déficit global six ans non liquidés. Remboursement du capital, réductions locatives et nouveau bailleur privé hors calcul.
+- Validation : 103 tests, build/types/lint, navigateur et mobile. Loyers 12 000 €, charges 2 000 € : soldes micro 6 035,20 € / réel 5 289,44 €. Loyers 15 000 €, intérêts 18 000 €, travaux 20 000 € dont 2 000 € énergétiques : imputation 12 700 €, report 10 320 € (forfait local 20 € compris).
+- Sources : https://bofip.impots.gouv.fr/bofip/3973-PGP.html/identifiant=BOI-RFPI-DECLA-10-20250306 ; https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000054373682/2026-07-08 ; https://bofip.impots.gouv.fr/bofip/4142-PGP.html/identifiant=BOI-RFPI-BASE-30-20-20250916 ; https://bofip.impots.gouv.fr/bofip/5808-PGP.html/identifiant=BOI-RFPI-BASE-20-80-20170901.

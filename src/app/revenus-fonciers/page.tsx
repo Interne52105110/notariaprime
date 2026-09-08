@@ -6,6 +6,7 @@
 "use client";
 
 import { BAREME_IR_2026, repartirDeficitFoncier } from '@/lib/fiscal';
+import { liquidationFoncier, projectionFoncier, type ParametresFoncier } from '@/lib/foncier';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Home,
@@ -64,6 +65,7 @@ interface BienLocatif {
 }
 
 interface ChargesReelles {
+  assuranceEmprunt?:string;
   interetsEmprunt: string;
   travauxEntretien: string;
   travauxAmelioration: string;
@@ -107,7 +109,7 @@ const PRELEVEMENTS_SOCIAUX = 0.172;
 const PLAFOND_DEFICIT_REVENU_GLOBAL = 10700;
 // Plafond doublé (21 400 €) pour les déficits issus de travaux de rénovation
 // énergétique faisant passer un logement de la classe F/G à au moins E
-// (dispositif en vigueur jusqu'au 31/12/2025, art. 156 I 3 du CGI).
+// LF2026 art.47 : dépenses éligibles 2026–2027, CGI156 I3.
 const PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION = 21400;
 const FRAIS_GESTION_FORFAITAIRES_PAR_LOCAL = 20;
 
@@ -171,120 +173,6 @@ function calculerImpotTMI(revenuImposable: number, tmi: number): number {
   return revenuImposable * (tmi / 100);
 }
 
-function calculerComparaison(
-  biens: BienLocatif[],
-  charges: ChargesReelles,
-  tmi: number,
-  renovationEnergetique: boolean = false
-): ResultatComparaison {
-  // Calcul des revenus bruts
-  const revenusBruts = biens.reduce((total, bien) => {
-    const loyer = parseNumber(bien.loyerMensuel) * 12;
-    return total + loyer;
-  }, 0);
-
-  // =============================
-  // MICRO-FONCIER
-  // =============================
-  const abattementMicro = revenusBruts * ABATTEMENT_MICRO_FONCIER;
-  const revenuImposableMicro = revenusBruts * (1 - ABATTEMENT_MICRO_FONCIER);
-  const impotMicro = calculerImpotTMI(revenuImposableMicro, tmi);
-  const psMicro = revenuImposableMicro * PRELEVEMENTS_SOCIAUX;
-  const totalFiscaliteMicro = impotMicro + psMicro;
-  const netApresMicro = revenusBruts - totalFiscaliteMicro;
-
-  const micro: ResultatRegime = {
-    revenusBruts,
-    deductions: abattementMicro,
-    revenuImposable: revenuImposableMicro,
-    impotRevenu: impotMicro,
-    prelevementsSociaux: psMicro,
-    totalFiscalite: totalFiscaliteMicro,
-    revenuNetApresImpot: netApresMicro
-  };
-
-  // =============================
-  // REGIME REEL
-  // =============================
-  const interetsEmprunt = parseNumber(charges.interetsEmprunt);
-  const travauxEntretien = parseNumber(charges.travauxEntretien);
-  const travauxAmelioration = parseNumber(charges.travauxAmelioration);
-  const assurancePNO = parseNumber(charges.assurancePNO);
-  const taxeFonciere = parseNumber(charges.taxeFonciere);
-  const fraisGestion = parseNumber(charges.fraisGestion);
-  const chargesCopropriete = parseNumber(charges.chargesCopropriete);
-  const fraisForfaitaires = biens.length * FRAIS_GESTION_FORFAITAIRES_PAR_LOCAL;
-
-  const totalChargesReelles =
-    interetsEmprunt +
-    travauxEntretien +
-    travauxAmelioration +
-    assurancePNO +
-    taxeFonciere +
-    fraisGestion +
-    chargesCopropriete +
-    fraisForfaitaires;
-
-  const revenuImposableReel = revenusBruts - totalChargesReelles;
-
-  let deficitFoncier: DeficitFoncier | null = null;
-  let impotReel = 0;
-  let psReel = 0;
-
-  if (revenuImposableReel < 0) {
-    // Deficit foncier
-    const montantDeficit = Math.abs(revenuImposableReel);
-    // Le deficit hors interets d'emprunt est imputable sur le revenu global
-    const deficitHorsInterets = repartirDeficitFoncier(revenusBruts, interetsEmprunt, totalChargesReelles - interetsEmprunt, Infinity).imputation;
-    const plafondImputation = renovationEnergetique
-      ? PLAFOND_DEFICIT_REVENU_GLOBAL_RENOVATION
-      : PLAFOND_DEFICIT_REVENU_GLOBAL;
-    const imputationRevenuGlobal = Math.min(deficitHorsInterets, plafondImputation);
-    const reportSurRevenusFonciers = montantDeficit - imputationRevenuGlobal;
-
-    deficitFoncier = {
-      montantDeficit,
-      imputationRevenuGlobal,
-      reportSurRevenusFonciers: Math.max(0, reportSurRevenusFonciers)
-    };
-
-    impotReel = 0;
-    psReel = 0;
-  } else {
-    impotReel = calculerImpotTMI(revenuImposableReel, tmi);
-    psReel = revenuImposableReel * PRELEVEMENTS_SOCIAUX;
-  }
-
-  const totalFiscaliteReel = impotReel + psReel;
-  const netApresReel = revenusBruts - totalFiscaliteReel;
-
-  const reel: ResultatRegime = {
-    revenusBruts,
-    deductions: totalChargesReelles,
-    revenuImposable: Math.max(0, revenuImposableReel),
-    impotRevenu: impotReel,
-    prelevementsSociaux: psReel,
-    totalFiscalite: totalFiscaliteReel,
-    revenuNetApresImpot: netApresReel
-  };
-
-  // Determination du regime optimal
-  // Le micro-foncier n'est PAS applicable au-dela de 15 000 euros de recettes brutes :
-  // dans ce cas le regime reel est obligatoire et ne peut donc jamais etre recommande.
-  const microApplicable = revenusBruts <= PLAFOND_MICRO_FONCIER;
-  const regimeOptimal =
-    !microApplicable || totalFiscaliteReel <= totalFiscaliteMicro ? 'reel' : 'micro';
-  const economie = Math.abs(totalFiscaliteMicro - totalFiscaliteReel);
-
-  return {
-    micro,
-    reel,
-    regimeOptimal,
-    economie,
-    deficitFoncier
-  };
-}
-
 // ============================================
 // COMPOSANT FAQ
 // ============================================
@@ -298,7 +186,7 @@ function FAQSection() {
       questions: [
         {
           q: "Qu'est-ce que le micro-foncier ?",
-          r: "Le micro-foncier est un regime fiscal simplifie applicable aux proprietaires dont les revenus fonciers bruts annuels ne depassent pas 15 000 euros. Il offre un abattement forfaitaire de 30% representant l'ensemble des charges. Le proprietaire est impose sur 70% de ses revenus bruts. Ce regime est incompatible avec certains dispositifs de defiscalisation (Pinel, Denormandie, Malraux, etc.) et ne peut pas etre choisi si vous detenez des parts de SCI ou SCPI. La declaration se fait simplement sur le formulaire 2042 en case 4BE. (Article 32 du CGI)"
+          r: "Le micro-foncier applique un abattement de 30 % aux recettes foncières brutes du foyer n’excédant pas 15 000 €, sous réserve des exclusions de l’article 32 et d’une option réelle en cours. Pinel et Denormandie ne l’excluent pas à eux seuls. Des parts de SCI/SCPI peuvent être compatibles si le foyer loue aussi directement un immeuble nu et respecte les autres conditions ; une détention exclusive de parts relève en principe d’un autre traitement. Le plafond inclut toutes les recettes du foyer, pas seulement un bien.",
         },
         {
           q: "Quand choisir le regime reel ?",
@@ -332,7 +220,7 @@ function FAQSection() {
         },
         {
           q: "Comment optimiser sa fiscalite fonciere ?",
-          r: "Plusieurs strategies d'optimisation existent. Premierement, concentrer les travaux sur une seule annee pour maximiser le deficit foncier imputable (10 700 euros sur le revenu global). Deuxiemement, planifier les travaux les annees ou votre TMI est la plus elevee pour maximiser l'economie d'impot. Troisiemement, privilegier les interets d'emprunt in fine qui maintiennent un montant d'interets constant et eleve pendant toute la duree du pret. Quatriemement, ne pas oublier la deduction forfaitaire de 20 euros par local pour frais de gestion. Enfin, si vos charges sont faibles et inferieures a 30% des loyers, le micro-foncier sera plus avantageux. Chaque situation etant unique, une analyse personnalisee est recommandee. (Doctrine fiscale BOI-RFPI-BASE-20)"
+          r: "Comparer le coût réel des travaux et du financement, la fiscalité immédiate et l’utilisation future des déficits. Une charge déductible demeure une dépense : aucun prêt in fine n’est recommandé au seul motif qu’il génère plus d’intérêts. Les reports fonciers doivent être suivis par année, et l’option réelle engage normalement pour trois ans. L’imputation globale impose en principe de maintenir la location jusqu’au 31 décembre de la troisième année suivant celle de l’imputation, sauf exceptions prévues.",
         }
       ]
     },
@@ -341,7 +229,7 @@ function FAQSection() {
       questions: [
         {
           q: "Quelle est la difference entre revenus fonciers et BIC ?",
-          r: "Les revenus fonciers concernent la location nue (non meublee) de biens immobiliers. Ils sont soumis au micro-foncier (abattement 30%, plafond 15 000 euros) ou au regime reel (formulaire 2044). Les benefices industriels et commerciaux (BIC) concernent la location meublee (LMNP/LMP). Ils beneficient du micro-BIC (abattement 50%, plafond 77 700 euros) ou du regime reel BIC avec possibilite d'amortir le bien et le mobilier. Les BIC offrent generalement une fiscalite plus avantageuse grace aux amortissements, mais impliquent des obligations comptables plus lourdes (bilan, compte de resultat). Le passage de la location nue a la location meublee constitue un changement de regime fiscal avec des consequences importantes. (Articles 14 et 35 bis du CGI)"
+          r: "La location nue relève des revenus fonciers, tandis que la location meublée relève en principe des BIC. Les seuils, abattements et obligations du micro-BIC dépendent notamment du type de location meublée et du millésime. Au réel, les amortissements obéissent à leurs limites et peuvent avoir un effet à la revente. Utiliser le simulateur LMNP/LMP pour ce régime ; il n’est pas interchangeable avec le micro-foncier.",
         },
         {
           q: "Comment gerer plusieurs biens locatifs ?",
@@ -436,6 +324,12 @@ export default function RevenusFonciersPage() {
 
   const [tmi, setTmi] = useState<number>(30);
   const [renovationEnergetique, setRenovationEnergetique] = useState<boolean>(false);
+  const [travauxEligibles,setTravauxEligibles]=useState('');
+  const [anneeFiscale,setAnneeFiscale]=useState('2026');
+  const [microConfirme,setMicroConfirme]=useState(false);
+  const [tauxPS,setTauxPS]=useState('17.2');
+  const [reports,setReports]=useState<Record<string,string>>({});
+  const [erreur,setErreur]=useState('');
   const [results, setResults] = useState<ResultatComparaison | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
 
@@ -483,9 +377,10 @@ export default function RevenusFonciersPage() {
     setCharges(prev => ({ ...prev, [champ]: formatMontantSaisie(valeur) }));
   };
 
+  const parametresSimulation:ParametresFoncier={loyers:biens.reduce((a,b)=>a+parseNumber(b.loyerMensuel)*12,0),interets:parseNumber(charges.interetsEmprunt)+parseNumber(charges.assuranceEmprunt??''),autresCharges:parseNumber(charges.assurancePNO)+parseNumber(charges.taxeFonciere)+parseNumber(charges.fraisGestion)+parseNumber(charges.chargesCopropriete),travaux:parseNumber(charges.travauxEntretien)+parseNumber(charges.travauxAmelioration),locaux:biens.length,tmi,tauxPS:Number(tauxPS),annee:Number(anneeFiscale),renovation:renovationEnergetique,travauxEligibles:renovationEnergetique?parseNumber(travauxEligibles):0,microConfirme,reports:Object.entries(reports).map(([annee,montant])=>({annee:Number(annee),montant:parseNumber(montant)}))};
+  useEffect(()=>{setResults(null);setErreur('');},[biens,charges,tmi,renovationEnergetique,travauxEligibles,anneeFiscale,microConfirme,tauxPS,reports]);
   const calculer = () => {
-    const result = calculerComparaison(biens, charges, tmi, renovationEnergetique);
-    setResults(result);
+    try {if(biens.every(b=>!b.loyerMensuel.trim()))throw Error('Renseignez les loyers mensuels moyens (zéro accepté pour une vacance locative).');setResults(liquidationFoncier(parametresSimulation));setErreur('');}catch(e){setResults(null);setErreur(e instanceof Error?e.message:'Vérifiez les montants.');}
   };
 
   const reinitialiser = () => {
@@ -499,7 +394,7 @@ export default function RevenusFonciersPage() {
       fraisGestion: '',
       chargesCopropriete: ''
     });
-    setTmi(30);
+    setTmi(30);setTravauxEligibles('');setAnneeFiscale('2026');setMicroConfirme(false);setTauxPS('17.2');setReports({});setErreur('');
     setRenovationEnergetique(false);
     setResults(null);
   };
@@ -549,7 +444,7 @@ export default function RevenusFonciersPage() {
     y += 7;
     doc.text(`Fiscalite totale : ${results.micro.totalFiscalite.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`Revenu net apres impot : ${results.micro.revenuNetApresImpot.toLocaleString('fr-FR')} EUR`, 20, y);
+    doc.text(`Solde après charges et impôts (gain global potentiel inclus au réel) : ${results.micro.revenuNetApresImpot.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 15;
 
     doc.setFontSize(14);
@@ -566,7 +461,7 @@ export default function RevenusFonciersPage() {
     y += 7;
     doc.text(`Fiscalite totale : ${results.reel.totalFiscalite.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`Revenu net apres impot : ${results.reel.revenuNetApresImpot.toLocaleString('fr-FR')} EUR`, 20, y);
+    doc.text(`Solde après charges et impôts (gain global potentiel inclus au réel) : ${results.reel.revenuNetApresImpot.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 15;
 
     if (results.deficitFoncier) {
@@ -644,38 +539,7 @@ export default function RevenusFonciersPage() {
     return items.filter(item => item.value > 0);
   }, [results, charges, biens.length]);
 
-  const donneesProjection = useMemo(() => {
-    if (!results) return [];
-    const data = [];
-    const revenusBruts = results.micro.revenusBruts;
-
-    for (let annee = 1; annee <= 10; annee++) {
-      // Micro-Foncier : stable dans le temps
-      const netMicro = results.micro.revenuNetApresImpot * annee;
-
-      // Reel : on projette avec reduction progressive des interets d'emprunt
-      const interetsBase = parseNumber(charges.interetsEmprunt);
-      const reductionInterets = interetsBase > 0 ? interetsBase * (1 - (annee * 0.05)) : 0;
-      const chargesSansInterets = results.reel.deductions - interetsBase;
-      const chargesProjectees = chargesSansInterets + Math.max(0, reductionInterets);
-      const revenuImposableProj = Math.max(0, revenusBruts - chargesProjectees);
-      const fiscaliteProj = (revenuImposableProj * (tmi / 100)) + (revenuImposableProj * PRELEVEMENTS_SOCIAUX);
-      const netReel = (revenusBruts - fiscaliteProj) * annee;
-
-      // Ajout de l'economie du deficit foncier pour la premiere annee
-      let netReelAjuste = netReel;
-      if (results.deficitFoncier && annee === 1) {
-        netReelAjuste += results.deficitFoncier.imputationRevenuGlobal * (tmi / 100);
-      }
-
-      data.push({
-        annee: `Annee ${annee}`,
-        'Micro-Foncier (cumule)': Math.round(netMicro),
-        'Regime Reel (cumule)': Math.round(netReelAjuste > 0 ? netReelAjuste : netReel)
-      });
-    }
-    return data;
-  }, [results, charges, tmi, biens]);
+  const donneesProjection=results?projectionFoncier(parametresSimulation):[];
 
   // ============================================
   // Verifications
@@ -685,7 +549,7 @@ export default function RevenusFonciersPage() {
     return biens.reduce((total, bien) => total + parseNumber(bien.loyerMensuel) * 12, 0);
   }, [biens]);
 
-  const eligibleMicroFoncier = revenusBrutsTotal <= PLAFOND_MICRO_FONCIER && revenusBrutsTotal > 0;
+  const eligibleMicroFoncier = microConfirme && revenusBrutsTotal <= PLAFOND_MICRO_FONCIER && revenusBrutsTotal > 0;
 
   // ============================================
   // RENDER
@@ -864,7 +728,7 @@ export default function RevenusFonciersPage() {
                       ) : (
                         <>
                           <XCircle className="w-4 h-4 text-amber-600" />
-                          <span className="text-sm text-amber-700 font-medium">Regime reel obligatoire (revenus &gt; 15 000 euros)</span>
+                          <span className="text-sm text-amber-700 font-medium">Micro-foncier exclu ou éligibilité non confirmée</span>
                         </>
                       )}
                     </div>
@@ -1009,10 +873,10 @@ export default function RevenusFonciersPage() {
                     className="mt-0.5 w-5 h-5 accent-emerald-600 cursor-pointer"
                   />
                   <span className="text-sm text-emerald-800">
-                    <span className="font-semibold">Travaux de renovation energetique (passoire F/G &rarr; E ou mieux)</span>
+                    <span className="font-semibold">Travaux énergétiques éligibles (E/F/G vers A/B/C/D)</span>
                     <span className="block text-xs text-emerald-700 mt-0.5">
                       Double le plafond d&apos;imputation du deficit foncier sur le revenu global :
-                      21 400 euros au lieu de 10 700 euros (art. 156 I 3 du CGI).
+                      Plafond de 10 700 € majoré des dépenses énergétiques éligibles, au maximum de 21 400 €. Paiements 2026–2027 et nouveau classement au plus tard le 31/12/2027, sous conditions (CGI 156 I 3°).
                     </span>
                   </span>
                 </label>
@@ -1046,7 +910,7 @@ export default function RevenusFonciersPage() {
 
                 {/* Bareme IR rappel */}
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Bareme IR 2025 :</p>
+                  <p className="text-xs font-semibold text-gray-700 mb-2">Barème IR 2026 sur revenus 2025 :</p>
                   <div className="space-y-1 text-xs text-gray-600">
                     <div className="flex justify-between">
                       <span>0 - 11 294 euros</span>
@@ -1080,7 +944,7 @@ export default function RevenusFonciersPage() {
                 </h2>
                 <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
                   <p className="text-3xl font-bold text-purple-700">17,2 %</p>
-                  <p className="text-xs text-purple-600 mt-1">Taux global 2025</p>
+                  <p className="text-xs text-purple-600 mt-1">Taux ordinaire, hors situation sociale particulière</p>
                 </div>
                 <div className="mt-3 space-y-1 text-xs text-gray-600">
                   <div className="flex justify-between"><span>CSG</span><span>9,2 %</span></div>
@@ -1109,6 +973,18 @@ export default function RevenusFonciersPage() {
           </div>
 
           {/* ============================================ */}
+          <section className="mb-8 rounded-xl border border-indigo-200 bg-indigo-50 p-5 space-y-4">
+            <h2 className="text-xl font-semibold">Hypothèses fiscales et reports</h2>
+            <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm">Année des revenus<select aria-label="Année des revenus" className="block w-full rounded border p-2" value={anneeFiscale} onChange={e=>setAnneeFiscale(e.target.value)}><option>2026</option><option>2027</option><option>2028</option></select></label><label className="text-sm">Prélèvements sociaux<select aria-label="Taux social foncier" className="block w-full rounded border p-2" value={tauxPS} onChange={e=>setTauxPS(e.target.value)}><option value="17.2">17,2 % — régime ordinaire</option><option value="7.5">7,5 % — affiliation étrangère éligible confirmée</option></select></label></div>
+            <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={microConfirme} onChange={e=>setMicroConfirme(e.target.checked)}/>Je confirme l’éligibilité au micro-foncier : ensemble des recettes du foyer saisi, aucune exclusion de l’article 32, aucune option pour le réel encore irrévocable. La seule limite de 15 000 € ne suffit pas.</label>
+            <label className="block text-sm">Dont travaux énergétiques éligibles inclus dans les travaux saisis (€)<input type="number" min="0" className="block w-full rounded border p-2" value={travauxEligibles} onChange={e=>setTravauxEligibles(e.target.value)}/></label>
+            <label className="block text-sm">Assurance et frais d’emprunt annuels, hors intérêts déjà saisis (€)<input type="number" min="0" className="block w-full rounded border p-2" value={charges.assuranceEmprunt??''} onChange={e=>modifierCharge('assuranceEmprunt',e.target.value)}/></label>
+            <details><summary className="cursor-pointer font-semibold">Déficits fonciers antérieurs restant à reporter</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">{Array.from({length:10},(_,i)=>Number(anneeFiscale)-10+i).map(an=><label key={an} className="text-sm">Déficit foncier {an} restant (€)<input type="number" min="0" className="block w-full rounded border p-2" value={reports[an]??''} onChange={e=>setReports(r=>({...r,[an]:e.target.value}))}/></label>)}</div></details>
+            <p className="text-sm">Renseigner les loyers hors charges, en moyenne mensuelle sur l’année (loyers annuels / 12). Les charges récupérables sont un transit exclu des recettes et dépenses retenues : ne pas les inclure dans les charges réelles. Taxe foncière hors TEOM récupérable ; copropriété nette des régularisations et fractions non déductibles. Un bien saisi correspond à un local pour le forfait de 20 €. Assurance et frais d’emprunt suivent les intérêts pour le déficit.</p>
+            <p className="text-sm">Les soldes incluent les dépenses saisies dans les deux régimes, hors remboursement du capital et autres frais non renseignés. Au réel, ils incluent l’économie IR potentielle de l’imputation globale, supposant un revenu global suffisant et la TMI constante. Ce n’est pas la liquidation de l’IR du foyer : décote, CSG déductible et déficit global reportable sur six ans non calculés. Les réductions locatives et amortissements du bailleur privé 2026 nécessitent un calcul distinct.</p>
+            <p className="text-sm"><a className="underline" href="https://bofip.impots.gouv.fr/bofip/3973-PGP.html/identifiant=BOI-RFPI-DECLA-10-20250306">Micro-foncier : exclusions réelles et parts de sociétés</a> ; <a className="underline" href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000054373682/2026-07-08">Déficit et rénovation énergétique — CGI 156</a>.</p>
+            {erreur&&<p role="alert" className="text-red-700">{erreur}</p>}
+          </section>
           {/* RESULTATS */}
           {/* ============================================ */}
 
@@ -1125,7 +1001,7 @@ export default function RevenusFonciersPage() {
                   {results.regimeOptimal === 'micro' && (
                     <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-green-100 text-green-800 rounded-full w-fit text-sm font-bold">
                       <CheckCircle className="w-4 h-4" />
-                      Regime le plus avantageux
+                      Régime retenu dans cette comparaison
                     </div>
                   )}
                   <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-6">
@@ -1140,7 +1016,7 @@ export default function RevenusFonciersPage() {
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                         <p className="text-xs text-amber-700 font-medium">
-                          Revenus bruts superieurs a 15 000 euros : le micro-foncier n&apos;est pas applicable.
+                          Micro-foncier non retenu : plafond dépassé ou conditions non confirmées. Les montants de cette colonne sont uniquement une comparaison théorique.
                           Ce calcul est presente a titre indicatif.
                         </p>
                       </div>
@@ -1173,7 +1049,7 @@ export default function RevenusFonciersPage() {
                       <span className="font-bold text-red-700">{formatEuros(results.micro.totalFiscalite)}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 bg-gradient-to-r from-blue-50 to-indigo-50 -mx-2 px-4 rounded-xl border-2 border-blue-200">
-                      <span className="font-bold text-gray-900">Revenu net apres impot</span>
+                      <span className="font-bold text-gray-900">Solde après charges et impôts (gain global potentiel inclus au réel)</span>
                       <span className="text-2xl font-bold text-blue-700">{formatEuros(results.micro.revenuNetApresImpot)}</span>
                     </div>
                   </div>
@@ -1186,7 +1062,7 @@ export default function RevenusFonciersPage() {
                   {results.regimeOptimal === 'reel' && (
                     <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-green-100 text-green-800 rounded-full w-fit text-sm font-bold">
                       <CheckCircle className="w-4 h-4" />
-                      Regime le plus avantageux
+                      Régime retenu dans cette comparaison
                     </div>
                   )}
                   <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-6">
@@ -1224,7 +1100,7 @@ export default function RevenusFonciersPage() {
                       <span className="font-bold text-red-700">{formatEuros(results.reel.totalFiscalite)}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 bg-gradient-to-r from-purple-50 to-indigo-50 -mx-2 px-4 rounded-xl border-2 border-purple-200">
-                      <span className="font-bold text-gray-900">Revenu net apres impot</span>
+                      <span className="font-bold text-gray-900">Solde après charges et impôts (gain global potentiel inclus au réel)</span>
                       <span className="text-2xl font-bold text-purple-700">{formatEuros(results.reel.revenuNetApresImpot)}</span>
                     </div>
                   </div>
@@ -1405,7 +1281,7 @@ export default function RevenusFonciersPage() {
                   Projection cumulative sur 10 ans
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Estimation du revenu net cumule sur 10 ans pour chaque regime, avec reduction progressive des interets d&apos;emprunt en regime reel.
+                  Solde cumulé après les charges saisies et impôts, avant remboursement du capital. Loyers, intérêts, assurance et charges récurrentes constants ; travaux uniquement la première année. Reports fonciers suivis par millésime sur dix ans, TMI et règles constantes, gain IR sur revenu global supposé utilisable. Les frais forfaitaires de 20 € par local ne sont pas une dépense décaissée.
                 </p>
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={donneesProjection}>
