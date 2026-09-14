@@ -45,40 +45,40 @@ export default function Footer() {
           </div>
           
           <div className="md:col-span-2">
-            <h4 className="font-semibold mb-4 text-gray-900">Calculateurs</h4>
+            <h2 className="font-semibold mb-4 text-gray-900">Calculateurs</h2>
             <ul className="grid grid-cols-2 gap-x-6 gap-y-3 text-gray-600">
               {CALCULATEURS.map(({ href, label }) => (
-                <li key={href}><a href={href} className="hover:text-gray-900 transition">{label}</a></li>
+                <li key={href}><a href={href} className="inline-flex min-h-6 items-center hover:text-gray-900 transition">{label}</a></li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-gray-900">Ressources</h4>
+            <h2 className="font-semibold mb-4 text-gray-900">Ressources</h2>
             <ul className="space-y-3 text-gray-600">
-              <li><a href="/features" className="hover:text-gray-900 transition">Fonctionnalités</a></li>
-              <li><a href="/documentation" className="hover:text-gray-900 transition">Documentation</a></li>
-              <li><a href="/cours-comptable-taxateur" className="hover:text-gray-900 transition">Cours comptable-taxateur</a></li>
-              <li><a href="/roadmap" className="hover:text-gray-900 transition">Roadmap</a></li>
-              <li><a href="/api" className="hover:text-gray-900 transition">API</a></li>
+              <li><a href="/features" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Fonctionnalités</a></li>
+              <li><a href="/documentation" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Documentation</a></li>
+              <li><a href="/cours-comptable-taxateur" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Cours comptable-taxateur</a></li>
+              <li><a href="/roadmap" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Roadmap</a></li>
+              <li><a href="/api" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">API</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-gray-900">Prestations</h4>
+            <h2 className="font-semibold mb-4 text-gray-900">Prestations</h2>
             <ul className="space-y-3 text-gray-600">
-              <li><a href="/prestations/comptabilite-notariale" className="hover:text-gray-900 transition">Comptabilité notariale</a></li>
-              <li><a href="/prestations/expertise-immobiliere" className="hover:text-gray-900 transition">Expertise immobilière</a></li>
-              <li><a href="/prestations/developpement-informatique" className="hover:text-gray-900 transition">Développement informatique</a></li>
+              <li><a href="/prestations/comptabilite-notariale" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Comptabilité notariale</a></li>
+              <li><a href="/prestations/expertise-immobiliere" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Expertise immobilière</a></li>
+              <li><a href="/prestations/developpement-informatique" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Développement informatique</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-gray-900">Liens</h4>
+            <h2 className="font-semibold mb-4 text-gray-900">Liens</h2>
             <ul className="space-y-3 text-gray-600">
-              <li><a href="/about" className="hover:text-gray-900 transition">À propos</a></li>
-              <li><a href="/contact" className="hover:text-gray-900 transition">Contact</a></li>
-              <li><a href="https://github.com/Interne52105110/notariaprime" className="hover:text-gray-900 transition" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+              <li><a href="/about" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">À propos</a></li>
+              <li><a href="/contact" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Contact</a></li>
+              <li><a href="https://github.com/Interne52105110/notariaprime" className="inline-flex min-h-6 items-center hover:text-gray-900 transition" target="_blank" rel="noopener noreferrer">GitHub</a></li>
             </ul>
           </div>
         </div>

@@ -28,6 +28,8 @@ export default function MainLayout({ children, showFeedback = true }: MainLayout
       {showFeedback && (
         <button 
           onClick={() => setFeedbackOpen(true)}
+          aria-label="Donner votre avis sur NotariaPrime"
+          aria-haspopup="dialog"
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
