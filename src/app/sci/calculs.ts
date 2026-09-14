@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/app/sci/calculs.ts
-// DESCRIPTION: Toute la logique de calcul fiscal
+// LEGACY : conservé pour les tests historiques, non utilisé par la page SCI actuelle.
+// Pour toute évolution produit, utiliser src/lib/sci.ts et src/lib/projets.ts.
 // ============================================
 
 import type { FormData, ResultatsIR, ResultatsIS, ResultatsPlusValue, ResultatsTransmission, ResultatsIFI, ComparaisonResults, SimulationSauvegardee } from './types';

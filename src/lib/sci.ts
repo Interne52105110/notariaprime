@@ -1,5 +1,7 @@
+import { variationIR, type FoyerFiscal } from './foyer';
 import { abattementsPlusValue, surtaxePlusValue } from './fiscal';
 export interface SCIAnnuelle {
+ foyer?:FoyerFiscal;
  loyers:number; charges:number; interets:number; principal:number; chargesFiscalesIR:number;
  amortissement:number; ccaVerse:number; ccaDeductibleIR:number; ccaDeductibleIS:number;
  tmi:number; distribution:number; isReduit:boolean; bareme:boolean;
@@ -8,7 +10,8 @@ export function liquidationSCI(p:SCIAnnuelle){
  for(const [k,v] of Object.entries(p))if(typeof v==='number'&&(!Number.isFinite(v)||v<0))throw Error(`Montant invalide : ${k}.`);
  if(p.tmi>45||p.distribution>100||p.ccaDeductibleIR>p.ccaVerse||p.ccaDeductibleIS>p.ccaVerse)throw Error('Vérifiez les taux et les intérêts déductibles.');
  const baseIR=p.loyers-p.charges-p.interets-p.chargesFiscalesIR-p.ccaDeductibleIR;
- const impotIR=Math.max(0,baseIR)*p.tmi/100, psIR=Math.max(0,baseIR)*.172;
+ if(p.foyer && (p.bareme || p.ccaVerse>0)) throw Error("Le mode foyer SCI suppose zéro intérêt de CCA et des dividendes au PFU, pour éviter une double liquidation de revenus mobiliers. Utilisez la TMI ou le simulateur DGFiP pour les autres cas.");
+ const impotIR=variationIR(Math.max(0,baseIR),p.tmi,p.foyer), psIR=Math.max(0,baseIR)*.172;
  // CCA interest has no 40% dividend allowance under the progressive option.
  const taxeCCA=p.ccaVerse*(p.bareme?p.tmi/100+.186:.314);
  const resultatComptable=p.loyers-p.charges-p.interets-p.ccaVerse-p.amortissement;

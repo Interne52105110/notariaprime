@@ -236,3 +236,12 @@ button:focus-visible {
     font-size: 16px;
   }
 }
+@media print {
+  nav, footer, button, [role="dialog"] { display: none !important; }
+  body { background: white !important; color: black !important; }
+  main { padding-top: 0 !important; }
+  input, select { color: black !important; background: white !important; }
+  details { display: block; }
+  .overflow-x-auto { overflow: visible !important; }
+  table { font-size: 9pt; }
+}

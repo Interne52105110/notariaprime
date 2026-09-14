@@ -5,7 +5,7 @@
 
 "use client";
 
-import { limiterDettesIFI } from '@/lib/fiscal';
+import { limiterDettesIFI, reductionPlafonnementIFI } from '@/lib/fiscal';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home, 
@@ -194,9 +194,7 @@ function calculerIFI(
   const plafonnementApplicable = revenusStr.trim() !== '' && revenusAnneePrecedente >= 0;
 
   if (plafonnementApplicable) {
-    const total = ifiApresDecote + irEtPsAnneePrecedente;
-    const plafond = 0.75 * revenusAnneePrecedente;
-    reductionPlafonnement = Math.max(0, total - plafond);
+    reductionPlafonnement = reductionPlafonnementIFI(ifiApresDecote, revenusAnneePrecedente, irEtPsAnneePrecedente);
     ifiFinal = Math.max(0, ifiApresDecote - reductionPlafonnement);
   }
 

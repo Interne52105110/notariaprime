@@ -1,6 +1,7 @@
 "use client";
 
 import { Calculator } from 'lucide-react';
+import Link from 'next/link';
 
 // Liste complète des simulateurs, rendue côté serveur sur chaque page :
 // c'est le maillage interne que Google suit (le mega-menu du Header n'est
@@ -57,10 +58,13 @@ export default function Footer() {
             <h2 className="font-semibold mb-4 text-gray-900">Ressources</h2>
             <ul className="space-y-3 text-gray-600">
               <li><a href="/features" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Fonctionnalités</a></li>
+              <li><Link href="/guides" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Guides pratiques</Link></li>
+              <li><a href="/capacite-emprunt" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Budget immobilier</a></li>
+              <li><a href="/strategie-immobiliere" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Achat, location et revente</a></li>
+              <li><a href="/relance-logement" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Relance logement</a></li>
               <li><a href="/documentation" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Documentation</a></li>
               <li><a href="/cours-comptable-taxateur" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Cours comptable-taxateur</a></li>
               <li><a href="/roadmap" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Roadmap</a></li>
-              <li><a href="/api" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">API</a></li>
             </ul>
           </div>
 

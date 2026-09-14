@@ -3,6 +3,7 @@
 // payload is in the HTML <head> at SSR (not after hydration), which is
 // what Google's crawler reads.
 
+import { PAGE_META } from "@/lib/seo";
 import { SITE_URL } from "@/config/site";
 
 const BASE = SITE_URL;
@@ -27,7 +28,7 @@ export function OrganizationJsonLd() {
         name: "NotariaPrime",
         url: BASE,
         logo: `${BASE}/images/og-image.png`,
-        description: "Plateforme open source de calculateurs notariés et fiscaux français, conforme au tarif réglementé 2026/2028.",
+        description: "Plateforme open source de calculateurs notariés et fiscaux français, avec sources, exemples et hypothèses de calcul.",
         sameAs: [],
       }}
     />
@@ -70,8 +71,8 @@ export function CalculatorJsonLd({
       data={{
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name,
-        description,
+        name: PAGE_META[path]?.title ?? name,
+        description: PAGE_META[path]?.description ?? description,
         url: `${BASE}${path}`,
         applicationCategory: "FinanceApplication",
         operatingSystem: "Web",

@@ -16,37 +16,41 @@ interface PageMeta {
 // (sans cette table, toutes les pages héritaient du metadata global du
 // root layout — Google les voyait comme duplicate content et n'indexait
 // que la home).
-const PAGE_META: Record<string, PageMeta> = {
+export const PAGE_META: Record<string, PageMeta> = {
+  "/guides": {"title": "Guides immobiliers et patrimoniaux — NotariaPrime", "description": "Préparez achat, donation, succession et investissement : guides chiffrés, pièces à réunir, sources officielles et liens vers les calculateurs."},
+  "/capacite-emprunt": {"title": "Capacité d’emprunt et budget immobilier — NotariaPrime", "description": "Estimez votre mensualité disponible, votre capacité de crédit et votre budget d’achat avec apport, assurance et frais. Hypothèses à adapter à la banque."},
+  "/strategie-immobiliere": {"title": "Investissement immobilier : achat, location et revente", "description": "Comparez une location nue en direct et une SCI à l’IS sur toute la durée : emprunt, trésorerie annuelle, impôt à la vente et distribution du produit."},
+  "/relance-logement": {"title": "Relance logement 2026 : simulateur d’amortissement", "description": "Estimez la déduction Jeanbrun dans le neuf ou l’ancien réhabilité : base, taux, plafond du foyer, prorata et effet fiscal indicatif sous conditions."},
   // ---------- Calculateurs ----------
   "/assurance-vie": {
-    title: "Calculateur Assurance vie 2026 — fiscalité, succession, abattements",
-    description: "Simulez la fiscalité de votre contrat d'assurance vie : versements avant/après 70 ans, abattement 152 500 €, prélèvement 20%/31,25%, transmission. Gratuit, conforme 2026/2028.",
+    title: "Assurance-vie : rachats et transmission en 2026",
+    description: "Estimez l’impôt d’un rachat et la transmission avant ou après 70 ans. Abattements, certificats de l’assureur et limites du calcul expliqués.",
     keywords: ["assurance vie", "fiscalité", "succession", "abattement 152500", "70 ans", "transmission"],
   },
   "/donation": {
-    title: "Calculateur Donation 2026 — droits, abattements parent-enfant",
-    description: "Calculez les droits de donation : abattement 100 000 € parent-enfant, 31 865 € grand-parent, 80 724 € conjoint. Barème progressif, présent d'usage, donation-partage.",
+    title: "Droits de donation : abattements et calcul en 2026",
+    description: "Estimez les droits par bénéficiaire : lien de parenté, dons antérieurs, nue-propriété et Dutreil. Vérifiez les conditions et plafonds disponibles.",
     keywords: ["donation", "droits de donation", "abattement parent enfant", "donation-partage", "barème"],
   },
   "/holding": {
-    title: "Calculateur Holding patrimoniale — fiscalité, montage, IS vs IR",
-    description: "Simulez le montage d'une holding patrimoniale : régime mère-fille, intégration fiscale, apport-cession 150-0 B ter, comparaison IS/IR. Frais notariés et fiscalité chiffrés.",
-    keywords: ["holding patrimoniale", "régime mère-fille", "intégration fiscale", "150-0 B ter", "apport cession"],
+    title: "Holding patrimoniale : trésorerie et fiscalité",
+    description: "Comparez détention directe et SCI avec holding à l’IS : trésorerie, régime mère-fille, distributions et transmission sous hypothèses explicites.",
+    keywords: ["holding patrimoniale", "régime mère-fille", "SCI", "trésorerie", "distribution"],
   },
   "/ifi": {
-    title: "Calculateur IFI 2026 — Impôt sur la Fortune Immobilière",
-    description: "Simulez votre IFI 2026 : barème progressif au-delà de 1,3 M€, abattement résidence principale 30%, plafonnement, dettes déductibles. Calcul gratuit, conforme dernière réforme.",
+    title: "Calculateur IFI 2026 : patrimoine, dettes et plafonnement",
+    description: "Estimez votre IFI : patrimoine immobilier taxable, abattement de résidence principale, dettes admissibles, barème, décote et plafonnement.",
     keywords: ["IFI", "impôt fortune immobilière", "barème IFI 2026", "résidence principale", "abattement 30%"],
   },
   "/investissement-locatif": {
-    title: "Simulateur investissement locatif — rentabilité, cashflow, fiscalité",
-    description: "Calculez la rentabilité brute, nette et nette-nette d'un investissement locatif. Cashflow mensuel, fiscalité (micro-foncier, réel, LMNP), TRI sur 20 ans, sensibilité aux loyers.",
+    title: "Investissement locatif : rentabilité et fiscalité",
+    description: "Estimez rendement, trésorerie et effort d’épargne après fiscalité. Comparez les dispositifs locatifs proposés avec leurs conditions et limites.",
     keywords: ["investissement locatif", "rentabilité locative", "cashflow", "TRI", "micro-foncier", "LMNP"],
   },
   "/lmnp": {
     title: "Calculateur LMNP 2026 — amortissement, fiscalité, régime réel",
     description: "Simulez votre fiscalité LMNP (Loueur Meublé Non Professionnel) : amortissement bien + mobilier, régime réel vs micro-BIC, déficit reportable, plus-value. Règles 2026, hypothèses et limites détaillées.",
-    keywords: ["LMNP", "loueur meublé", "amortissement LMNP", "régime réel", "micro-BIC", "Censi-Bouvard"],
+    keywords: ["LMNP", "loueur meublé", "amortissement LMNP", "régime réel", "micro-BIC", "plus-value LMNP"],
   },
   "/plusvalue": {
     title: "Calculateur plus-value immobilière 2026 — abattements, exonérations",
@@ -54,13 +58,13 @@ const PAGE_META: Record<string, PageMeta> = {
     keywords: ["plus-value immobilière", "abattement durée détention", "exonération résidence principale", "surtaxe"],
   },
   "/plusvalue-pro": {
-    title: "Calculateur plus-value professionnelle — sociétés, entreprises",
-    description: "Simulez la plus-value professionnelle sur cession d'éléments d'actif : régime court terme/long terme, article 151 septies, 238 quindecies, 41 (transmission entreprise).",
+    title: "Plus-value professionnelle : IR, IS et exonérations",
+    description: "Calculez une cession d’actif ou de titres : valeur nette comptable, court et long terme, exonérations sous conditions et cotisations à renseigner.",
     keywords: ["plus-value professionnelle", "151 septies", "238 quindecies", "cession entreprise", "régime court terme"],
   },
   "/pret": {
-    title: "Simulateur prêt immobilier — capacité d'emprunt, mensualité, TAEG",
-    description: "Calculez votre capacité d'emprunt, votre mensualité, le coût total du crédit et le TAEG. Tableau d'amortissement, assurance emprunteur, comparaison taux fixe/variable.",
+    title: "Prêt immobilier : mensualité et coût du crédit",
+    description: "Calculez les mensualités d’un prêt à taux fixe, son assurance, son coût total et son taux effectif estimé. Échéancier détaillé à exporter.",
     keywords: ["prêt immobilier", "capacité emprunt", "mensualité", "TAEG", "tableau amortissement", "assurance emprunteur"],
   },
   "/pretaxe": {
@@ -79,14 +83,14 @@ const PAGE_META: Record<string, PageMeta> = {
     keywords: ["revenus fonciers", "micro-foncier", "régime réel", "déficit foncier", "charges déductibles"],
   },
   "/sci": {
-    title: "Simulateur SCI — IR vs IS, fiscalité, transmission",
-    description: "Comparez SCI à l'IR vs SCI à l'IS : fiscalité des loyers, amortissement, plus-value, transmission par parts. Coûts de création, frais notariés, exemples chiffrés.",
+    title: "SCI IR ou IS : fiscalité des loyers et revente",
+    description: "Comparez SCI à l’IR et à l’IS : impôts annuels, amortissement, intérêts de compte courant, distributions et fiscalité de la vente de l’immeuble.",
     keywords: ["SCI", "SCI IR vs IS", "société civile immobilière", "transmission SCI", "amortissement"],
   },
   "/statut-juridique": {
-    title: "Comparateur statut juridique — SAS, SARL, EURL, SCI, micro",
-    description: "Comparez les statuts juridiques pour votre activité : SAS, SASU, SARL, EURL, SCI, auto-entrepreneur. Fiscalité, charges sociales, responsabilité, capital, transmission.",
-    keywords: ["statut juridique", "SAS vs SARL", "EURL", "SCI", "auto-entrepreneur", "comparateur statut"],
+    title: "Comparateur de statuts : SASU, EURL et entreprise individuelle",
+    description: "Comparez le revenu net selon les formes et régimes proposés : cotisations, rémunération, dividendes et impôts sous les hypothèses précisées dans le calculateur.",
+    keywords: ["statut juridique", "SASU", "EURL", "entreprise individuelle", "comparateur statut"],
   },
   "/succession": {
     title: "Calculateur droits de succession 2026 — abattements, barème par héritier",
@@ -101,12 +105,12 @@ const PAGE_META: Record<string, PageMeta> = {
 
   // ---------- Pages éditoriales ----------
   "/about": {
-    title: "À propos — NotariaPrime, calculateur notarié open source",
-    description: "NotariaPrime est une plateforme open source de calcul des frais notariés et de simulation fiscale. 100% gratuit, conforme au tarif réglementé 2026/2028, mise à jour mensuelle.",
+    title: "À propos de NotariaPrime : outils et méthode",
+    description: "NotariaPrime est une plateforme open source de calcul des frais notariés et de simulation fiscale. Gratuit : sources, hypothèses et limites des simulations sont documentées.",
   },
   "/features": {
     title: "Fonctionnalités — calculs notariés, fiscalité, export PDF",
-    description: "Découvrez les fonctionnalités de NotariaPrime : 15+ simulateurs fiscaux, calcul des frais notariés conforme au décret 2020-179, export PDF, comparaison statuts, OCR documents.",
+    description: "Explorez 19 calculateurs et 12 guides : frais de notaire, fiscalité, transmission, budget immobilier et comparaison de projets avec hypothèses détaillées.",
   },
   "/prestations": {
     title: "Prestations — comptabilité, développement, expertise immobilière",

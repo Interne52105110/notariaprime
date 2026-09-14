@@ -1,12 +1,14 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/config/site";
+import { guides } from "@/content/guides";
 
-// Pas de lastModified : la valeur `new Date()` à chaque build signalait à
+// Pas de date artificielle à chaque build : `new Date()` signalait à
 // Google que toutes les pages changeaient en permanence, ce qui décrédibilise
 // le sitemap. Google ignore changefreq/priority ; seule la liste d'URLs compte.
 
 // Calculateurs (coeur produit)
 const CALCULATEURS = [
+  "capacite-emprunt", "strategie-immobiliere", "relance-logement",
   "assurance-vie",
   "donation",
   "holding",
@@ -46,6 +48,8 @@ const PAGES_LEGALES = ["mentions-legales", "cgu", "confidentialite"];
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${SITE_URL}/guides` },
+    ...guides.map(g => ({ url: `${SITE_URL}/guides/${g.slug}`, lastModified: "2026-09-14" })),
     ...CALCULATEURS.map((slug) => ({
       url: `${SITE_URL}/${slug}`,
       changeFrequency: "monthly" as const,
