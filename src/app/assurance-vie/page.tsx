@@ -448,8 +448,8 @@ function FAQSection() {
         },
         {
           q: "Peut-on transferer un contrat sans fiscalite ?",
-          r: "**Transfert entre assureurs (loi Pacte 2019) :**\nDepuis la loi Pacte, il est possible de transferer un contrat d'assurance-vie chez le MEME assureur vers un autre support (PER par exemple) sans perdre l'anteriorite fiscale.\n\n**En revanche :** le transfert vers un AUTRE assureur n'est toujours pas possible sans cloture fiscale. Il faut racheter puis souscrire un nouveau contrat.\n\n**Exception :** la transformation en contrat euro-croissance chez le meme assureur conserve l'anteriorite.\n\n**Conseil :** si le contrat a plus de 8 ans, mieux vaut le conserver meme avec des frais eleves, plutot que perdre l'anteriorite fiscale.",
-          source: "Loi Pacte n 2019-486 du 22 mai 2019, art. 72"
+          r: "Une transformation admissible de votre contrat chez le même assureur peut conserver son antériorité fiscale. Un rachat suivi d’un versement sur un PER est une autre opération : il n’emporte pas conservation de l’antériorité de l’assurance-vie dans le PER. L’avantage temporaire de doublement de l’abattement pour certains rachats reversés au PER a pris fin le 31 décembre 2022. Comparez frais, garanties, supports, fiscalité du rachat et disponibilité de l’épargne avant de décider. L’ancienneté du contrat est un critère, pas une raison suffisante pour conserver un contrat coûteux.",
+          source: "CGI 125-0 A ; Service Public, PER : fin de l’avantage temporaire au 31 décembre 2022"
         },
         {
           q: "Quelle strategie de rachat pour minimiser l'impot ?",

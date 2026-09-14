@@ -5,6 +5,7 @@
 
 "use client";
 
+import FoyerFields, { foyerInitial, lireFoyer } from '@/components/FoyerFields';
 import { BAREME_IR_2026, repartirDeficitFoncier } from '@/lib/fiscal';
 import { liquidationFoncier, projectionFoncier, type ParametresFoncier } from '@/lib/foncier';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -322,6 +323,7 @@ export default function RevenusFonciersPage() {
     chargesCopropriete: ''
   });
 
+  const [foyer,setFoyer]=useState(foyerInitial);
   const [tmi, setTmi] = useState<number>(30);
   const [renovationEnergetique, setRenovationEnergetique] = useState<boolean>(false);
   const [travauxEligibles,setTravauxEligibles]=useState('');
@@ -331,6 +333,7 @@ export default function RevenusFonciersPage() {
   const [reports,setReports]=useState<Record<string,string>>({});
   const [erreur,setErreur]=useState('');
   const [results, setResults] = useState<ResultatComparaison | null>(null);
+  const [parametresCalcules,setParametresCalcules]=useState<ParametresFoncier|null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
 
   // ============================================
@@ -378,9 +381,9 @@ export default function RevenusFonciersPage() {
   };
 
   const parametresSimulation:ParametresFoncier={loyers:biens.reduce((a,b)=>a+parseNumber(b.loyerMensuel)*12,0),interets:parseNumber(charges.interetsEmprunt)+parseNumber(charges.assuranceEmprunt??''),autresCharges:parseNumber(charges.assurancePNO)+parseNumber(charges.taxeFonciere)+parseNumber(charges.fraisGestion)+parseNumber(charges.chargesCopropriete),travaux:parseNumber(charges.travauxEntretien)+parseNumber(charges.travauxAmelioration),locaux:biens.length,tmi,tauxPS:Number(tauxPS),annee:Number(anneeFiscale),renovation:renovationEnergetique,travauxEligibles:renovationEnergetique?parseNumber(travauxEligibles):0,microConfirme,reports:Object.entries(reports).map(([annee,montant])=>({annee:Number(annee),montant:parseNumber(montant)}))};
-  useEffect(()=>{setResults(null);setErreur('');},[biens,charges,tmi,renovationEnergetique,travauxEligibles,anneeFiscale,microConfirme,tauxPS,reports]);
+  useEffect(()=>{setResults(null);setErreur('');},[biens,charges,tmi,renovationEnergetique,travauxEligibles,anneeFiscale,microConfirme,tauxPS,reports,foyer]);
   const calculer = () => {
-    try {if(biens.every(b=>!b.loyerMensuel.trim()))throw Error('Renseignez les loyers mensuels moyens (zéro accepté pour une vacance locative).');setResults(liquidationFoncier(parametresSimulation));setErreur('');}catch(e){setResults(null);setErreur(e instanceof Error?e.message:'Vérifiez les montants.');}
+    try {if(biens.every(b=>!b.loyerMensuel.trim()))throw Error('Renseignez les loyers mensuels moyens (zéro accepté pour une vacance locative).');const p={...parametresSimulation,foyer:lireFoyer(foyer)};setResults(liquidationFoncier(p));setParametresCalcules(p);setErreur('');}catch(e){setResults(null);setErreur(e instanceof Error?e.message:'Vérifiez les montants.');}
   };
 
   const reinitialiser = () => {
@@ -394,7 +397,7 @@ export default function RevenusFonciersPage() {
       fraisGestion: '',
       chargesCopropriete: ''
     });
-    setTmi(30);setTravauxEligibles('');setAnneeFiscale('2026');setMicroConfirme(false);setTauxPS('17.2');setReports({});setErreur('');
+    setFoyer(foyerInitial);setTmi(30);setTravauxEligibles('');setAnneeFiscale('2026');setMicroConfirme(false);setTauxPS('17.2');setReports({});setErreur('');
     setRenovationEnergetique(false);
     setResults(null);
   };
@@ -427,7 +430,7 @@ export default function RevenusFonciersPage() {
     y += 7;
     doc.text(`Economie annuelle : ${results.economie.toLocaleString('fr-FR')} EUR`, 20, y);
     y += 7;
-    doc.text(`TMI applique : ${tmi} %`, 20, y);
+    doc.text(parametresCalcules?.foyer ? `Mode foyer : revenus ${parametresCalcules.foyer.revenu} EUR, adultes ${parametresCalcules.foyer.adultes}, enfants ${parametresCalcules.foyer.enfants}` : `TMI applique : ${tmi} %`, 20, y);
     y += 15;
 
     doc.setFontSize(14);
@@ -539,7 +542,7 @@ export default function RevenusFonciersPage() {
     return items.filter(item => item.value > 0);
   }, [results, charges, biens.length]);
 
-  const donneesProjection=results?projectionFoncier(parametresSimulation):[];
+  const donneesProjection=results&&parametresCalcules?projectionFoncier(parametresCalcules):[];
 
   // ============================================
   // Verifications
@@ -883,6 +886,7 @@ export default function RevenusFonciersPage() {
               </div>
             </div>
 
+            <FoyerFields value={foyer} onChange={setFoyer}/>
             {/* Colonne droite : TMI + Actions */}
             <div className="space-y-6">
 
@@ -913,23 +917,23 @@ export default function RevenusFonciersPage() {
                   <p className="text-xs font-semibold text-gray-700 mb-2">Barème IR 2026 sur revenus 2025 :</p>
                   <div className="space-y-1 text-xs text-gray-600">
                     <div className="flex justify-between">
-                      <span>0 - 11 294 euros</span>
+                      <span>0 - 11 600 euros</span>
                       <span className="font-semibold">0 %</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>11 294 - 28 797 euros</span>
+                      <span>11 600 - 29 579 euros</span>
                       <span className="font-semibold">11 %</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>28 797 - 82 341 euros</span>
+                      <span>29 579 - 84 577 euros</span>
                       <span className="font-semibold">30 %</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>82 341 - 177 106 euros</span>
+                      <span>84 577 - 181 917 euros</span>
                       <span className="font-semibold">41 %</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>&gt; 177 106 euros</span>
+                      <span>&gt; 181 917 euros</span>
                       <span className="font-semibold">45 %</span>
                     </div>
                   </div>
@@ -981,7 +985,7 @@ export default function RevenusFonciersPage() {
             <label className="block text-sm">Assurance et frais d’emprunt annuels, hors intérêts déjà saisis (€)<input type="number" min="0" className="block w-full rounded border p-2" value={charges.assuranceEmprunt??''} onChange={e=>modifierCharge('assuranceEmprunt',e.target.value)}/></label>
             <details><summary className="cursor-pointer font-semibold">Déficits fonciers antérieurs restant à reporter</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">{Array.from({length:10},(_,i)=>Number(anneeFiscale)-10+i).map(an=><label key={an} className="text-sm">Déficit foncier {an} restant (€)<input type="number" min="0" className="block w-full rounded border p-2" value={reports[an]??''} onChange={e=>setReports(r=>({...r,[an]:e.target.value}))}/></label>)}</div></details>
             <p className="text-sm">Renseigner les loyers hors charges, en moyenne mensuelle sur l’année (loyers annuels / 12). Les charges récupérables sont un transit exclu des recettes et dépenses retenues : ne pas les inclure dans les charges réelles. Taxe foncière hors TEOM récupérable ; copropriété nette des régularisations et fractions non déductibles. Un bien saisi correspond à un local pour le forfait de 20 €. Assurance et frais d’emprunt suivent les intérêts pour le déficit.</p>
-            <p className="text-sm">Les soldes incluent les dépenses saisies dans les deux régimes, hors remboursement du capital et autres frais non renseignés. Au réel, ils incluent l’économie IR potentielle de l’imputation globale, supposant un revenu global suffisant et la TMI constante. Ce n’est pas la liquidation de l’IR du foyer : décote, CSG déductible et déficit global reportable sur six ans non calculés. Les réductions locatives et amortissements du bailleur privé 2026 nécessitent un calcul distinct.</p>
+            <p className="text-sm">Les soldes incluent les dépenses saisies dans les deux régimes, hors remboursement du capital et autres frais non renseignés. Au réel, ils incluent l’économie IR potentielle de l’imputation globale. Le mode simple suppose une TMI constante et un revenu global suffisant ; le mode foyer applique le barème avant/après, le quotient familial ordinaire et la décote. CSG déductible, réductions/crédits et déficit global reportable sur six ans exclus. Pour l’amortissement Jeanbrun, utilisez le simulateur Relance logement.</p>
             <p className="text-sm"><a className="underline" href="https://bofip.impots.gouv.fr/bofip/3973-PGP.html/identifiant=BOI-RFPI-DECLA-10-20250306">Micro-foncier : exclusions réelles et parts de sociétés</a> ; <a className="underline" href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000054373682/2026-07-08">Déficit et rénovation énergétique — CGI 156</a>.</p>
             {erreur&&<p role="alert" className="text-red-700">{erreur}</p>}
           </section>
@@ -1200,7 +1204,7 @@ export default function RevenusFonciersPage() {
                             <span className="font-bold">
                               {formatEuros(results.deficitFoncier.imputationRevenuGlobal * (tmi / 100))}
                             </span>{' '}
-                            (TMI a {tmi} %). Cette imputation sur le revenu global ne procure pas de réduction supplémentaire de prélèvements sociaux.
+                            ({foyer.actif ? "barème du foyer avant/après" : `TMI à ${tmi} %`}). Cette imputation sur le revenu global ne procure pas de réduction supplémentaire de prélèvements sociaux.
                           </p>
                           <p className="mt-2 text-xs text-green-700">
                             Attention : l&apos;imputation du deficit foncier sur le revenu global impose le maintien en location du bien pendant 3 ans apres l&apos;imputation.
@@ -1281,7 +1285,7 @@ export default function RevenusFonciersPage() {
                   Projection cumulative sur 10 ans
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Solde cumulé après les charges saisies et impôts, avant remboursement du capital. Loyers, intérêts, assurance et charges récurrentes constants ; travaux uniquement la première année. Reports fonciers suivis par millésime sur dix ans, TMI et règles constantes, gain IR sur revenu global supposé utilisable. Les frais forfaitaires de 20 € par local ne sont pas une dépense décaissée.
+                  Solde cumulé après les charges saisies et impôts, avant remboursement du capital. Loyers, intérêts, assurance et charges récurrentes constants ; travaux uniquement la première année. Reports fonciers suivis par millésime sur dix ans, revenus du foyer ou TMI et règles constants. En mode simple, gain IR sur revenu global supposé utilisable ; en mode foyer, économie limitée à la variation calculée. Les frais forfaitaires de 20 € par local ne sont pas une dépense décaissée.
                 </p>
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={donneesProjection}>

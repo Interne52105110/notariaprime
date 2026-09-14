@@ -2,6 +2,7 @@
 
 import React, { useState, memo, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import MainLayout from '@/components/MainLayout';
 import {
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
@@ -156,8 +157,8 @@ function HomepageContent() {
 
 
   const stats: Stat[] = [
-    { value: '15', label: 'Calculateurs professionnels', trend: 'COMPLET' },
-    { value: '500+', label: 'Calculs par mois', trend: '+18%' },
+    { value: '19', label: 'Calculateurs professionnels', trend: 'COMPLET' },
+    { value: '12', label: 'Guides pratiques', trend: 'EXEMPLES' },
     { value: '100%', label: 'Gratuit et open source', trend: 'TOUJOURS' },
     { value: '2026', label: 'Barèmes à jour', trend: 'OFFICIEL' }
   ];
@@ -167,8 +168,8 @@ function HomepageContent() {
       icon: Zap,
       title: 'Ultra rapide',
       description: 'Résultats instantanés grâce à notre moteur optimisé',
-      metric: '~100ms',
-      metricLabel: 'Temps de calcul'
+      metric: 'Local',
+      metricLabel: 'Calcul dans le navigateur'
     },
     {
       icon: Shield,
@@ -196,6 +197,11 @@ function HomepageContent() {
   type SolutionWithCategory = Solution & { category: Category };
 
   const allSolutions: SolutionWithCategory[] = [
+{title:"Droits de succession",description:"Calcul des droits par héritier après détermination des parts civiles",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/succession',category:'Patrimoine',isNew:true},
+{title:"Capacité d’emprunt",description:"Revenus, assurance, apport et budget total d’acquisition",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/capacite-emprunt',category:'Immobilier',isNew:true},
+{title:"Achat, location et revente",description:"Comparaison des flux en direct et en SCI IS jusqu’à la sortie",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/strategie-immobiliere',category:'Immobilier',isNew:true},
+{title:"Relance logement",description:"Amortissement Jeanbrun et effet sur les revenus fonciers",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/relance-logement',category:'Fiscalité',isNew:true},
+
     // Immobilier
     {
       title: 'Calculateur de Prétaxe',
@@ -220,7 +226,7 @@ function HomepageContent() {
       icon: HeartHandshake,
       description: 'Scénarios viager occupé/libre et fiscalité de la rente',
       status: 'Disponible',
-      features: ['Bouquet et rente', 'Tables INSEE officielles', 'Viager occupé/libre', '5 méthodes de calcul'],
+      features: ['Bouquet et rente', 'Horizon choisi', 'Viager occupé/libre', 'Coefficient professionnel'],
       link: '/viager',
       category: 'Immobilier'
     },
@@ -239,7 +245,7 @@ function HomepageContent() {
       icon: Landmark,
       description: 'Simulateur de prêt avec tableau d\'amortissement complet',
       status: 'Disponible',
-      features: ['Tableau d\'amortissement', 'Assurance emprunteur', 'Graphiques d\'évolution', 'Coût total du crédit'],
+      features: ['Tableau d\'amortissement', 'Assurance emprunteur', 'Échéancier CSV', 'Coût total du crédit'],
       link: '/pret',
       category: 'Immobilier'
     },
@@ -259,7 +265,7 @@ function HomepageContent() {
       icon: Hotel,
       description: 'Statut LMNP ou LMP, micro-BIC vs réel avec amortissement',
       status: 'Disponible',
-      features: ['Détection statut auto', 'Amortissement par composant', 'Micro-BIC vs réel', 'Plus-value à la revente'],
+      features: ['Détection statut auto', 'Dotation indicative', 'Micro-BIC vs réel', 'Plus-value à la revente'],
       link: '/lmnp',
       isNew: true,
       category: 'Fiscalité'
@@ -278,7 +284,7 @@ function HomepageContent() {
       icon: Award,
       description: 'Plus-values pro avec exonérations (151 septies, départ retraite...)',
       status: 'Disponible',
-      features: ['PV court terme / long terme', 'Exonérations auto-détectées', 'Art. 151 septies / 238 quindecies', 'Départ retraite'],
+      features: ['PV court terme / long terme', 'Conditions à confirmer', 'Art. 151 septies / 238 quindecies', 'Départ retraite'],
       link: '/plusvalue-pro',
       isNew: true,
       category: 'Fiscalité'
@@ -294,7 +300,7 @@ function HomepageContent() {
       category: 'Patrimoine'
     },
     {
-      title: 'Donation / Succession',
+      title: 'Donation',
       icon: Gift,
       description: 'Calcul des droits selon lien de parenté avec optimisations',
       status: 'Disponible',
@@ -373,7 +379,7 @@ function HomepageContent() {
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-full mb-8">
                   <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-indigo-700">15 calculateurs professionnels</span>
+                  <span className="text-sm font-semibold text-indigo-700">19 calculateurs professionnels</span>
                 </div>
 
                 <h1 className="font-bold mb-6 leading-tight text-4xl md:text-6xl">
@@ -474,7 +480,7 @@ function HomepageContent() {
                           <div className="px-3 py-1 bg-green-100 border border-green-200 rounded-full">
                             <div className="flex items-center gap-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-xs font-semibold text-green-700">Conforme 2026</span>
+                              <span className="text-xs font-semibold text-green-700">Règles 2026</span>
                             </div>
                           </div>
                         </div>
@@ -508,7 +514,7 @@ function HomepageContent() {
                     <div className="flex items-center gap-2">
                       <Zap className="w-5 h-5" />
                       <div>
-                        <div className="text-sm font-bold">&lt; 100ms</div>
+                        <div className="text-sm font-bold">Calcul local</div>
                         <div className="text-xs opacity-90">Ultra-rapide</div>
                       </div>
                     </div>
@@ -547,12 +553,12 @@ function HomepageContent() {
                 <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-50">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
-                      src="/images/calculs-financiers-pixabay.jpg"
-                      alt="Calculatrice et stylo sur des documents financiers annotés"
+                      src="/images/maison-bois-pixabay.jpg"
+                      alt="Petite maison en bois posée sur l’herbe"
                       fill
                       sizes="(min-width: 1280px) 592px, (min-width: 1024px) calc(50vw - 48px), calc(100vw - 48px)"
                       quality={75}
-                      className="object-cover"
+                      className="object-cover object-right"
                     />
                     <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
                   </div>
@@ -561,9 +567,9 @@ function HomepageContent() {
                   <div className="absolute bottom-6 right-6 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl" />
                 </div>
 
-                <div className="absolute -bottom-4 -right-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
+                <div className="absolute -bottom-4 -left-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
                   <div className="text-xs font-semibold uppercase tracking-wide mb-1">Outils disponibles</div>
-                  <div className="text-4xl font-black">15</div>
+                  <div className="text-4xl font-black">19</div>
                   <div className="text-xs mt-1 opacity-90">calculateurs pro</div>
                 </div>
               </div>
@@ -582,21 +588,21 @@ function HomepageContent() {
                     <Clock className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-1">Gagnez du temps</h3>
-                      <p className="text-gray-600">Plus de 5 minutes économisées sur chaque calcul complexe</p>
+                      <p className="text-gray-600">Comparez vos hypothèses et conservez le détail du calcul</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Shield className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Fiabilité totale</h3>
-                      <p className="text-gray-600">Barèmes 2026 officiels, calculs vérifiés et conformes</p>
+                      <h3 className="font-semibold text-gray-900 mb-1">Calculs expliqués</h3>
+                      <p className="text-gray-600">Sources fiscales datées, exemples et limites de calcul</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Star className="w-6 h-6 text-indigo-600 mt-1 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-1">Suite complète</h3>
-                      <p className="text-gray-600">15 calculateurs couvrant l&apos;immobilier, la fiscalité, le patrimoine et l&apos;entreprise</p>
+                      <p className="text-gray-600">19 calculateurs couvrant l&apos;immobilier, la fiscalité, le patrimoine et l&apos;entreprise</p>
                     </div>
                   </div>
                 </div>
@@ -605,20 +611,21 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Solutions Grid - 15 outils avec filtre par catégorie */}
+        <section className="mx-auto max-w-7xl px-6 py-12"><div className="rounded-2xl bg-indigo-50 p-6 md:p-10"><h2 className="text-2xl font-bold">Préparer votre opération, comprendre votre calcul</h2><p className="mt-3 max-w-3xl">Achat, donation, succession ou investissement : partez d’un exemple chiffré, rassemblez les pièces et retrouvez le calculateur adapté.</p><Link href="/guides" className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-indigo-700 px-5 py-3 text-white">Découvrir les 12 guides pratiques</Link></div></section>
+        {/* Solutions Grid - 19 outils avec filtre par catégorie */}
         <section id="solutions" className="py-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 border border-green-200 rounded-full mb-4">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-semibold text-green-700">15 outils disponibles</span>
+                <span className="text-sm font-semibold text-green-700">19 outils disponibles</span>
               </div>
               <h2 className="font-bold mb-4 text-gray-900 text-3xl md:text-5xl">
                 Des outils puissants pour votre quotidien
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Immobilier, fiscalité, patrimoine, entreprise : une suite complète de calculateurs
-                professionnels, gratuits et conformes aux barèmes 2026.
+                gratuits, avec leurs hypothèses et références fiscales.
               </p>
             </div>
 
@@ -730,8 +737,8 @@ function HomepageContent() {
 
             <div className="grid gap-8 mb-16 grid-cols-1 lg:grid-cols-3">
               {[
-                { icon: Calculator, value: '15', label: 'Calculateurs disponibles', color: 'from-indigo-50 to-indigo-100' },
-                { icon: Users, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
+                { icon: Calculator, value: '19', label: 'Calculateurs disponibles', color: 'from-indigo-50 to-indigo-100' },
+                { icon: Users, value: '12', label: 'Guides pratiques', color: 'from-green-50 to-green-100' },
                 { icon: Star, value: '100%', label: 'Gratuit & Open Source', color: 'from-yellow-50 to-yellow-100' }
               ].map((item, i) => (
                 <div key={i} className={`bg-gradient-to-br ${item.color} rounded-2xl p-8 text-center hover:scale-105 transition-transform`}>
@@ -775,7 +782,7 @@ function HomepageContent() {
               Simplifiez vos calculs notariaux dès maintenant
             </h2>
             <p className="text-xl text-gray-300 mb-10">
-              15 calculateurs professionnels à votre disposition.
+              19 calculateurs professionnels à votre disposition.
               <br />100% gratuit, sans inscription, open source.
             </p>
 

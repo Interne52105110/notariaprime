@@ -1,6 +1,7 @@
+import { variationIR, type FoyerFiscal } from './foyer';
 import { repartirDeficitFoncier } from './fiscal';
 export type ReportFoncier={annee:number;montant:number};
-export interface ParametresFoncier {loyers:number;interets:number;autresCharges:number;travaux:number;locaux:number;tmi:number;tauxPS:number;annee:number;renovation:boolean;travauxEligibles:number;microConfirme:boolean;reports:ReportFoncier[]}
+export interface ParametresFoncier {foyer?:FoyerFiscal;loyers:number;interets:number;autresCharges:number;travaux:number;locaux:number;tmi:number;tauxPS:number;annee:number;renovation:boolean;travauxEligibles:number;microConfirme:boolean;reports:ReportFoncier[]}
 export function consommerReportsFoncier(reports:ReportFoncier[],annee:number,revenu:number) {
   let restant=Math.max(0,revenu),utilise=0;
   const suite=reports.filter(r=>r.annee<annee&&r.annee+10>=annee).map(r=>({...r})).sort((a,b)=>a.annee-b.annee);
@@ -15,9 +16,9 @@ export function liquidationFoncier(p:ParametresFoncier) {
   const deficit=repartirDeficitFoncier(p.loyers,p.interets,deductions-p.interets,plafond);
   const reportReel=consommerReportsFoncier(p.reports,p.annee,Math.max(0,p.loyers-deductions));
   const reportMicro=consommerReportsFoncier(p.reports,p.annee,p.loyers*.7);
-  const gainGlobal=deficit.imputation*p.tmi/100;
+  const gainGlobal=-variationIR(-deficit.imputation,p.tmi,p.foyer);
   const regime=(base:number,deduction:number,gain:number)=>{
-    const ir=base*p.tmi/100,ps=base*p.tauxPS/100,fiscalite=ir+ps;
+    const ir=variationIR(base,p.tmi,p.foyer),ps=base*p.tauxPS/100,fiscalite=ir+ps;
     return {revenusBruts:p.loyers,deductions:deduction,revenuImposable:base,impotRevenu:ir,prelevementsSociaux:ps,totalFiscalite:fiscalite,revenuNetApresImpot:p.loyers-chargesCash-fiscalite+gain};
   };
   const micro=regime(reportMicro.revenu,p.loyers*.3,0),reel=regime(reportReel.revenu,deductions,gainGlobal);

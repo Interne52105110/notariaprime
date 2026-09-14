@@ -43,6 +43,12 @@ export function surtaxePlusValue(pv: number): number {
   return pv * 0.06;
 }
 
+/** CGI 979 : la réduction effectivement imputée ne peut excéder l'IFI. */
+export function reductionPlafonnementIFI(ifi: number, revenus: number, impots: number) {
+  if (![ifi, revenus, impots].every(n => Number.isFinite(n) && n >= 0)) throw new RangeError('Montants IFI invalides');
+  return Math.min(ifi, Math.max(0, ifi + impots - .75 * revenus));
+}
+
 /** CGI 977 : la décote ne s'applique qu'aux contribuables assujettis. */
 export function decoteIFI(assiette: number): number {
   return assiette > 1300000 && assiette < 1400000 ? 17500 - assiette * 0.0125 : 0;

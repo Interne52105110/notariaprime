@@ -1,3 +1,4 @@
+import { variationIR, type FoyerFiscal } from './foyer';
 import { abattementsPlusValue, anneesRevolues, surtaxePlusValue } from './fiscal';
 
 export type TypeMeuble = 'classique' | 'tourisme_classe' | 'tourisme_non_classe';
@@ -10,6 +11,7 @@ export function microMeuble(type: TypeMeuble, recettes: number, n1: number, n2: 
 }
 
 export interface MeubleAnnuel {
+  foyer?: FoyerFiscal;
   type: TypeMeuble; recettes: number; n1: number; n2: number; conditionsMicro: boolean;
   autresRevenus: number; charges: number; fraisReel: number; amortissement: number; reportAmortissement: number;
   deficitImputable: number; tmi: number; ps: number; socialForce: boolean;
@@ -33,8 +35,8 @@ export function liquidationMeuble(p: MeubleAnnuel) {
   const baseReel = avantDeficits - deficitUtilise;
   const socialMicro = cotisant ? (p.cotisationsMicro ?? 0) : micro.base * p.ps / 100;
   const socialReel = cotisant ? p.cotisationsReel! : baseReel * p.ps / 100;
-  const irMicro = micro.base * p.tmi / 100;
-  const irReel = baseReel * p.tmi / 100;
+  const irMicro = variationIR(micro.base, p.tmi, p.foyer);
+  const irReel = variationIR(baseReel, p.tmi, p.foyer);
   const cashMicro = p.recettes - p.charges - irMicro - socialMicro;
   const cashReel = p.recettes - p.charges - p.fraisReel - irReel - socialReel;
   return { lmp, cotisant, micro, avantAmortissement, amortissementDeduit, reportAmortissement,
@@ -53,6 +55,7 @@ export function plusValueMeuble(p: { acquisition: number; vente: number; fraisAc
   for (const v of [p.acquisition,p.vente,p.fraisAcquisition,p.fraisVente,p.travaux,p.reintegration,p.ps]) if (!Number.isFinite(v) || v < 0) throw Error('Vérifiez les montants de la revente.');
   if (!p.dateAcquisition || !p.dateVente || !Number.isFinite(Date.parse(p.dateAcquisition)) || !Number.isFinite(Date.parse(p.dateVente)) || p.dateVente < p.dateAcquisition) throw Error('Les dates de détention sont invalides.');
   if (p.fraisVente > p.vente || p.reintegration > p.acquisition + p.fraisAcquisition + p.travaux) throw Error('Frais ou amortissements supérieurs à leur base.');
+  if (p.dateVente < '2026-01-01') throw Error('Ce simulateur applique les règles 2026. Pour une cession antérieure, faites établir un calcul au millésime concerné.');
   const annees = anneesRevolues(p.dateAcquisition, p.dateVente);
   const reintegration = p.exceptionResidence ? 0 : p.reintegration;
   const brute = Math.max(0,p.vente-p.fraisVente-p.acquisition-p.fraisAcquisition-p.travaux+reintegration);

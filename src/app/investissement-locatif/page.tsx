@@ -514,7 +514,7 @@ export default function SimulateurInvestissementLocatif() {
       - impotAnnuel / 12 + avantageFiscalAnnuel / 12;
 
     // Effort epargne mensuel
-    const effortEpargne = mensualiteTotale - loyerEffectifMensuel + charges + taxeFonciere / 12;
+    const effortEpargne = Math.max(0, -cashFlowMensuel);
 
     // Cout total interets
     const totalInterets = mensualiteHorsAssurance * dureeEmpruntMois - montantEmprunt;
@@ -1298,7 +1298,7 @@ export default function SimulateurInvestissementLocatif() {
                           <span className="font-bold text-indigo-700">{formatEuros(resultats.prixRevient)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Effort d&apos;epargne/mois</span>
+                          <span className="text-gray-600">Effort d&apos;épargne après fiscalité / mois</span>
                           <span className={`font-bold ${resultats.effortEpargne > 0 ? 'text-red-600' : 'text-green-600'}`}>
                             {resultats.effortEpargne > 0 ? formatEuros(Math.round(resultats.effortEpargne)) : 'Aucun'}
                           </span>
@@ -1454,7 +1454,7 @@ export default function SimulateurInvestissementLocatif() {
                         <p className="text-sm font-bold text-gray-700 mb-2">Zones eligibles : A bis, A, B1</p>
                         <p className="text-sm text-gray-600">
                           Plafond loyer zone {formData.zone} : <strong>{PLAFONDS_LOYER_PINEL[formData.zone]?.toFixed(2) || 'N/A'} €/m²</strong>
-                          {' '} soit <strong>{formatEurosDecimal((PLAFONDS_LOYER_PINEL[formData.zone] || 0) * parseNumber(formData.surface))}/mois</strong> pour {formData.surface} m²
+                          {' '} soit <strong>{formatEurosDecimal(resultats.loyerPlafondPinel)}/mois</strong> après coefficient de surface utile (annexes retenues comprises)
                         </p>
                         <p className="text-sm text-gray-600 mt-1">
                           Plafond investissement : <strong>{formatEuros(PLAFOND_INVESTISSEMENT_PINEL)}</strong> et <strong>5 500 €/m²</strong>
@@ -1470,7 +1470,7 @@ export default function SimulateurInvestissementLocatif() {
                           >
                             <span className="text-sm font-bold text-indigo-700 flex items-center gap-2">
                               <Info className="w-4 h-4 text-indigo-500" />
-                              Plafonds de ressources des locataires (2025)
+                              Plafonds de ressources des locataires (2026)
                             </span>
                             {showPlafondsRessources
                               ? <ChevronUp className="w-4 h-4 text-indigo-500" />
@@ -1563,7 +1563,7 @@ export default function SimulateurInvestissementLocatif() {
                           >
                             <span className="text-sm font-bold text-teal-700 flex items-center gap-2">
                               <Info className="w-4 h-4 text-teal-500" />
-                              Plafonds de ressources des locataires (2025)
+                              Plafonds de ressources des locataires (2026)
                             </span>
                             {showPlafondsRessources
                               ? <ChevronUp className="w-4 h-4 text-teal-500" />
@@ -2229,7 +2229,7 @@ function FAQSection() {
       questions: [
         {
           q: "Le dispositif Pinel est-il encore valable en 2025 ?",
-          r: "Le dispositif Pinel a officiellement pris fin le 31 decembre 2024. Les investisseurs ayant acquis un bien avant cette date continuent de beneficier de la reduction d'impot pendant toute la duree de leur engagement (6, 9 ou 12 ans). Les taux reduits de 2024 etaient : 9% sur 6 ans, 12% sur 9 ans, et 14% sur 12 ans, pour un plafond de 300 000€ d'investissement et 5 500€/m². Les zones eligibles etaient A bis, A et B1. Les dispositifs adoptés depuis, dont l’amortissement du bailleur privé prévu par la loi de finances 2026, suivent des conditions différentes et ne sont pas simulés dans cet onglet. Les alternatives actuelles sont le Denormandie (ancien avec travaux), Loc'Avantages, le deficit foncier ou le statut LMNP."
+          r: "Le dispositif Pinel a officiellement pris fin le 31 decembre 2024. Les investisseurs ayant acquis un bien avant cette date continuent de beneficier de la reduction d'impot pendant toute la duree de leur engagement (6, 9 ou 12 ans). Les taux reduits de 2024 etaient : 9% sur 6 ans, 12% sur 9 ans, et 14% sur 12 ans, pour un plafond de 300 000€ d'investissement et 5 500€/m². Les zones eligibles etaient A bis, A et B1. Les dispositifs adoptés depuis, dont l’amortissement du bailleur privé prévu par la loi de finances 2026, suivent des conditions différentes : le simulateur Relance logement du menu les traite séparément. Les alternatives actuelles sont le Denormandie (ancien avec travaux), Loc'Avantages, le deficit foncier ou le statut LMNP."
         },
         {
           q: "Qu'est-ce que le dispositif Denormandie ?",

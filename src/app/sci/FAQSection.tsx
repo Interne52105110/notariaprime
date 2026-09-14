@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/app/sci/FAQSection.tsx
-// DESCRIPTION: Composant FAQ pour le simulateur SCI
+// LEGACY : FAQ non importée par la page actuelle. Contenu historique non validé.
+// Ne pas réintroduire sans revue ; utiliser les guides et la méthode de la page actuelle.
 // ============================================
 
 "use client";

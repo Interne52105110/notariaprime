@@ -16,6 +16,10 @@ const toolCategories = [
       { name: 'Plus-Value Immobilière', href: '/plusvalue', icon: TrendingUp, color: 'text-emerald-600' },
       { name: 'Simulateur Viager', href: '/viager', icon: HeartHandshake, color: 'text-orange-600' },
       { name: 'Investissement Locatif', href: '/investissement-locatif', icon: BarChart3, color: 'text-cyan-600' },
+      { name: 'Capacité d’emprunt', href: '/capacite-emprunt', icon: Landmark, color: 'text-indigo-600' },
+      { name: 'Achat, location et revente', href: '/strategie-immobiliere', icon: Building, color: 'text-purple-600' },
+      { name: 'Relance logement', href: '/relance-logement', icon: Home, color: 'text-teal-600' },
+      { name: 'Guides pratiques', href: '/guides', icon: Calculator, color: 'text-indigo-600' },
       { name: 'Prêt Immobilier', href: '/pret', icon: Landmark, color: 'text-indigo-600' },
     ]
   },
@@ -32,7 +36,8 @@ const toolCategories = [
     title: 'Patrimoine',
     tools: [
       { name: 'Simulateur SCI', href: '/sci', icon: Building, color: 'text-purple-600' },
-      { name: 'Donation / Succession', href: '/donation', icon: Gift, color: 'text-rose-600' },
+      { name: 'Droits de succession', href: '/succession', icon: Gift, color: 'text-rose-600' },
+      { name: 'Donation', href: '/donation', icon: Gift, color: 'text-rose-600' },
       { name: 'Holding Patrimoniale', href: '/holding', icon: Briefcase, color: 'text-slate-600' },
       { name: 'Assurance-Vie', href: '/assurance-vie', icon: Shield, color: 'text-teal-600' },
     ]
@@ -63,6 +68,7 @@ export default function Header() {
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
@@ -135,13 +141,15 @@ export default function Header() {
                     <button
                       className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 font-medium transition"
                       onClick={() => setDropdownOpen(!dropdownOpen)}
+                      aria-expanded={dropdownOpen}
+                      aria-controls="outils-desktop"
                     >
                       Tous les outils
                       <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {dropdownOpen && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 grid grid-cols-2 gap-6">
+                      <div id="outils-desktop" className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] max-h-[calc(100vh-110px)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 grid grid-cols-2 gap-6">
                         {toolCategories.map((category) => (
                           <div key={category.title}>
                             <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">{category.title}</p>
