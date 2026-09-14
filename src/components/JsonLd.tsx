@@ -3,7 +3,9 @@
 // payload is in the HTML <head> at SSR (not after hydration), which is
 // what Google's crawler reads.
 
-const BASE = "https://notariaprime.fr";
+import { SITE_URL } from "@/config/site";
+
+const BASE = SITE_URL;
 
 function JsonLd({ data, id }: { data: object; id: string }) {
   return (

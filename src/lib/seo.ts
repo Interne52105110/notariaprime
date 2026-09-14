@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/config/site";
 
-const BASE = "https://notariaprime.fr";
+const BASE = SITE_URL;
 const OG_IMAGE = `${BASE}/images/og-image.png`;
 
 interface PageMeta {
@@ -63,9 +64,9 @@ const PAGE_META: Record<string, PageMeta> = {
     keywords: ["prêt immobilier", "capacité emprunt", "mensualité", "TAEG", "tableau amortissement", "assurance emprunteur"],
   },
   "/pretaxe": {
-    title: "Calculateur prélèvement à la source — taux, revenus, retenue",
-    description: "Simulez votre taux de prélèvement à la source : taux personnalisé, taux neutre, taux individualisé, retenue sur salaire, acomptes BIC/BNC. Mise à jour barème 2026.",
-    keywords: ["prélèvement à la source", "taux PAS", "taux neutre", "taux individualisé", "acomptes"],
+    title: "Calculateur frais de notaire 2026 — émoluments, DMTO, prétaxe des actes",
+    description: "Calculez les frais de notaire d'une vente, donation, succession ou acte de société : émoluments au tarif réglementé 2026/2028, droits de mutation (DMTO) par département, CSI, formalités et débours. Prétaxe détaillée, 49 types d'actes.",
+    keywords: ["frais de notaire", "calcul frais de notaire", "émoluments notaire", "DMTO", "prétaxe", "tarif réglementé notaire 2026", "droits de mutation"],
   },
   "/retraite": {
     title: "Simulateur retraite — pension, cotisations, fiscalité",
@@ -86,6 +87,11 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Comparateur statut juridique — SAS, SARL, EURL, SCI, micro",
     description: "Comparez les statuts juridiques pour votre activité : SAS, SASU, SARL, EURL, SCI, auto-entrepreneur. Fiscalité, charges sociales, responsabilité, capital, transmission.",
     keywords: ["statut juridique", "SAS vs SARL", "EURL", "SCI", "auto-entrepreneur", "comparateur statut"],
+  },
+  "/succession": {
+    title: "Calculateur droits de succession 2026 — abattements, barème par héritier",
+    description: "Calculez les droits de succession dus par chaque héritier : abattement 100 000 € par enfant, barème progressif, conjoint exonéré, représentation, nue-propriété, rappel fiscal des donations.",
+    keywords: ["droits de succession", "abattement succession", "barème succession", "héritier", "conjoint survivant", "nue-propriété"],
   },
   "/viager": {
     title: "Calculateur viager — bouquet, rente et fiscalité",
@@ -126,6 +132,11 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Cours comptable-taxateur notarial 2026 — taxation, comptabilité, Genapi",
     description: "Cours complet et à jour 2025/2026 pour comptable-taxateur en office notarial : taxation des actes (émoluments, DMTO, CSI), comptabilité notariale (comptes clients, CDC, inspection), arrêté tarifaire 25/02/2026, loi de finances 2025, Genapi/iNot compta, cas pratiques.",
     keywords: ["comptable taxateur", "taxateur notarial", "comptabilité notariale", "émoluments notaire", "DMTO 2025", "barème notaire 2026", "Genapi compta", "Caisse des Dépôts notaire"],
+  },
+  "/methodologie-fiscale": {
+    title: "Méthodologie fiscale — calculs, sources et hypothèses des simulateurs",
+    description: "Sources officielles (Légifrance, DGFiP, BOFiP, Urssaf), hypothèses et limites de chaque simulateur NotariaPrime : barèmes 2026, DMTO, plus-values, IFI, SCI, LMNP, retraite.",
+    keywords: ["méthodologie fiscale", "sources DGFiP", "barème 2026", "hypothèses de calcul", "BOFiP"],
   },
   "/contact": {
     title: "Contact — équipe NotariaPrime, support, demandes",

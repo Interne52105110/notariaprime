@@ -49,18 +49,11 @@ const toolCategories = [
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const updateDeviceType = () => {
-      setIsDesktop(window.innerWidth > 1024);
-      setIsMobile(window.innerWidth < 768);
-    };
-
     const handleScroll = () => setScrolled(window.scrollY > 20);
 
     const handleClickOutside = (e: MouseEvent) => {
@@ -69,13 +62,10 @@ export default function Header() {
       }
     };
 
-    updateDeviceType();
-    window.addEventListener('resize', updateDeviceType);
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
-      window.removeEventListener('resize', updateDeviceType);
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -112,8 +102,7 @@ export default function Header() {
                 </div>
               </Link>
 
-              {isDesktop && (
-                <nav className="flex items-center gap-6">
+              <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation principale">
                   <a
                     href="/pretaxe"
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
@@ -155,7 +144,7 @@ export default function Header() {
                       <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 grid grid-cols-2 gap-6">
                         {toolCategories.map((category) => (
                           <div key={category.title}>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{category.title}</h4>
+                            <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">{category.title}</p>
                             <div className="space-y-1">
                               {category.tools.map((tool) => (
                                 <a
@@ -177,12 +166,10 @@ export default function Header() {
                     )}
                   </div>
                 </nav>
-              )}
             </div>
 
             <div className="flex items-center gap-4">
-              {!isMobile && (
-                <>
+              <div className="hidden md:flex items-center gap-4">
                   <a
                     href="https://github.com/Interne52105110/notariaprime"
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
@@ -196,29 +183,28 @@ export default function Header() {
                     Calculer
                     <ArrowRight className="w-4 h-4" />
                   </a>
-                </>
-              )}
-              {!isDesktop && (
+                </div>
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  className="lg:hidden p-3 hover:bg-gray-100 rounded-lg transition"
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="navigation-mobile"
                   aria-label="Menu"
                 >
                   {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
-              )}
             </div>
           </div>
         </div>
       </nav>
 
       {/* Menu mobile */}
-      {mobileMenuOpen && !isDesktop && (
-        <div className="fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
+      {mobileMenuOpen && (
+        <div id="navigation-mobile" className="lg:hidden fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
           <nav className="flex flex-col p-6 space-y-2">
             {toolCategories.map((category) => (
               <div key={category.title}>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-4 mb-2 px-3">{category.title}</h4>
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mt-4 mb-2 px-3">{category.title}</p>
                 {category.tools.map((tool) => (
                   <a
                     key={tool.href}

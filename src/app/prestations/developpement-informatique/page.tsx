@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { Code2, CheckCircle2, Sparkles, Zap, Cpu, Database, Globe, ExternalLink } from 'lucide-react';
 
 export default function DeveloppementInformatique() {
@@ -58,15 +59,13 @@ export default function DeveloppementInformatique() {
                 <span className="px-3 py-1 bg-white/20 rounded-lg text-sm">Intégrations sur mesure</span>
               </div>
             </div>
-            <a 
-              href="https://notariaprime.fr" 
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition"
             >
               <Globe className="w-5 h-5" />
               Découvrir NotariaPrime
-            </a>
+            </Link>
           </div>
 
           {/* Fonctionnalités NotariaPrime */}

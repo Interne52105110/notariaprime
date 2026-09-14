@@ -1,8 +1,11 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/config/site";
 
-const BASE = "https://notariaprime.fr";
+// Pas de lastModified : la valeur `new Date()` à chaque build signalait à
+// Google que toutes les pages changeaient en permanence, ce qui décrédibilise
+// le sitemap. Google ignore changefreq/priority ; seule la liste d'URLs compte.
 
-// Calculateurs (priority haute : c'est le coeur produit)
+// Calculateurs (coeur produit)
 const CALCULATEURS = [
   "assurance-vie",
   "donation",
@@ -18,6 +21,7 @@ const CALCULATEURS = [
   "revenus-fonciers",
   "sci",
   "statut-juridique",
+  "succession",
   "viager",
 ];
 
@@ -30,39 +34,30 @@ const PAGES_EDITO = [
   { path: "prestations/developpement-informatique", priority: 0.6 },
   { path: "prestations/expertise-immobiliere", priority: 0.6 },
   { path: "documentation", priority: 0.6 },
+  { path: "methodologie-fiscale", priority: 0.6 },
   { path: "cours-comptable-taxateur", priority: 0.7 },
   { path: "contact", priority: 0.5 },
   { path: "roadmap", priority: 0.4 },
 ];
 
-// Pages légales (priority basse : nécessaires mais pas cibles SEO)
+// Pages légales (nécessaires mais pas cibles SEO)
 const PAGES_LEGALES = ["mentions-legales", "cgu", "confidentialite"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-
   return [
-    {
-      url: BASE,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
+    { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1.0 },
     ...CALCULATEURS.map((slug) => ({
-      url: `${BASE}/${slug}`,
-      lastModified,
+      url: `${SITE_URL}/${slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.9,
     })),
     ...PAGES_EDITO.map(({ path, priority }) => ({
-      url: `${BASE}/${path}`,
-      lastModified,
+      url: `${SITE_URL}/${path}`,
       changeFrequency: "monthly" as const,
       priority,
     })),
     ...PAGES_LEGALES.map((slug) => ({
-      url: `${BASE}/${slug}`,
-      lastModified,
+      url: `${SITE_URL}/${slug}`,
       changeFrequency: "yearly" as const,
       priority: 0.3,
     })),

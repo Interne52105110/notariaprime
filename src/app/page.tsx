@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, memo, useCallback } from 'react';
+import Image from 'next/image';
 import MainLayout from '@/components/MainLayout';
 import {
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
@@ -128,10 +129,14 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       </div>
 
       {isAvailable ? (
-        <div className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all">
+        <a
+          href={solution.link}
+          className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all"
+          onClick={(e) => e.stopPropagation()}
+        >
           Utiliser l&apos;outil
           <ArrowRight className="w-4 h-4" />
-        </div>
+        </a>
       ) : (
         <span className="text-gray-500 text-sm">Bientôt disponible</span>
       )}
@@ -146,23 +151,8 @@ const CATEGORIES = ['Tous', 'Immobilier', 'Fiscalité', 'Patrimoine', 'Entrepris
 type Category = typeof CATEGORIES[number];
 
 function HomepageContent() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [activeCategory, setActiveCategory] = useState<Category>('Tous');
 
-  useEffect(() => {
-    const updateDeviceType = () => {
-      setIsDesktop(window.innerWidth > 1024);
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    updateDeviceType();
-    window.addEventListener('resize', updateDeviceType);
-
-    return () => {
-      window.removeEventListener('resize', updateDeviceType);
-    };
-  }, []);
 
   const stats: Stat[] = [
     { value: '15', label: 'Calculateurs professionnels', trend: 'COMPLET' },
@@ -378,14 +368,14 @@ function HomepageContent() {
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300 opacity-20 rounded-full blur-3xl animate-blob animation-delay-2000" />
 
           <div className="relative max-w-7xl mx-auto px-6">
-            <div className={`grid items-center gap-12 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="grid items-center gap-12 grid-cols-1 lg:grid-cols-2">
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-full mb-8">
                   <Sparkles className="w-4 h-4 text-indigo-600" />
                   <span className="text-sm font-semibold text-indigo-700">15 calculateurs professionnels</span>
                 </div>
 
-                <h1 className={`font-bold mb-6 leading-tight ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
+                <h1 className="font-bold mb-6 leading-tight text-4xl md:text-6xl">
                   <span className="text-gray-900">Tous vos calculs</span>
                   <br />
                   <span className="text-gray-900">notariaux en </span>
@@ -400,7 +390,7 @@ function HomepageContent() {
                   Gratuit, rapide et confidentiel.
                 </p>
 
-                <div className={`flex gap-4 mb-8 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+                <div className="flex gap-4 mb-8 flex-col md:flex-row">
                   <a
                     href="#solutions"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
@@ -433,8 +423,7 @@ function HomepageContent() {
               </div>
 
               {/* Illustration */}
-              {isDesktop && (
-                <div className="relative">
+              <div className="relative hidden lg:block">
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 opacity-30 blur-3xl rounded-3xl" />
 
                   <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-200 p-8 backdrop-blur-xl">
@@ -534,7 +523,6 @@ function HomepageContent() {
                     }
                   `}</style>
                 </div>
-              )}
             </div>
           </div>
         </section>
@@ -542,7 +530,7 @@ function HomepageContent() {
         {/* Stats Bar */}
         <section className="py-16 bg-gray-50 border-y border-gray-200">
           <div className="max-w-7xl mx-auto px-6">
-            <div className={`grid gap-8 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2'}`}>
+            <div className="grid gap-8 grid-cols-2 lg:grid-cols-4">
               {stats.map((stat, index) => (
                 <StatsCard key={index} stat={stat} />
               ))}
@@ -553,14 +541,17 @@ function HomepageContent() {
         {/* Section Success Story */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6">
-            <div className={`grid items-center gap-12 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="grid items-center gap-12 grid-cols-1 lg:grid-cols-2">
               <div className="relative">
                 <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-50">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src="/images/notaire.webp"
-                      alt="Professionnelle satisfaite utilisant NotariaPrime"
-                      className="w-full h-full object-cover object-[center_30%] scale-105 hover:scale-110 transition-transform duration-500"
+                    <Image
+                      src="/images/calculs-financiers-pixabay.jpg"
+                      alt="Calculatrice et stylo sur des documents financiers annotés"
+                      fill
+                      sizes="(min-width: 1280px) 592px, (min-width: 1024px) calc(50vw - 48px), calc(100vw - 48px)"
+                      quality={75}
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
                   </div>
@@ -577,7 +568,7 @@ function HomepageContent() {
               </div>
 
               <div>
-                <h2 className={`font-bold mb-6 text-gray-900 ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
+                <h2 className="font-bold mb-6 text-gray-900 text-3xl md:text-4xl">
                   Votre expertise mérite mieux qu&apos;une calculette
                 </h2>
                 <p className="text-xl text-gray-600 mb-6">
@@ -621,7 +612,7 @@ function HomepageContent() {
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-semibold text-green-700">15 outils disponibles</span>
               </div>
-              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              <h2 className="font-bold mb-4 text-gray-900 text-3xl md:text-5xl">
                 Des outils puissants pour votre quotidien
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -636,7 +627,8 @@ function HomepageContent() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                  aria-pressed={activeCategory === cat}
+                  className={`min-h-11 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
                     activeCategory === cat
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -644,7 +636,7 @@ function HomepageContent() {
                 >
                   {cat}
                   {cat !== 'Tous' && (
-                    <span className="ml-1.5 text-xs opacity-75">
+                    <span className="ml-1.5 text-xs">
                       ({allSolutions.filter(s => s.category === cat).length})
                     </span>
                   )}
@@ -652,7 +644,7 @@ function HomepageContent() {
               ))}
             </div>
 
-            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-3' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {filteredSolutions.map((solution, index) => (
                 <SolutionCard key={index} solution={solution} index={index} onHover={handleCardHover} />
               ))}
@@ -668,7 +660,7 @@ function HomepageContent() {
                 <Rocket className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-semibold text-blue-700">Prochainement</span>
               </div>
-              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+              <h2 className="font-bold mb-4 text-gray-900 text-2xl md:text-3xl">
                 Encore plus de fonctionnalités en préparation
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -676,7 +668,7 @@ function HomepageContent() {
               </p>
             </div>
 
-            <div className={`grid gap-4 max-w-2xl mx-auto ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
+            <div className="grid gap-4 max-w-2xl mx-auto grid-cols-1 md:grid-cols-3">
               {upcomingFeatures.map((item, i) => (
                 <div
                   key={i}
@@ -707,7 +699,7 @@ function HomepageContent() {
         <section id="features" className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              <h2 className="font-bold mb-4 text-gray-900 text-3xl md:text-5xl">
                 Une technologie de pointe
               </h2>
               <p className="text-xl text-gray-600">
@@ -715,7 +707,7 @@ function HomepageContent() {
               </p>
             </div>
 
-            <div className={`grid gap-6 ${isDesktop ? 'grid-cols-4' : isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {features.map((feature, index) => (
                 <FeatureCard key={index} feature={feature} />
               ))}
@@ -727,7 +719,7 @@ function HomepageContent() {
         <section className="py-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className={`font-bold mb-4 text-gray-900 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+              <h2 className="font-bold mb-4 text-gray-900 text-3xl md:text-5xl">
                 Rejoignez la communauté
               </h2>
               <p className="text-xl text-gray-600">
@@ -735,7 +727,7 @@ function HomepageContent() {
               </p>
             </div>
 
-            <div className={`grid gap-8 mb-16 ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'}`}>
+            <div className="grid gap-8 mb-16 grid-cols-1 lg:grid-cols-3">
               {[
                 { icon: Calculator, value: '15', label: 'Calculateurs disponibles', color: 'from-indigo-50 to-indigo-100' },
                 { icon: Users, value: '500+', label: 'Calculs par mois', color: 'from-green-50 to-green-100' },
@@ -760,7 +752,7 @@ function HomepageContent() {
                 NotariaPrime est un projet communautaire. Proposez des fonctionnalités,
                 signalez des bugs, ou contribuez au code sur GitHub.
               </p>
-              <div className={`flex gap-4 justify-center ${isMobile ? 'flex-col' : 'flex-row'}`}>
+              <div className="flex gap-4 justify-center flex-col md:flex-row">
                 <a href="https://github.com/Interne52105110/notariaprime" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold transition-all">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -778,7 +770,7 @@ function HomepageContent() {
         {/* CTA Section final */}
         <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+            <h2 className="font-bold mb-6 text-white text-3xl md:text-5xl">
               Simplifiez vos calculs notariaux dès maintenant
             </h2>
             <p className="text-xl text-gray-300 mb-10">
@@ -786,7 +778,7 @@ function HomepageContent() {
               <br />100% gratuit, sans inscription, open source.
             </p>
 
-            <div className={`flex gap-4 justify-center mb-10 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+            <div className="flex gap-4 justify-center mb-10 flex-col md:flex-row">
               <a href="/pretaxe" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
                 Calculer maintenant
                 <ArrowRight className="w-5 h-5" />
