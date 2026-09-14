@@ -128,10 +128,14 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       </div>
 
       {isAvailable ? (
-        <div className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all">
+        <a
+          href={solution.link}
+          className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all"
+          onClick={(e) => e.stopPropagation()}
+        >
           Utiliser l&apos;outil
           <ArrowRight className="w-4 h-4" />
-        </div>
+        </a>
       ) : (
         <span className="text-gray-500 text-sm">Bientôt disponible</span>
       )}

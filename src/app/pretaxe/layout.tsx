@@ -8,8 +8,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CalculatorJsonLd
-        name="Calculateur prélèvement à la source — taux, revenus, retenue"
-        description="Simulez votre taux de prélèvement à la source : taux personnalisé, taux neutre, taux individualisé, retenue sur salaire, acomptes BIC/BNC. Mise à jour barème 2026."
+        name="Calculateur frais de notaire 2026 — émoluments, DMTO, prétaxe des actes"
+        description="Calculez les frais de notaire d'une vente, donation, succession ou acte de société : émoluments au tarif réglementé 2026/2028, droits de mutation par département, CSI, formalités et débours."
         path="/pretaxe"
       />
       {children}

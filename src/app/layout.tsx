@@ -4,6 +4,7 @@ import "./globals.css";
 import { CookieBanner } from "@/components/CookieBanner";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/JsonLd";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { SITE_URL } from "@/config/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,7 +18,7 @@ const inter = Inter({
 // openGraph from this file lets per-page metadata take precedence
 // rather than being overridden by the layout default.
 export const metadata: Metadata = {
-  metadataBase: new URL("https://notariaprime.fr"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "NotariaPrime — Calculateurs notariés et fiscaux gratuits",
     template: "%s",
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://notariaprime.fr",
+    url: SITE_URL,
     siteName: "NotariaPrime",
     title: "NotariaPrime — Calculateurs notariés et fiscaux gratuits",
     description: "15+ simulateurs fiscaux et notariés français, conformes au tarif réglementé 2026/2028. Open source, 100% gratuit.",
