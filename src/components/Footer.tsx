@@ -89,20 +89,20 @@ export default function Footer() {
               © 2025-2026 NotariaPrime. Tous droits réservés. Projet open source sous licence MIT.
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <a href="/mentions-legales" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/mentions-legales" className="inline-flex min-h-11 items-center text-gray-600 hover:text-gray-900 transition">
                 Mentions légales
               </a>
-              <a href="/confidentialite" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/confidentialite" className="inline-flex min-h-11 items-center text-gray-600 hover:text-gray-900 transition">
                 Confidentialité
               </a>
-              <a href="/cgu" className="text-gray-600 hover:text-gray-900 transition">
+              <a href="/cgu" className="inline-flex min-h-11 items-center text-gray-600 hover:text-gray-900 transition">
                 CGU
               </a>
             </div>
           </div>
         </div>
       </div>
-    <div className="text-center pb-6 text-sm"><a href="/methodologie-fiscale" className="underline">Calculs, sources et hypothèses fiscales</a></div>
+    <div className="text-center px-6 pt-4 pb-6 text-sm"><a href="/methodologie-fiscale" className="inline-flex min-h-11 items-center underline">Calculs, sources et hypothèses fiscales</a></div>
     </footer>
   );
 }

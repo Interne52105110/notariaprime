@@ -131,6 +131,7 @@ const SolutionCard = memo(({ solution, index, onHover }: {
       {isAvailable ? (
         <a
           href={solution.link}
+          aria-label={`Utiliser l’outil : ${solution.title}`}
           className="inline-flex items-center gap-2 text-indigo-600 font-semibold transition-all"
           onClick={(e) => e.stopPropagation()}
         >
