@@ -3,22 +3,17 @@
 "use client";
 
 import MainLayout from '@/components/MainLayout';
-import { ACTES_SUCCESSORAUX, ASSIETTES_SUCCESSORALES } from '@/lib/actes-successoraux';
-import React, { useState, useEffect } from 'react';
+import { ASSIETTES_SUCCESSORALES } from '@/lib/actes-successoraux';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Calculator, FileText, Euro, Building, Users, Home,
-  FileSignature, Landmark, Briefcase, File,
+  Calculator, FileText, Euro, Building, File,
   AlertCircle, MapPin, Download, Save, History, FileEdit,
-  Plus, Minus, UserPlus, X
+  X
 } from 'lucide-react';
-import { actesConfig, configParDefaut } from '@/config/actesConfig';
+import { actesConfig } from '@/config/actesConfig';
 import {
   departements,
-  CategorieActes,
-  Donateur,
-  Donataire,
   HistoriqueCalcul,
-  Usufruit,
   Taxes,
   Documents,
   Formalites
@@ -33,517 +28,46 @@ import {
   calculerCSI,
   calculerTPF,
   calculerDroitPartage,
-  calculerUsufruit,
-  appliquerConfigParDefaut,
-  exporterPDF
+  appliquerConfigParDefaut
 } from './PretaxeCalculations';
 import EmolumentsTab from './EmolumentsTab';
 import DeboursTab from './DeboursTab';
 import FormalitesTab from './FormalitesTab';
 import DocumentsTab from './DocumentsTab';
 import TaxesTab from './TaxesTab';
-import RecapitulatifTab from './RecapitulatifTab';
+import PretaxeReport, { totalPretaxe, type RapportPretaxe } from './PretaxeReport';
+import DonationPretaxeForm from './DonationPretaxeForm';
+import { estDonation, basesDonation, nouveauDonateur, additionnerEmoluments, calculerEcretement, type DonateurPretaxe } from './pretaxeAuditRules';
+import { lignesFormalites, lignesDocuments, lignesDepenses, totalLignes, type FormaliteAjoutee, type DepenseAjoutee } from './pretaxeLines';
+import { lireMontant, arrondirCentimes, sommeMontants } from '@/lib/montants';
+import { exporterPretaxePDF } from './pretaxePdf';
 import OCRScanner from './OCRScanner';
+import { categoriesActes } from './pretaxeCatalog';
 
 // ============================================================================
 // CATÉGORIES D'ACTES
 // ============================================================================
 
-const categoriesActes: Record<string, CategorieActes> = {
-  
-  'actes_non_tarifies': {
-    label: '⚖️ Actes non tarifés (honoraires libres)',
-    icon: FileEdit,
-    actes: {
-      'statuts_societe_simple': {
-        label: 'Statuts société (EURL/SASU simple)',
-        type: 'non_tarife',
-        description: 'Rédaction statuts société unipersonnelle standard',
-        honorairesEstimes: '800-1 000€ HT'
-      },
-      'statuts_societe_complexe': {
-        label: 'Statuts société (SARL/SAS pluripersonnelle)',
-        type: 'non_tarife',
-        description: 'Rédaction statuts avec clauses spécifiques',
-        honorairesEstimes: '1 500-2 500€ HT'
-      },
-      'bail_commercial': {
-        label: 'Bail commercial',
-        type: 'non_tarife',
-        description: 'Rédaction bail 3/6/9 - Usage: ~1 mois loyer annuel HT',
-        honorairesEstimes: '800-2 000€ HT + enregistrement 25€'
-      },
-      'bail_professionnel': {
-        label: 'Bail professionnel',
-        type: 'non_tarife',
-        description: 'Bail professions libérales - Usage: ~1 mois loyer annuel HT',
-        honorairesEstimes: '500-1 000€ HT'
-      },
-      'commodat': {
-        label: 'Commodat (prêt à usage)',
-        type: 'non_tarife',
-        description: 'Contrat de prêt gratuit d\'un bien',
-        honorairesEstimes: '400-800€ HT'
-      },
-      'promesse_vente': {
-        label: 'Promesse de vente',
-        type: 'non_tarife',
-        description: 'Compromis de vente immobilière',
-        honorairesEstimes: '500-1 200€ HT'
-      },
-      'convention_indivision': {
-        label: 'Convention d\'indivision',
-        type: 'non_tarife',
-        description: 'Organisation gestion bien indivis',
-        honorairesEstimes: '600-1 200€ HT'
-      },
-      'vente_fonds_commerce': {
-        label: 'Vente de fonds de commerce',
-        type: 'non_tarife',
-        description: 'Sans publicité foncière',
-        honorairesEstimes: '1 000-2 500€ HT'
-      },
-      'pacte_actionnaires': {
-        label: 'Pacte d\'actionnaires',
-        type: 'non_tarife',
-        description: 'Clauses gouvernance et cession',
-        honorairesEstimes: '1 500-3 000€ HT'
-      },
-      'mandat_vente': {
-        label: 'Mandat de vente/recherche',
-        type: 'non_tarife',
-        description: 'Mandat immobilier',
-        honorairesEstimes: '300-800€ HT'
-      },
-      'transaction_mediation': {
-        label: 'Transaction (Art. 2044 CC)',
-        type: 'non_tarife',
-        description: 'Résolution amiable conflits',
-        honorairesEstimes: '800-2 000€ HT'
-      },
-      'consultation': {
-        label: 'Consultation juridique',
-        type: 'non_tarife',
-        description: 'Conseil détachable',
-        honorairesEstimes: '150-500€ HT/heure'
-      },
-      'pacte_tontine': {
-        label: 'Pacte tontinier',
-        type: 'non_tarife',
-        description: 'Clause d\'accroissement concubins',
-        honorairesEstimes: '600-1 200€ HT'
-      }
-    }
-  },
-
-  'biens_immobiliers': {
-    label: 'Actes relatifs aux biens immobiliers',
-    icon: Home,
-    actes: {
-      'vente_immeuble': { 
-        label: 'Vente d\'immeuble',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      },
-      'vente_terrain': { 
-        label: 'Vente de terrain à bâtir',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      },
-      'vefa': { 
-        label: 'Vente en état futur d\'achèvement (VEFA)',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      },
-      'echange': { 
-        label: 'Échange d\'immeubles',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      },
-      'licitation': {
-        label: 'Licitation (gré à gré, cessant l\'indivision)',
-        type: 'proportionnel',
-        // A444-87 1°a : licitation de gré à gré faisant cesser l'indivision.
-        // Autres cas : part acquise 3,870/1,596/1,064/0,798 (1°b) ;
-        // adjudication volontaire 7,740/3,193/2,128/1,596 (2°).
-        tranches: [
-          { min: 0, max: 6500, taux: 2.580 },
-          { min: 6500, max: 17000, taux: 1.064 },
-          { min: 17000, max: 60000, taux: 0.709 },
-          { min: 60000, max: Infinity, taux: 0.532 }
-        ]
-      },
-      'partage': { 
-        label: 'Partage',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 4.837 },
-          { min: 6500, max: 17000, taux: 1.995 },
-          { min: 17000, max: 60000, taux: 1.330 },
-          { min: 60000, max: Infinity, taux: 0.998 }
-        ]
-      },
-      'bail_construction': {
-        label: 'Bail à construction (trois composantes)',
-        type: 'proportionnel',
-        // A444-104 : première composante ; les deux autres sont ajoutées par le calculateur dédié.
-        tranches: [
-          { min: 0, max: 6500, taux: 3.289 },
-          { min: 6500, max: 17000, taux: 1.809 },
-          { min: 17000, max: 30000, taux: 1.234 },
-          { min: 30000, max: Infinity, taux: 0.905 }
-        ]
-      },
-      'servitude_fixe': { 
-        label: 'Constitution servitude ≤ 4 875€',
-        type: 'fixe',
-        montant: 188.66
-      },
-      'servitude_proportionnel': { 
-        label: 'Constitution servitude > 4 875€',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      }
-    }
-  },
-
-  'famille': {
-    label: 'Actes relatifs à la famille',
-    icon: Users,
-    actes: {
-      'contrat_mariage': {
-        label: 'Contrat de mariage',
-        type: 'proportionnel',
-        // A444-82 2° : au-delà de 30 800 €. En deçà : émolument fixe 188,68 €.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      },
-      'changement_regime': {
-        label: 'Changement de régime matrimonial',
-        type: 'proportionnel',
-        // A444-82 : même barème que le contrat de mariage.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      },
-      'pacs': { 
-        label: 'PACS',
-        type: 'fixe',
-        montant: 84.51,
-        droitFixeEnreg: 125 // CGI 680
-      },
-      'divorce_consentement': { 
-        label: 'Dépôt convention divorce par consentement mutuel',
-        type: 'fixe',
-        montant: 41.20
-      },
-      'liquidation_regime': { 
-        label: 'Projet de liquidation du régime matrimonial (A444-83)',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 2.515 },
-          { min: 6500, max: 17000, taux: 1.038 },
-          { min: 17000, max: 60000, taux: 0.692 },
-          { min: 60000, max: Infinity, taux: 0.519 }
-        ]
-      }
-    }
-  },
-
-  'successions': {
-    label: 'Actes relatifs aux successions et libéralités',
-    icon: FileSignature,
-    actes: {
-      ...ACTES_SUCCESSORAUX,
-      'donation': { 
-        label: 'Donation',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 4.837 },
-          { min: 6500, max: 17000, taux: 1.995 },
-          { min: 17000, max: 60000, taux: 1.330 },
-          { min: 60000, max: Infinity, taux: 0.998 }
-        ]
-      },
-      'donation_partage': { 
-        label: 'Donation-partage',
-        type: 'proportionnel',
-        tranches: [
-          { min: 0, max: 6500, taux: 4.837 },
-          { min: 6500, max: 17000, taux: 1.995 },
-          { min: 17000, max: 60000, taux: 1.330 },
-          { min: 60000, max: Infinity, taux: 0.998 }
-        ]
-      },
-      'testament': {
-        label: 'Testament authentique',
-        type: 'fixe',
-        montant: 113.19 // Enregistrement après décès : CGI 636, non dû à la rédaction.
-      },
-      'notoriete': {
-        label: 'Acte de notoriété',
-        type: 'fixe',
-        montant: 56.60,
-        droitFixeEnreg: 25 // CGI art. 846 bis (notoriété autre qu'usucapion)
-      },
-      'attestation_propriete': {
-        label: 'Attestation de propriété immobilière',
-        type: 'proportionnel',
-        droitFixeEnreg: 125, // CGI art. 680 (attestation après décès)
-        // A444-59 : attestation notariée (paliers à 30 000 €).
-        tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 1.064 },
-          { min: 17000, max: 30000, taux: 0.726 },
-          { min: 30000, max: Infinity, taux: 0.532 }
-        ]
-      },
-      'inventaire': {
-        label: 'Inventaire successoral',
-        type: 'fixe',
-        // A444-155 : acte d'inventaire = émolument fixe.
-        montant: 75.46,
-        droitFixeEnreg: 125 // CGI 680 : acte innommé, pas de multiplication par vacation
-      },
-      'renonciation': {
-        label: 'Renonciation à succession (honoraires à convenir)',
-        type: 'non_tarife',
-        description: 'Prestation à convenir avec le notaire ; pas d’assimilation au tarif de notoriété.',
-        droitFixeEnreg: 125 // CGI 680 : renonciation pure et simple reçue par notaire
-      },
-      'declaration_succession': {
-        label: 'Déclaration de succession',
-        type: 'proportionnel',
-        // A444-63 : sur l'actif brut total.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.548 },
-          { min: 6500, max: 17000, taux: 0.851 },
-          { min: 17000, max: 30000, taux: 0.580 },
-          { min: 30000, max: Infinity, taux: 0.426 }
-        ]
-      }
-    }
-  },
-
-  'prets': {
-    label: 'Actes relatifs aux prêts et sûretés',
-    icon: Landmark,
-    actes: {
-      'pret_hypothecaire': {
-        label: 'Prêt avec hypothèque conventionnelle',
-        type: 'proportionnel',
-        // A444-143 : prêt, obligation, ouverture de crédit.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      },
-      'pret_viager': {
-        label: 'Prêt viager hypothécaire',
-        type: 'proportionnel',
-        // A444-143 (barème des prêts).
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      },
-      'mainlevee_saisie': {
-        label: 'Mainlevée de saisie',
-        type: 'fixe',
-        montant: 26.41,
-        droitFixeEnreg: 25 // CGI art. 846 bis (mainlevée d'hypothèque)
-      },
-      'mainlevee_hypo_inf': {
-        label: 'Mainlevée hypothèque < 77 090€',
-        type: 'fixe',
-        montant: 78.00,
-        droitFixeEnreg: 25 // CGI art. 846 bis
-      },
-      'mainlevee_hypo_sup': {
-        label: 'Mainlevée hypothèque ≥ 77 090€',
-        type: 'fixe',
-        montant: 150.00,
-        droitFixeEnreg: 25 // CGI art. 846 bis
-      },
-      'caution_hypothecaire': {
-        label: 'Caution / affectation hypothécaire (relatif à l\'acte principal)',
-        type: 'proportionnel',
-        relatif: true,
-        // A444-136 : ¼ (tiers dans l'acte principal), ½ (autres cas) ou
-        // totalité (pas d'acte principal) de l'émolument du prêt (A444-143).
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      },
-      'ppd': {
-        label: 'Privilège de prêteur de deniers (relatif à l\'acte principal)',
-        type: 'proportionnel',
-        relatif: true,
-        // A444-148 (sûreté) : même logique de quotité que la caution.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.290 },
-          { min: 6500, max: 17000, taux: 0.532 },
-          { min: 17000, max: 60000, taux: 0.355 },
-          { min: 60000, max: Infinity, taux: 0.266 }
-        ]
-      }
-    }
-  },
-
-  'societes': {
-    label: 'Actes relatifs aux sociétés',
-    icon: Briefcase,
-    actes: {
-      'constitution_societe': {
-        label: 'Constitution de société — apport en publicité foncière',
-        type: 'proportionnel',
-        // A444-158 : en matière de sociétés, actes relatifs à des biens soumis
-        // à publicité foncière (apport immobilier). Sans bien immobilier, la
-        // constitution relève des honoraires libres.
-        tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 0.798 },
-          { min: 17000, max: 60000, taux: 0.532 },
-          { min: 60000, max: Infinity, taux: 0.399 }
-        ]
-      },
-      'augmentation_capital': {
-        label: 'Augmentation de capital',
-        type: 'non_tarife',
-        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4° C. com.). Si l\'augmentation porte sur un apport immobilier, l\'émolument A444-158 s\'applique sur la valeur du bien. Incorporation de bénéfices, réserves ou provisions : enregistrement gratuit (CGI 812). Apports purs et simples : CGI 810, sous réserve des mutations taxables visées à 809 et des apports à titre onéreux.',
-        honorairesEstimes: '500-1 500€ HT'
-      },
-      'cession_parts': {
-        label: 'Cession de parts sociales',
-        type: 'non_tarife',
-        description: 'Honoraires libres (annexe 4-9, 4°). Droit d\'enregistrement (CGI art. 726) : 3 % sur les parts de SARL/SNC après abattement de 23 000 € × (parts cédées / total des parts) ; 0,1 % pour les actions de SA/SAS ; 5 % pour les sociétés à prépondérance immobilière.',
-        honorairesEstimes: '300-800€ HT + droit d\'enregistrement'
-      },
-      'dissolution': {
-        label: 'Dissolution de société',
-        type: 'non_tarife',
-        description: 'Honoraires libres. Dissolution sans transmission de biens : enregistrement gratuit (CGI 811). En cas de partage de l\'actif, droit de partage 2,50 % (CGI art. 746) et émolument de partage A444-121.',
-        honorairesEstimes: '500-1 500€ HT'
-      },
-      'transformation': {
-        label: 'Transformation de société',
-        type: 'non_tarife',
-        description: 'Acte de société non réservé : honoraires libres (annexe 4-9, 4°). Enregistrement au droit fixe le cas échéant.',
-        honorairesEstimes: '500-1 200€ HT'
-      }
-    }
-  },
-
-  'associations': {
-    label: 'Actes relatifs aux associations',
-    icon: Users,
-    actes: {
-      'fusion_apport_association_immobilier': {
-        label: "Fusion / apport d'association — bien soumis à publicité foncière",
-        type: 'proportionnel',
-        droitFixeEnreg: 125, // CGI art. 680 : droit fixe pour fusion d'assos non lucratives conforme statuts
-        // A444-159 : en matière d'association (n°160 du tableau 5), actes
-        // relatifs à des biens faisant l'objet d'une publicité foncière.
-        // Barème identique en chiffres au n°54 / A444-91 (ventes), mais base
-        // juridique distincte — ne pas substituer les fondements.
-        // Sans bien immobilier transféré, l'acte relève des honoraires libres
-        // (silence du tarif pour les associations, annexe 4-9 par analogie).
-        tranches: [
-          { min: 0, max: 6500, taux: 3.870 },
-          { min: 6500, max: 17000, taux: 1.596 },
-          { min: 17000, max: 60000, taux: 1.064 },
-          { min: 60000, max: Infinity, taux: 0.799 }
-        ]
-      },
-      'acte_association_hors_immobilier': {
-        label: "Acte d'association sans transfert d'immeuble",
-        type: 'non_tarife',
-        description: "Honoraires libres (silence du tarif pour les associations, annexe 4-9 par analogie avec les actes de société non immobiliers ; fondement renvoi R.444-3, libre fixation R.444-16). Régime spécial fusions art. 816 CGI inapplicable aux associations (réservé aux personnes morales passibles de l'IS) ; droit fixe d'enregistrement 125 € (art. 680 CGI) pour fusion d'assos non lucratives conforme statuts, sinon DMTG/DMTO selon qualification (vigilance sur la prise en charge d'un passif → risque d'apport à titre onéreux).",
-        honorairesEstimes: 'à convenir'
-      }
-    }
-  },
-
-  'divers': {
-    label: 'Actes divers et procurations',
-    icon: File,
-    actes: {
-      'procuration': {
-        label: 'Procuration',
-        type: 'fixe',
-        montant: 26.41,
-        droitFixeEnreg: 25 // CGI art. 846 bis
-      },
-      'quittance': {
-        label: 'Quittance (pure et simple)',
-        type: 'proportionnel',
-        // A444-161 1° : quittance pure et simple (paliers à 30 000 €).
-        tranches: [
-          { min: 0, max: 6500, taux: 1.935 },
-          { min: 6500, max: 17000, taux: 1.064 },
-          { min: 17000, max: 30000, taux: 0.726 },
-          { min: 30000, max: Infinity, taux: 0.532 }
-        ]
-      },
-      'consentement_adoption': { 
-        label: 'Consentement à adoption',
-        type: 'fixe',
-        montant: 77.11
-      }
-    }
-  }
-};
-
 function PretaxeContent() {
   // États principaux
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedActe, setSelectedActe] = useState('');
-  const [montantActe, setMontantActe] = useState('');
+  const [montantSaisi, setMontantActe] = useState('');
+  const [donationParticipants, setDonationParticipants] = useState<DonateurPretaxe[]>([nouveauDonateur('donateur-1')]);
+  const [donationPublication, setDonationPublication] = useState('');
+  const [sureteBases, setSureteBases] = useState({tpf:'', csi:''});
+  const [recalculDemandé, demanderRecalcul] = useState(0);
+  const [formalitesAjoutees, setFormalitesAjoutees] = useState<FormaliteAjoutee[]>([]);
+  const [depensesAjoutees, setDepensesAjoutees] = useState<DepenseAjoutee[]>([]);
+  const donation = estDonation(selectedActe);
+  const basesDonateurs = useMemo(()=>basesDonation(donationParticipants),[donationParticipants]);
+  const donationValide = basesDonateurs.length > 0 && basesDonateurs.every(d=>d.valide);
+  const montantActe = donation ? String(sommeMontants(basesDonateurs.map(d=>d.base))) : montantSaisi;
   const [bailBases, setBailBases] = useState({suite:0, residuelle:0, publication:0});
   const [selectedDepartement, setSelectedDepartement] = useState('75');
   const [activeTab, setActiveTab] = useState('emoluments');
   
   // États pour les calculs
-  const [emoluments, setEmoluments] = useState(0);
   const [emolumentsDetail, setEmolumentsDetail] = useState({
     bruts: 0,
     majoration: 0,
@@ -560,7 +84,7 @@ function PretaxeContent() {
   const [quotiteSurete, setQuotiteSurete] = useState(0.5);
   
   const [debours, setDebours] = useState({
-    csi: 15,
+    csi: 0,
     etatsHypothecaires: 0,
     cadastre: 0,
     urbanisme: 0
@@ -606,44 +130,9 @@ function PretaxeContent() {
     accessoiresSurete: 20
   });
 
-  // États pour les donations multiples
-  const [donateurs, setDonateurs] = useState<Donateur[]>([
-    { id: 1, nom: 'Donateur 1', montant: '', lien: 'parent' }
-  ]);
-  const [donataires, setDonataires] = useState<Donataire[]>([
-    { id: 1, nom: 'Donataire 1', part: '100' }
-  ]);
-  const [usufruit, setUsufruit] = useState<Usufruit>({
-    actif: false,
-    ageUsufruitier: '',
-    valeur: 0
-  });
-  
   // États pour l'historique
   const [historiqueCalculs, setHistoriqueCalculs] = useState<HistoriqueCalcul[]>([]);
   const [afficherHistorique, setAfficherHistorique] = useState(false);
-  
-  const ajouterDonateur = () => {
-    const newId = Math.max(...donateurs.map(d => d.id)) + 1;
-    setDonateurs([...donateurs, { id: newId, nom: `Donateur ${newId}`, montant: '', lien: 'parent' }]);
-  };
-  
-  const supprimerDonateur = (id: number) => {
-    if (donateurs.length > 1) {
-      setDonateurs(donateurs.filter(d => d.id !== id));
-    }
-  };
-  
-  const ajouterDonataire = () => {
-    const newId = Math.max(...donataires.map(d => d.id)) + 1;
-    setDonataires([...donataires, { id: newId, nom: `Donataire ${newId}`, part: '0' }]);
-  };
-  
-  const supprimerDonataire = (id: number) => {
-    if (donataires.length > 1) {
-      setDonataires(donataires.filter(d => d.id !== id));
-    }
-  };
   
   const sauvegarderCalcul = () => {
     const nouveauCalcul: HistoriqueCalcul = {
@@ -670,6 +159,8 @@ function PretaxeContent() {
     if (selectedActe) appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes);
     setTaxes(t=>({...t,complement:0}));
     setBailBases({suite:0,residuelle:0,publication:0});
+    setFormalitesAjoutees([]); setDepensesAjoutees([]);
+    setDonationPublication(''); setSureteBases({tpf:'',csi:''});
   }, [selectedActe]);
 
   useEffect(()=>{
@@ -680,15 +171,20 @@ function PretaxeContent() {
     if (selectedActe) {
       
       const acte = categoriesActes[selectedCategory]?.actes[selectedActe];
-      const baseSaisie=Number(montantActe.replace(/\s/g,'').replace(',','.'));
-      if(acte?.type==='proportionnel'&&(!Number.isFinite(baseSaisie)||baseSaisie<0||(montantActe.trim()===''&&!['contrat_mariage','changement_regime'].includes(selectedActe)))){
-        setEmoluments(0);setEmolumentsDetail({bruts:0,majoration:0,avantRemise:0,remise10:0,remise20:0,nets:0});
+      const baseSaisie=lireMontant(montantActe);
+      if(acte?.type==='proportionnel'&&((baseSaisie===null && !(['contrat_mariage','changement_regime'].includes(selectedActe) && montantActe.trim()===''))||(donation&&!donationValide)||(montantActe.trim()===''&&!['contrat_mariage','changement_regime'].includes(selectedActe)))){setEmolumentsDetail({bruts:0,majoration:0,avantRemise:0,remise10:0,remise20:0,nets:0});
         setDebours(d=>({...d,csi:0}));
         setTaxes(t=>({...t,departementale:0,communale:0,fraisAssiette:0,tpf:0,droitPartage:0,droitFixe:acte.droitFixeEnreg??0}));
         return;
       }
       if (acte && acte.type !== 'non_tarife') {
-        if (acte.type === 'fixe' && acte.montant) {
+        if (donation && acte.tranches) {
+          const detail = additionnerEmoluments(basesDonateurs.map(d=>calculerEmoluments(d.base,acte.tranches!,selectedDepartement,appliquerRemise)));
+          setEmolumentsDetail(detail);
+          const basePublication = lireMontant(donationPublication);
+          if (selectedActe !== 'donation_mobiliere' && basePublication !== null && basePublication > 0) calculerCSI(donationPublication,setDebours);
+          else setDebours(d=>({...d,csi:0}));
+        } else if (acte.type === 'fixe' && acte.montant) {
           const detail = {
             bruts: acte.montant,
             majoration: Math.round(acte.montant * getMajorationDOMTOM(selectedDepartement)) / 100,
@@ -698,15 +194,14 @@ function PretaxeContent() {
             nets: Math.round(acte.montant * (100 + getMajorationDOMTOM(selectedDepartement))) / 100
           };
           setEmolumentsDetail(detail);
-          setEmoluments(detail.nets);
         } else if (acte.type === 'proportionnel' && acte.tranches) {
-          const montant = Number(montantActe.replace(/\s/g, '').replace(',', '.'));
-          if (Number.isFinite(montant) && montant >= 0) {
+          const montant = lireMontant(montantActe) ?? (['contrat_mariage','changement_regime'].includes(selectedActe) && montantActe.trim()==='' ? 0 : null);
+          if (montant !== null) {
             const detailBase = ['contrat_mariage','changement_regime'].includes(selectedActe)
               ? calculerEmolumentsMariage(montant, selectedDepartement, appliquerRemise)
               : selectedActe === 'bail_construction' ? calculerEmolumentsBail([montant,bailBases.suite,bailBases.residuelle],selectedDepartement,appliquerRemise)
               : calculerEmoluments(montant, acte.tranches, selectedDepartement, appliquerRemise);
-            if(actesConfig[selectedActe]?.taxes?.type==='partage'&&(taxes.reprisesNaturePartage??0)>0){
+            if(selectedActe==='partage'&&(taxes.reprisesNaturePartage??0)>0){
               const supplement=calculerEmoluments(taxes.reprisesNaturePartage!,[{min:0,max:Infinity,taux:.484}],selectedDepartement,appliquerRemise);
               for(const k of ['bruts','majoration','avantRemise','remise20','nets'] as const)detailBase[k]=Math.round((detailBase[k]+supplement[k])*100)/100;
             }
@@ -728,7 +223,6 @@ function PretaxeContent() {
                 }
               : detailBase;
             setEmolumentsDetail(detail);
-            setEmoluments(detail.nets);
             // Régime de taxe selon le type d'acte
             const configActe = actesConfig[selectedActe];
             const typeTaxe = configActe?.taxes?.type;
@@ -750,8 +244,11 @@ function PretaxeContent() {
               // frais, indemnités), usuellement +20 % (ou +15 %).
               const accPct = Number(taxes.accessoiresSurete ?? 20);
               const baseSurete = Math.round(montant * (1 + accPct / 100) * 100) / 100;
-              calculerCSI(montantActe, setDebours, 0.5, baseSurete); // inscription hypo : CSI 0,05 %
-              calculerTPF(montantActe, setTaxes, baseSurete);
+              const baseCSI = lireMontant(sureteBases.csi) ?? baseSurete;
+              const baseTPF = lireMontant(sureteBases.tpf) ?? baseSurete;
+              if(baseCSI>0) calculerCSI(montantActe, setDebours, 0.5, baseCSI);
+              else setDebours(d=>({...d,csi:0}));
+              calculerTPF(montantActe, setTaxes, baseTPF);
             } else if (typeTaxe === 'partage') {
               const immobilier=Math.max(0,taxes.valeurImmoPartage??0);
               if(immobilier>0)calculerCSI(String(immobilier),setDebours);
@@ -770,74 +267,47 @@ function PretaxeContent() {
       const droitFixe = acte?.droitFixeEnreg ?? 0;
       setTaxes(prev => ({ ...prev, droitFixe }));
     }
-  }, [selectedActe, montantActe, bailBases, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.actifNetPartage, taxes.valeurImmoPartage, taxes.reprisesNaturePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
+  }, [recalculDemandé, selectedActe, montantActe, basesDonateurs, donationPublication, sureteBases, donation, donationValide, bailBases, selectedDepartement, taxes.typeBien, taxes.primoAccedant, taxes.valeurMobilier, taxes.regimePartage, taxes.actifNetPartage, taxes.valeurImmoPartage, taxes.reprisesNaturePartage, taxes.accessoiresSurete, selectedCategory, appliquerRemise, quotiteSurete]);
 
-  const round2 = (n: number) => Math.round(n * 100) / 100;
-
+  const round2 = arrondirCentimes;
   const tauxTVA = getTauxTVA(selectedDepartement);
+  const majoration = getMajorationDOMTOM(selectedDepartement);
   const totalEmoluments = round2(emolumentsDetail.nets);
-  const montantTVA = round2(totalEmoluments * (tauxTVA / 100));
-  const totalEmolumentsTTC = round2(totalEmoluments + montantTVA);
-
-  const totalDebours = round2(Object.values(debours).reduce((sum, val) => sum + val, 0));
-
-  const totalFormalites = round2(
-    (formalites.publiciteFonciere.actif ? formalites.publiciteFonciere.montant : 0) +
-    (formalites.cadastre.actif ? formalites.cadastre.montant : 0) +
-    (formalites.casierJudiciaire.actif ? formalites.casierJudiciaire.montant : 0) +
-    (formalites.notification.actif ? formalites.notification.montant : 0) +
-    (formalites.mesurage.actif ? formalites.mesurage.montant : 0) +
-    Object.values(formalites.diagnostics).reduce((sum, d) => sum + (d.actif ? d.montant : 0), 0) +
-    (formalites.transmissionCSN.actif ? formalites.transmissionCSN.montant : 0) +
-    (formalites.requisition.actif ? formalites.requisition.montant : 0) +
-    (formalites.teleactes.actif ? formalites.teleactes.montant : 0) +
-    (formalites.lettresRecommandees.actif ? formalites.lettresRecommandees.montant : 0) +
-    (formalites.declarationPlusValue.actif ? formalites.declarationPlusValue.montant : 0)
-  );
-
-  const totalFormalitesTTC = round2(totalFormalites * (1 + tauxTVA / 100));
-
-  // Copies authentiques/exécutoires/hypothécaires (A444-172 n°212) : 1,13 €
-  // par page délivrée, toutes natures confondues. Archivage numérisé
-  // (A444-173 n°214) : 0,19 €/page. Le tarif réglementé ne prévoit pas de
-  // « frais de rôle » distinct : seules les copies et l'archivage de l'acte
-  // sont facturés à la page (confirmé par les exemples de taxe : copie de
-  // 15 pages = 15 × 1,13 = 16,95 €).
-  const TARIF_COPIE_PAGE = 1.13;
-  const TARIF_ARCHIVAGE_PAGE = 0.19;
-  const nbCopies = documents.copiesExecutoires + documents.copiesAuthentiques + documents.copiesHypothecaires;
-  const copies = round2(nbCopies * documents.pagesActe * TARIF_COPIE_PAGE);
-  const archivage = documents.archivageNumerise ? round2(documents.pagesActe * TARIF_ARCHIVAGE_PAGE) : 0;
-  const totalDocuments = round2(copies + archivage);
-  const totalDocumentsTTC = round2(totalDocuments * (1 + tauxTVA / 100));
-
-  const totalTaxes = round2(
-    taxes.departementale + taxes.communale + taxes.fraisAssiette +
-    (taxes.tpf || 0) + (taxes.droitPartage || 0) + (taxes.droitFixe || 0) + (taxes.complement || 0)
-  );
-
-  // Écrêtement (art. R.444-6 et A.444-175 du Code de commerce) : pour une
-  // mutation immobilière à titre onéreux, la somme des émoluments d'acte et de
-  // formalités (nette des remises) ne peut excéder 10 % de la valeur du bien,
-  // sans pouvoir être inférieure à 90 €. L'excédent est restitué (émolument
-  // d'écrêtement négatif).
-  const PLANCHER_ECRETEMENT = 90;
-  const montantAssietteActe = parseFloat((montantActe || '').replace(/\s/g, '')) || 0;
-  const estMutationEcretable = taxes.typeBien === 'ancien' || taxes.typeBien === 'neuf';
-  let ecretementHT = 0;
-  if (estMutationEcretable && montantAssietteActe > 0) {
-    const plafondEcretement = Math.max(PLANCHER_ECRETEMENT, montantAssietteActe * 0.10);
-    const baseEcretable = totalEmoluments + totalFormalites; // HT (acte + formalités)
-    if (baseEcretable > plafondEcretement) {
-      ecretementHT = round2(baseEcretable - plafondEcretement);
-    }
-  }
-  const ecretementTTC = round2(ecretementHT * (1 + tauxTVA / 100));
-
-  const totalGeneral = round2(totalEmolumentsTTC + totalDebours + totalFormalitesTTC + totalDocumentsTTC + totalTaxes - ecretementTTC);
-
+  const montantTVA = round2(totalEmoluments*tauxTVA/100);
+  const totalEmolumentsTTC = sommeMontants([totalEmoluments,montantTVA]);
+  const formaliteRows = lignesFormalites(formalites,formalitesAjoutees,tauxTVA,majoration);
+  const documentRows = lignesDocuments(documents,tauxTVA,majoration);
+  const depenseRows = lignesDepenses(debours,taxes,depensesAjoutees);
+  const totalFormalites = totalLignes(formaliteRows,tauxTVA).ht;
+  const totalFormalitesTTC = totalLignes(formaliteRows,tauxTVA).ttc;
+  const totalDocuments = totalLignes(documentRows,tauxTVA).ht;
+  const totalDocumentsTTC = totalLignes(documentRows,tauxTVA).ttc;
+  const totalDebours = sommeMontants(depenseRows.filter(l=>l.nature==='debours').map(l=>l.ht));
+  const totalTaxes = sommeMontants(depenseRows.filter(l=>l.nature==='taxes').map(l=>l.ht));
+  const baseSureteDefaut = arrondirCentimes((lireMontant(montantActe)??0)*(1+(taxes.accessoiresSurete??20)/100));
+  const assiettesSurete = {tpf:lireMontant(sureteBases.tpf)??baseSureteDefaut,csi:lireMontant(sureteBases.csi)??baseSureteDefaut};
   const acteActuel = categoriesActes[selectedCategory]?.actes[selectedActe];
   const estActeNonTarife = acteActuel?.type === 'non_tarife';
+  const montantValide = lireMontant(montantActe);
+  const annexesValides = (donation?[donationPublication]:actesConfig[selectedActe]?.taxes?.type==='tpf'?[sureteBases.tpf,sureteBases.csi]:[]).every(value=>value.trim()===''||lireMontant(value)!==null);
+  const calculPret = annexesValides && !!departements[selectedDepartement] && !!acteActuel && !estActeNonTarife && (acteActuel.type==='fixe' || (donation ? donationValide : montantValide!==null || (['contrat_mariage','changement_regime'].includes(selectedActe) && montantActe.trim()==='')));
+  const ecretementHT = calculerEcretement(montantValide??0,['vente_immeuble','vente_terrain','vefa','echange','licitation'].includes(selectedActe),totalEmoluments,totalFormalites,totalDocuments);
+  const totaux = totalPretaxe(totalEmoluments,totalFormalites,totalDocuments,ecretementHT,tauxTVA,totalDebours,totalTaxes);
+  const totalGeneral = calculPret ? totaux.total : 0;
+  const rapport: RapportPretaxe = {
+    acte:acteActuel?.label??'', departement:`${selectedDepartement} - ${departements[selectedDepartement]?.nom??'à préciser'}`,
+    emoluments: donation && acteActuel?.tranches ? basesDonateurs.map(d=>({libelle:`${acteActuel.label} - ${d.nom}`,base:d.base,ht:calculerEmoluments(d.base,acteActuel.tranches!,selectedDepartement,appliquerRemise).nets})) : [{libelle:acteActuel?.label??'',base:montantValide??0,ht:totalEmoluments}],
+    lignes:[...formaliteRows,...documentRows,...depenseRows], emolumentsHT:totalEmoluments, formalitesHT:totalFormalites, documentsHT:totalDocuments,
+    debours:totalDebours,taxes:totalTaxes,ecretementHT,tauxTVA,tva:totaux.tva,total:totalGeneral,
+    notes:[
+      'Estimation des postes renseignés : formalités, quantités, droits et débours à adapter à la situation réelle. Les tarifs et régimes particuliers dépendent de la date et de la qualification de l’acte.',
+      ...(actesConfig[selectedActe]?.taxes?.type==='tpf'?[`Sûreté : assiette TPF ${assiettesSurete.tpf.toLocaleString('fr-FR')} EUR ; assiette CSI ${assiettesSurete.csi.toLocaleString('fr-FR')} EUR.`]:[]),
+      ...(donation && selectedActe!=='donation_mobiliere'?[`Assiette de publication renseignée pour la CSI : ${donationPublication || 'non renseignée'}.`]:[]),
+      ...(donation?['Donation : droits fiscaux et taxes de publication à compléter séparément. L’assiette des émoluments reste en pleine propriété en cas de réserve d’usufruit.',...donationParticipants.flatMap((d,i)=>d.transmissions.map(t=>`${d.nom||`Donateur ${i+1}`} : ${t.bien||'apport'} ; ${t.beneficiaires||'attribution non précisée'} ; ${t.droit==='nue_propriete_reserve'?'nue-propriété avec réserve d’usufruit':'pleine propriété'} ; base PP ${t.pleinePropriete} EUR.`))]:[]),
+      ...(appliquerRemise?['Remise de 20 % sur la fraction d’émoluments éligible au-delà de 100 000 EUR, par donateur pour une donation, sous réserve de la remise consentie par le notaire.']:[]),
+      ...(majoration?[`Majoration territoriale de ${majoration} % appliquée aux émoluments, formalités et copies (A444-53).`]:[]),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -851,14 +321,14 @@ function PretaxeContent() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Calculateur de frais notariés</h1>
-                  <p className="text-indigo-600 font-medium">Conforme tarif réglementé 2026/2028 — Arrêté du 25 février 2026</p>
+                  <p className="text-indigo-600 font-medium">Estimation détaillée — tarifs réglementés 2026/2028</p>
                 </div>
               </div>
             </div>
-            {!estActeNonTarife && (
+            {calculPret && (
               <div className="text-right">
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
-                  <p className="text-sm text-indigo-600 font-medium mb-1">Total général</p>
+                  <p className="text-sm text-indigo-600 font-medium mb-1">Total estimé des postes renseignés</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                     {totalGeneral.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </p>
@@ -869,21 +339,17 @@ function PretaxeContent() {
 
           <OCRScanner
             onExtract={(data) => {
-              if (data.departement && departements[data.departement]) {
-                setSelectedDepartement(data.departement);
-              }
-              if (data.categoryKey && categoriesActes[data.categoryKey]) {
-                setSelectedCategory(data.categoryKey);
-                if (data.acteKey && categoriesActes[data.categoryKey].actes[data.acteKey]) {
-                  setSelectedActe(data.acteKey);
-                }
-              }
-              if (data.montant) {
-                setMontantActe(data.montant);
-              }
-              if (data.valeurMobilier != null) {
-                setTaxes((prev) => ({ ...prev, valeurMobilier: data.valeurMobilier }));
-              }
+              const category = data.categoryKey && categoriesActes[data.categoryKey] ? data.categoryKey : '';
+              const acte = category && data.acteKey && categoriesActes[category].actes[data.acteKey] ? data.acteKey : '';
+              setSelectedCategory(category); setSelectedActe(acte);
+              setSelectedDepartement(data.departement && departements[data.departement] ? data.departement : '');
+              setMontantActe(data.montant ?? '');
+              setDonationParticipants([nouveauDonateur('donateur-1')]); setDonationPublication('');
+              setBailBases({suite:0,residuelle:0,publication:0}); setSureteBases({tpf:'',csi:''});
+              setFormalitesAjoutees([]); setDepensesAjoutees([]); setAppliquerRemise(false); setQuotiteSurete(.5);
+              appliquerConfigParDefaut(acte,setDebours,setFormalites,setDocuments,setTaxes);
+              setTaxes(t=>({...t,valeurMobilier:data.valeurMobilier??0,complement:0,primoAccedant:false,accessoiresSurete:20,regimePartage:'standard',actifNetPartage:undefined,valeurImmoPartage:0,reprisesNaturePartage:0}));
+              setEmolumentsDetail({bruts:0,majoration:0,avantRemise:0,remise10:0,remise20:0,nets:0});
             }}
           />
 
@@ -898,6 +364,7 @@ function PretaxeContent() {
                 onChange={(e) => setSelectedDepartement(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               >
+                <option value="">Département à préciser</option>
                 {Object.entries(departements).map(([code, dept]) => (
                   <option key={code} value={code}>
                     {code} - {dept.nom}
@@ -960,7 +427,7 @@ function PretaxeContent() {
             </div>
           )}
 
-          {selectedActe && !estActeNonTarife && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
+          {selectedActe && !donation && !estActeNonTarife && categoriesActes[selectedCategory]?.actes[selectedActe]?.type === 'proportionnel' && (
             <div className="mt-6">
               <label className="block text-sm font-semibold text-gray-700 mb-3">{actesConfig[selectedActe]?.taxes?.type==='partage'?'Assiette des émoluments : actif brut, déduction faite des legs particuliers':'Montant de l’opération'}</label>
               <div className="relative">
@@ -982,8 +449,8 @@ function PretaxeContent() {
               <label className="text-sm font-semibold">Actif net partagé soumis au droit de partage (€)<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.actifNetPartage??''} placeholder="À défaut : assiette saisie ci-dessus" onChange={e=>setTaxes(t=>({...t,actifNetPartage:e.target.value===''?undefined:Number(e.target.value)}))}/></label>
               <label className="text-sm font-semibold">Valeur immobilière publiée pour la CSI (€)<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.valeurImmoPartage??0} onChange={e=>setTaxes(t=>({...t,valeurImmoPartage:Math.max(0,Number(e.target.value))}))}/></label>
             </div>
-            <label className="mt-4 block text-sm font-semibold">Reprises en nature (€), émolument complémentaire de 0,484 % HT<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.reprisesNaturePartage??0} onChange={e=>setTaxes(t=>({...t,reprisesNaturePartage:Math.max(0,Number(e.target.value))}))}/></label>
-            <p className="mt-3 text-sm">Le droit de partage porte sur l’actif net après passif admissible (CGI 747), au taux de 2,5 % ou 1,1 % dans les cas prévus de divorce, séparation de corps ou rupture de PACS. Si le champ net est laissé vide, aucun passif distinct n’est déduit. Les émoluments utilisent leur propre assiette brute (A444-121). La CSI n’est calculée que sur les droits immobiliers publiés ; un partage uniquement mobilier ne produit pas de CSI. Minimum de perception du droit proportionnel : 25 € (CGI 674), sauf exonération particulière.</p>
+            {selectedActe==='partage'&&<label className="mt-4 block text-sm font-semibold">Reprises en nature (€), émolument complémentaire de 0,484 % HT<input type="number" min="0" className="mt-2 w-full rounded-lg border p-3" value={taxes.reprisesNaturePartage??0} onChange={e=>setTaxes(t=>({...t,reprisesNaturePartage:Math.max(0,Number(e.target.value))}))}/></label>}
+            <p className="mt-3 text-sm">Le droit de partage porte sur l’actif net après passif admissible (CGI 747), au taux de 2,5 % ou 1,1 % dans les cas prévus de divorce, séparation de corps ou rupture de PACS. Si le champ net est laissé vide, aucun passif distinct n’est déduit. Les émoluments utilisent leur propre assiette selon le tarif sélectionné (A444-121 ou A444-122). La CSI n’est calculée que sur les droits immobiliers publiés ; un partage uniquement mobilier ne produit pas de CSI. Minimum de perception du droit proportionnel : 25 € (CGI 674), sauf exonération particulière.</p>
             <p className="mt-2 text-sm">Ce calcul vise un partage pur et simple. Les soultes, attributions à des tiers et rapports et régimes particuliers nécessitent une liquidation complémentaire ; le régime de faveur des partages successoraux ne s’applique pas à toute indivision.</p>
           </div>}
           {['contrat_mariage','changement_regime'].includes(selectedActe)&&<p className="mt-4 rounded-xl bg-blue-50 p-4 text-sm">Sans apport ou jusqu’à 30 800 € : 188,68 € HT ; au-delà, barème sur la valeur entière (A444-82). Enregistrement gratuit en l’absence d’imposition proportionnelle ou progressive (CGI 847). Donations, liquidation, partage et mutations immobilières éventuelles nécessitent leurs calculs propres.</p>}
@@ -1008,7 +475,7 @@ function PretaxeContent() {
                     Territoire DOM-TOM : {departements[selectedDepartement]?.nom}
                   </p>
                   <p className="text-xs text-orange-700 mt-1">
-                    • Majoration : <strong>+{getMajorationDOMTOM(selectedDepartement)}%</strong> (Article A444-176)
+                    • Majoration : <strong>+{getMajorationDOMTOM(selectedDepartement)}%</strong> (Article A444-53)
                     <br />
                     • TVA : <strong>{getTauxTVA(selectedDepartement)}%</strong>
                     {getTauxTVA(selectedDepartement) === 0 && <span> - EXONÉRÉ (Article 294 CGI)</span>}
@@ -1018,154 +485,27 @@ function PretaxeContent() {
             </div>
           )}
           
-          {selectedCategory === 'successions' && (selectedActe === 'donation' || selectedActe === 'donation_partage') && (
-            <div className="mt-8 p-6 bg-purple-50 rounded-xl border border-purple-200">
-              <h3 className="font-semibold text-purple-900 mb-6 flex items-center">
-                <UserPlus className="w-5 h-5 mr-2" />
-                Configuration de la donation
-              </h3>
-              
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm font-medium text-gray-700">Donateurs</label>
-                  <button
-                    onClick={ajouterDonateur}
-                    className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Ajouter
-                  </button>
-                </div>
-                {donateurs.map((donateur) => (
-                  <div key={donateur.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
-                    <input
-                      type="text"
-                      value={donateur.nom}
-                      onChange={(e) => {
-                        setDonateurs(donateurs.map(d => 
-                          d.id === donateur.id ? {...d, nom: e.target.value} : d
-                        ));
-                      }}
-                      placeholder="Nom"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <input
-                      type="text"
-                      value={donateur.montant}
-                      onChange={(e) => {
-                        setDonateurs(donateurs.map(d => 
-                          d.id === donateur.id ? {...d, montant: e.target.value} : d
-                        ));
-                      }}
-                      placeholder="Montant"
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <select
-                      value={donateur.lien}
-                      onChange={(e) => {
-                        setDonateurs(donateurs.map(d => 
-                          d.id === donateur.id ? {...d, lien: e.target.value} : d
-                        ));
-                      }}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="parent">Parent</option>
-                      <option value="grand-parent">Grand-parent</option>
-                      <option value="epoux">Époux</option>
-                      <option value="autre">Autre</option>
-                    </select>
-                    {donateurs.length > 1 && (
-                      <button
-                        onClick={() => supprimerDonateur(donateur.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {selectedActe === 'donation_partage' && (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-medium text-gray-700">Donataires</label>
-                    <button
-                      onClick={ajouterDonataire}
-                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 px-3 py-1.5 bg-white rounded-lg border border-purple-200 hover:bg-purple-50 transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Ajouter
-                    </button>
-                  </div>
-                  {donataires.map((donataire) => (
-                    <div key={donataire.id} className="flex items-center gap-3 mb-3 p-3 bg-white rounded-lg border border-gray-200">
-                      <input
-                        type="text"
-                        value={donataire.nom}
-                        onChange={(e) => {
-                          setDonataires(donataires.map(d => 
-                            d.id === donataire.id ? {...d, nom: e.target.value} : d
-                          ));
-                        }}
-                        placeholder="Nom"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          value={donataire.part}
-                          onChange={(e) => {
-                            setDonataires(donataires.map(d => 
-                              d.id === donataire.id ? {...d, part: e.target.value} : d
-                            ));
-                          }}
-                          placeholder="Part"
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                        <span className="ml-1 text-sm text-gray-600">%</span>
-                      </div>
-                      {donataires.length > 1 && (
-                        <button
-                          onClick={() => supprimerDonataire(donataire.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          
+          {donation && <DonationPretaxeForm donateurs={donationParticipants} onChange={setDonationParticipants} publication={donationPublication} onPublicationChange={setDonationPublication} mobiliere={selectedActe==='donation_mobiliere'}/>}
+          {acteActuel?.description && !estActeNonTarife && <p className="mt-4 rounded-lg bg-blue-50 p-4 text-sm">{acteActuel.description}</p>}
+          {actesConfig[selectedActe]?.taxes?.type==='tpf'&&<div className="mt-4 grid gap-4 rounded-xl bg-blue-50 p-4 md:grid-cols-2">
+            <label className="text-sm">Assiette de TPF distincte (€)<input aria-label="Assiette TPF du prêt" inputMode="decimal" className="mt-2 w-full rounded border p-3" value={sureteBases.tpf} onChange={e=>setSureteBases(p=>({...p,tpf:e.target.value}))} placeholder="À défaut : capital + accessoires"/></label>
+            <label className="text-sm">Assiette de CSI distincte (€)<input aria-label="Assiette CSI du prêt" inputMode="decimal" className="mt-2 w-full rounded border p-3" value={sureteBases.csi} onChange={e=>setSureteBases(p=>({...p,csi:e.target.value}))} placeholder="À défaut : capital + accessoires"/></label>
+            <p className="text-sm md:col-span-2">Ces bases peuvent différer du capital rémunérant l’acte et l’une de l’autre. Renseignez 0 uniquement si l’absence de perception est établie. Les autres inscriptions et droits fixes peuvent être ajoutés dans Débours.</p>
+          </div>}
+          {selectedActe&&!estActeNonTarife&&!calculPret&&<p role="status" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">Complétez une assiette valide et la qualification des transmissions pour calculer la prétaxe. Aucun total définitif n’est affiché.</p>}
+
           <div className="flex flex-wrap gap-3 mt-8">
             <button
               onClick={sauvegarderCalcul}
+              disabled={!calculPret}
               className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg"
             >
               <Save className="w-4 h-4" />
               Sauvegarder
             </button>
             <button
-              onClick={() => exporterPDF(
-                selectedDepartement,
-                selectedCategory,
-                selectedActe,
-                montantActe,
-                emolumentsDetail,
-                totalEmolumentsTTC,
-                debours,
-                totalDebours,
-                totalFormalitesTTC,
-                totalDocumentsTTC,
-                taxes,
-                totalTaxes,
-                totalGeneral,
-                appliquerRemise,
-                categoriesActes
-              )}
+              onClick={() => exporterPretaxePDF(rapport)}
+              disabled={!calculPret}
               className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg"
             >
               <Download className="w-4 h-4" />
@@ -1179,7 +519,7 @@ function PretaxeContent() {
               Historique ({historiqueCalculs.length})
             </button>
             <button
-              onClick={() => appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes)}
+              onClick={() => { appliquerConfigParDefaut(selectedActe, setDebours, setFormalites, setDocuments, setTaxes); setFormalitesAjoutees([]); setDepensesAjoutees([]); demanderRecalcul(n=>n+1); }}
               disabled={!selectedActe}
               className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -1223,7 +563,7 @@ function PretaxeContent() {
           <>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
               <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b-2 border-indigo-200">
-                <nav className="flex space-x-2 px-6 py-3" aria-label="Tabs">
+                <nav className="flex overflow-x-auto space-x-2 px-6 py-3" aria-label="Tabs">
                   {[
                     { id: 'emoluments', label: 'Émoluments', icon: Calculator },
                     { id: 'debours', label: 'Débours', icon: Euro },
@@ -1268,6 +608,9 @@ function PretaxeContent() {
                 {activeTab === 'debours' && (
                   <DeboursTab
                     debours={debours}
+                    setDebours={setDebours}
+                    ajoutees={depensesAjoutees}
+                    setAjoutees={setDepensesAjoutees}
                     totalDebours={totalDebours}
                   />
                 )}
@@ -1275,6 +618,9 @@ function PretaxeContent() {
                 {activeTab === 'formalites' && (
                   <FormalitesTab
                     formalites={formalites}
+                    ajoutees={formalitesAjoutees}
+                    setAjoutees={setFormalitesAjoutees}
+                    majoration={majoration}
                     setFormalites={setFormalites}
                     totalFormalitesTTC={totalFormalitesTTC}
                     tauxTVA={tauxTVA}
@@ -1285,6 +631,8 @@ function PretaxeContent() {
                 {activeTab === 'documents' && (
                   <DocumentsTab
                     documents={documents}
+                    majoration={majoration}
+                    forfait={formalites.publiciteFonciere.actif}
                     setDocuments={setDocuments}
                     totalDocumentsTTC={totalDocumentsTTC}
                     tauxTVA={tauxTVA}
@@ -1299,22 +647,15 @@ function PretaxeContent() {
                     selectedDepartement={selectedDepartement}
                     montantActe={montantActe}
                     regimeTaxe={actesConfig[selectedActe]?.taxes?.type || 'aucune'}
+                    assiettesSurete={assiettesSurete}
+                    csi={debours.csi}
+                    taxesAjoutees={depensesAjoutees.filter(d=>d.nature==='taxes')}
                   />
                 )}
               </div>
             </div>
 
-            <RecapitulatifTab
-              totalEmolumentsTTC={totalEmolumentsTTC}
-              totalDebours={totalDebours}
-              totalFormalitesTTC={totalFormalitesTTC}
-              totalDocumentsTTC={totalDocumentsTTC}
-              totalTaxes={totalTaxes}
-              ecretementTTC={ecretementTTC}
-              totalGeneral={totalGeneral}
-              selectedDepartement={selectedDepartement}
-              appliquerRemise={appliquerRemise}
-            />
+            {calculPret && <PretaxeReport rapport={rapport}/>}
           </>
         )}
       </div>

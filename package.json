@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --require ./tests/register.cjs --test tests/fiscal.test.cjs tests/projets.test.cjs"
+    "test": "node --require ./tests/register.cjs --test tests/fiscal.test.cjs tests/projets.test.cjs tests/pretaxe-audit.test.cjs"
   },
   "dependencies": {
     "@radix-ui/react-navigation-menu": "^1.2.14",

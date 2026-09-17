@@ -11,6 +11,7 @@ export const categoriesActes: Record<string, { actes: Record<string, string[]> }
       vefa: ['vente en l\'état futur d\'achèvement', 'état futur d\'achèvement', 'vefa', 'vente sur plan'],
       echange: ['échange d\'immeubles', 'échange immobilier', 'acte d\'échange'],
       licitation: ['licitation'],
+      partage_indivis: ['partage de biens indivis'],
       partage: ['partage successoral', 'acte de partage', 'partage de communauté', 'partage'],
       bail_construction: ['bail à construction', 'bail à réhabilitation'],
       servitude_proportionnel: ['constitution de servitude', 'servitude'],
@@ -28,6 +29,7 @@ export const categoriesActes: Record<string, { actes: Record<string, string[]> }
   successions: {
     actes: {
       donation_partage: ['donation-partage', 'donation partage'],
+      donation_mobiliere: ['donation uniquement de créances', 'donation uniquement d’espèces', 'donation de valeurs mobilières cotées'],
       donation: ['donation entre vifs', 'acte de donation', 'donation'],
       testament: ['testament authentique', 'testament'],
       notoriete: ['acte de notoriété', 'notoriété'],
@@ -39,6 +41,7 @@ export const categoriesActes: Record<string, { actes: Record<string, string[]> }
   },
   prets: {
     actes: {
+      pret_professionnel: ['prêt destiné à financer une activité professionnelle', 'prêt hypothécaire professionnel'],
       pret_hypothecaire: ['prêt avec hypothèque', 'prêt hypothécaire', 'crédit hypothécaire', 'affectation hypothécaire', 'ouverture de crédit'],
       pret_viager: ['prêt viager hypothécaire', 'prêt viager'],
       mainlevee_saisie: ['mainlevée de saisie'],

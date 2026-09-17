@@ -88,6 +88,7 @@ export interface Debours {
 }
 
 export interface FormaliteItem {
+  quantite?: number;
   actif: boolean;
   montant: number;
 }
@@ -118,6 +119,7 @@ export interface Formalites {
 }
 
 export interface Documents {
+  copiesLibres?: number;
   pagesActe: number;
   copiesExecutoires: number;
   copiesAuthentiques: number;
