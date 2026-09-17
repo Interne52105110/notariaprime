@@ -5,6 +5,7 @@ import { ScanLine, Loader2, CheckCircle, AlertCircle, X, Upload, Cpu, ChevronDow
 import { categoriesActes as defaultCategoriesActes } from './ocrMappings';
 import { checkOllama, extractWithOllama, type OllamaModel } from './ollamaExtract';
 import { extractTextFromLegacyDoc } from './legacyDocExtract';
+import { parseExtractedText, type ExtractedHit } from './extractPretaxeText';
 
 interface OCRScannerProps {
   onExtract: (data: {
@@ -17,15 +18,6 @@ interface OCRScannerProps {
   }) => void;
 }
 
-type ExtractedHit = {
-  montant?: string;
-  departement?: string;
-  categoryKey?: string;
-  acteKey?: string;
-  acteLabel?: string;
-  valeurMobilier?: number;
-};
-
 export default function OCRScanner({ onExtract }: OCRScannerProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -37,6 +29,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
   const [useAI, setUseAI] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [showHelp, setShowHelp] = useState(false);
+  const [texteColle, setTexteColle] = useState('');
+  const [applied, setApplied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,123 +49,10 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const parseExtractedText = (text: string): ExtractedHit => {
-    const result: ExtractedHit = {};
-
-    // 1) Montant : on cherche un nombre suivi de €, EUR ou "euros"
-    // Tolère espaces, points, virgules comme séparateurs.
-    const montantRegex = /([0-9]{1,3}(?:[\s.,][0-9]{3})+|[0-9]{4,})(?:[.,][0-9]{1,2})?\s*(?:€|EUR|euros?)/gi;
-    // Score contextuel : on regarde la fenêtre qui précède chaque montant.
-    const POSITIVE = [
-      /moyennant\s+le\s+prix\s+de/i,
-      /prix\s+(?:de\s+vente|principal|convenu|de\s+cession|d['']acquisition)/i,
-      /\bprix\s*[:=]/i,
-      /prix\s+FORMTEXT/i,
-      /au\s+prix\s+de/i,
-      /vente\s+(?:est\s+)?consentie/i,
-      /\bmontant\s+(?:principal|de\s+la\s+vente)/i,
-      /valeur\s+v[eé]nale/i,
-    ];
-    const NEGATIVE = [
-      /indemnit[eé]\s+d['']immobilisation/i,
-      /frais/i,
-      /hypoth[eè]que/i,
-      /pour\s+suret[eé]/i,
-      /garantie/i,
-      /plafond/i,
-      /pr[eê]t/i,
-      /emprunt/i,
-      /amende/i,
-      /plus[- ]?value/i,
-      /abattement/i,
-      /\btotal\b/i,
-      /ensemble/i,
-      /co[uû]t\s+(?:total|de\s+l['']op[eé]ration)/i,
-      /meubles?\b/i,
-      /\bn[eé]goc/i,
-      /\bsalaire/i,
-      /\bm[eè]tre\s+carr[eé]/i,
-    ];
-
-    interface Candidate { value: number; idx: number; score: number; }
-    const candidates: Candidate[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = montantRegex.exec(text)) !== null) {
-      const num = parseFloat(m[1].replace(/[\s.]/g, '').replace(',', '.'));
-      if (isNaN(num) || num < 1000) continue;
-      const ctx = text.slice(Math.max(0, m.index - 150), m.index);
-      let score = 0;
-      for (const re of POSITIVE) if (re.test(ctx)) score += 100;
-      for (const re of NEGATIVE) if (re.test(ctx)) score -= 60;
-      const docPosition = m.index / Math.max(text.length, 1);
-      score += (1 - docPosition) * 5;
-      const after = text.slice(m.index, m.index + 200);
-      if (/amende|d['']amende|par\s+m[eè]tre/i.test(after)) score -= 80;
-      candidates.push({ value: num, idx: m.index, score });
-    }
-
-    if (candidates.length > 0) {
-      candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
-      const top = candidates[0];
-      let chosen = top.value;
-      // Si aucun mot-clé positif n'a tranché (score faible), on prend la
-      // valeur médiane plutôt que le max — moins de faux positifs.
-      if (top.score < 50) {
-        const sorted = [...candidates].map((c) => c.value).sort((a, b) => a - b);
-        chosen = sorted[Math.floor(sorted.length / 2)];
-      }
-      const max = chosen;
-
-      // 1b) Valeur du mobilier (art. 1245 CGI — déduit de l'assiette DMTO)
-      const MEUBLES_RE = /(?:meubles?\s+(?:à|a)\s+concurrence\s+de|estimation\s+des\s+meubles?|valeur\s+des\s+meubles?|mobilier\s+(?:estim[eé]|d['']une\s+valeur)|biens?\s+meubles?\s+(?:pour|d['']une\s+valeur)|meubles?\s+meublants?)\s*(?:de\s+)?[^0-9€]{0,40}?([0-9]{1,3}(?:[\s.,][0-9]{3})+|[0-9]{3,})(?:[.,][0-9]{1,2})?\s*(?:€|EUR|euros?)/i;
-      const meublesMatch = text.match(MEUBLES_RE);
-      if (meublesMatch) {
-        const mobilier = parseFloat(meublesMatch[1].replace(/[\s.]/g, '').replace(',', '.'));
-        if (!isNaN(mobilier) && mobilier > 100 && mobilier < chosen) {
-          result.valeurMobilier = Math.round(mobilier);
-        }
-      }
-      result.montant = max.toLocaleString('fr-FR').replace(/ /g, ' ');
-    }
-
-    // 2) Département : code postal sur 5 chiffres
-    const cpRegex = /\b([0-9]{2}|2A|2B)[0-9]{3}\b/gi;
-    const cpMatch = text.match(cpRegex);
-    if (cpMatch && cpMatch.length > 0) {
-      const cp = cpMatch[0];
-      const dept = cp.startsWith('97') || cp.startsWith('98')
-        ? cp.substring(0, 3)
-        : cp.substring(0, 2).toUpperCase();
-      result.departement = dept;
-    }
-
-    // 3) Type d'acte : on retient la correspondance la PLUS LONGUE parmi tous
-    // les mots-clés (un mot-clé plus spécifique l'emporte : « donation-partage »
-    // bat « donation », « vente de terrain » bat « vente »…).
-    const lowerText = text.toLowerCase();
-    let best = { len: 0, catKey: '', acteKey: '', label: '' };
-    for (const [catKey, cat] of Object.entries(defaultCategoriesActes)) {
-      for (const [acteKey, keywords] of Object.entries(cat.actes)) {
-        for (const kw of keywords) {
-          const k = kw.toLowerCase();
-          if (k.length > best.len && lowerText.includes(k)) {
-            best = { len: k.length, catKey, acteKey, label: keywords[0] };
-          }
-        }
-      }
-    }
-    if (best.acteKey) {
-      result.categoryKey = best.catKey;
-      result.acteKey = best.acteKey;
-      result.acteLabel = best.label;
-    }
-
-    return result;
-  };
-
   const handleFile = async (file: File) => {
     setError(null);
     setExtracted(null);
+    setApplied(false);
     setProgress(0);
 
     const name = file.name.toLowerCase();
@@ -180,9 +61,10 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
     const isDocx = name.endsWith('.docx') ||
       file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const isLegacyDoc = name.endsWith('.doc') && !isDocx;
+    const isText = name.endsWith('.txt') || file.type === 'text/plain';
 
-    if (!isImage && !isPdf && !isDocx && !isLegacyDoc) {
-      setError("Format non supporté. Utilisez une image (JPG/PNG/WebP), un PDF, ou un fichier Word (.doc/.docx).");
+    if (!isImage && !isPdf && !isDocx && !isLegacyDoc && !isText) {
+      setError("Format non supporté. Utilisez une image (JPG/PNG/WebP), un PDF, un fichier Word (.doc/.docx) ou un texte (.txt).");
       return;
     }
 
@@ -197,7 +79,9 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
     try {
       let text = '';
 
-      if (isDocx) {
+      if (isText) {
+        text = await file.text();
+      } else if (isDocx) {
         setProgressLabel('Lecture du DOCX');
         setProgress(20);
         const mammoth = (await import('mammoth')).default ?? (await import('mammoth'));
@@ -224,24 +108,32 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
         const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
         const parts: string[] = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          parts.push(
-            content.items
-              .map((it) => ('str' in it ? it.str : ''))
-              .join(' ')
-          );
-          setProgress(Math.round((i / pdf.numPages) * 100));
-        }
-        text = parts.join('\n');
-        if (text.trim().length < 50) {
-          setError("PDF scanné détecté (peu de texte sélectionnable). Exportez chaque page en image pour passer par l'OCR.");
-          setIsProcessing(false);
-          return;
-        }
+        let worker: Awaited<ReturnType<typeof import('tesseract.js')['createWorker']>> | undefined;
+        try {
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            try {
+              const content = await page.getTextContent();
+              let pageText = content.items.map(it=>'str' in it?it.str:'').join(' ');
+              if(pageText.trim().length<50){
+                setProgressLabel(`OCR du PDF : page ${i}/${pdf.numPages}`);
+                if(!worker)worker = await (await import('tesseract.js')).createWorker('fra');
+                const viewport = page.getViewport({scale:1.5});
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+                await page.render({canvas,viewport}).promise;
+                pageText = (await worker.recognize(canvas)).data.text;
+                canvas.width=0; canvas.height=0;
+              }
+              parts.push(`[Page ${i}]\n${pageText}`);
+            } finally { page.cleanup(); }
+            setProgress(Math.round(i/pdf.numPages*100));
+          }
+          text = parts.join('\n');
+        } finally { if(worker)await worker.terminate(); await loadingTask.destroy(); }
       } else {
         setProgressLabel('Analyse OCR');
         const { createWorker } = await import('tesseract.js');
@@ -252,9 +144,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
             }
           }
         });
-        const { data } = await worker.recognize(file);
-        await worker.terminate();
-        text = data.text || '';
+        try { text = (await worker.recognize(file)).data.text || ''; } finally { await worker.terminate(); }
       }
 
       const hit = parseExtractedText(text);
@@ -266,6 +156,8 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           setProgress(50);
           const ai = await extractWithOllama(text, selectedModel);
           setProgress(100);
+          hit.avertissements.push('Les propositions IA doivent être vérifiées dans le texte.');
+          if(text.length>16000)hit.avertissements.push('L’IA a reçu des extraits du document ; certaines clauses peuvent ne pas être couvertes.');
           // L'IA prime sur le regex quand elle a une réponse
           if (ai.montant) hit.montant = ai.montant;
           if (ai.departement) hit.departement = ai.departement;
@@ -287,14 +179,6 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
 
       setExtracted(hit);
 
-      onExtract({
-        montant: hit.montant,
-        departement: hit.departement,
-        categoryKey: hit.categoryKey,
-        acteKey: hit.acteKey,
-        valeurMobilier: hit.valeurMobilier,
-        rawText: text
-      });
     } catch (err) {
       console.error('Extraction error:', err);
       setError("Erreur lors de l'analyse du document. Vérifiez le fichier ou essayez un autre format.");
@@ -307,6 +191,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
     if (previewUrl && previewUrl !== 'non-image') URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setExtracted(null);
+    setApplied(false);
     setError(null);
     setProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -328,7 +213,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
           </div>
           <p className="text-sm text-gray-600 mb-3">
             Importez un PDF, un fichier Word (.doc/.docx) ou une image (JPG/PNG/WebP). Le montant,
-            le département et le type d&apos;acte seront extraits automatiquement.
+            le département et le type d&apos;acte repérés seront proposés pour vérification.
           </p>
 
           <button
@@ -366,7 +251,7 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                     Pour une extraction plus fine (paraphrases, montants en lettres, contexte
                     complet), vous pouvez brancher un modèle de langage qui tourne <strong>sur votre
                     propre machine</strong>. Idéal pour le secret professionnel notarial (art. 226-13 CP)
-                    et conforme RGPD : aucune donnée ne quitte le poste.
+                    Le traitement du document reste local avec un modèle exécuté sur votre poste.
                   </p>
 
                   {ollamaModels && ollamaModels.length > 0 ? (
@@ -487,6 +372,12 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
             </div>
           )}
 
+          <details className="rounded-lg border border-indigo-200 bg-white p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-indigo-800">Coller le texte d’un acte</summary>
+            <textarea aria-label="Texte de l’acte à analyser" className="mt-3 min-h-40 w-full rounded border p-3 text-sm" value={texteColle} onChange={e=>setTexteColle(e.target.value)} placeholder="Collez le texte ici…"/>
+            <button type="button" disabled={!texteColle.trim()||isProcessing} className="mt-2 rounded bg-indigo-700 px-4 py-2 text-sm text-white disabled:opacity-50" onClick={()=>{setError(null);setApplied(false);setExtracted(parseExtractedText(texteColle));}}>Analyser ce texte</button>
+          </details>
+
           {extracted && !isProcessing && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 mb-2">
@@ -510,14 +401,18 @@ export default function OCRScanner({ onExtract }: OCRScannerProps) {
                   <p className="font-bold text-gray-900">{extracted.acteLabel || '—'}</p>
                 </div>
               </div>
-              {extracted.valeurMobilier && (
+              {extracted.valeurMobilier != null && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
                   <span className="font-semibold text-amber-900">Mobilier détecté : </span>
                   <span className="text-amber-800">
-                    {extracted.valeurMobilier.toLocaleString('fr-FR')} € (déduit de l&apos;assiette DMTO — art. 1245 CGI)
+                    {extracted.valeurMobilier.toLocaleString('fr-FR')} € (déduit de l&apos;assiette DMTO — art. 735 CGI)
                   </span>
                 </div>
               )}
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{extracted.avertissements.map((a,i)=><p key={i} className={i?'mt-1':''}>{a}</p>)}</div>
+              {extracted.preuves.length>0&&<details className="rounded border bg-white p-3"><summary className="cursor-pointer text-sm">Passages utilisés pour les propositions</summary>{extracted.preuves.map((preuve,i)=><p key={i} className="mt-2 whitespace-pre-wrap text-sm text-gray-700">{preuve}</p>)}</details>}
+              <button type="button" disabled={applied} className="rounded-lg bg-indigo-700 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-500" onClick={()=>{onExtract(extracted);setApplied(true);}}>{applied?'Propositions appliquées':'Utiliser ces propositions dans un nouveau calcul'}</button>
+              <p className="text-sm text-gray-600">Cette action remplace le dossier courant. Complétez et corrigez ensuite les champs du formulaire ; les données absentes ne sont pas reprises du calcul précédent.</p>
               {!extracted.montant && !extracted.departement && !extracted.acteKey && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
                   Aucune donnée reconnue. Saisissez les informations manuellement ou réessayez avec une image plus nette.

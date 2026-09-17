@@ -1063,3 +1063,11 @@ export const configParDefaut: ConfigActe = {
     calculAuto: false
   }
 };
+// Sous-types tarifaires vérifiés lors de l'audit du 17/09/2026.
+actesConfig.pret_professionnel = actesConfig.pret_hypothecaire;
+actesConfig.partage_indivis = actesConfig.partage;
+actesConfig.donation_mobiliere = {
+  ...actesConfig.donation,
+  formalites: { ...actesConfig.donation.formalites, publiciteFonciere: {defaut:false, montant:339.58}, cadastre:{defaut:false,montant:3.77}, requisition:{defaut:false,montant:18.87} },
+  taxes: {applicable:true, type:'donation', calculAuto:false},
+};

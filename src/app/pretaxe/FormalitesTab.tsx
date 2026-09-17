@@ -1,106 +1,17 @@
-// src\app\pretaxe\FormalitesTab.tsx
-
-import React from 'react';
-import { Formalites } from './PretaxeTypes';
-import { estFormaliteObligatoire } from './PretaxeCalculations';
-
-interface FormalitesTabProps {
-  formalites: Formalites;
-  setFormalites: React.Dispatch<React.SetStateAction<Formalites>>;
-  totalFormalitesTTC: number;
-  tauxTVA: number;
-  selectedActe: string;
-}
-
-export default function FormalitesTab({
-  formalites,
-  setFormalites,
-  totalFormalitesTTC,
-  tauxTVA,
-  selectedActe
-}: FormalitesTabProps) {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        {Object.entries({
-          'publiciteFonciere': { label: 'Publicité foncière', item: formalites.publiciteFonciere },
-          'cadastre': { label: 'Documents cadastraux', item: formalites.cadastre },
-          'casierJudiciaire': { label: 'Casier judiciaire', item: formalites.casierJudiciaire },
-          'notification': { label: 'Notification préemption', item: formalites.notification },
-          'mesurage': { label: 'Certificat mesurage', item: formalites.mesurage },
-          'transmissionCSN': { label: 'Transmission CSN', item: formalites.transmissionCSN },
-          'requisition': { label: 'Réquisition SPF', item: formalites.requisition },
-          'teleactes': { label: 'Télétransmission (Télé@ctes)', item: formalites.teleactes },
-          'lettresRecommandees': { label: 'Lettres recommandées', item: formalites.lettresRecommandees },
-          'declarationPlusValue': { label: 'Déclaration de plus-value', item: formalites.declarationPlusValue }
-        }).map(([key, { label, item }]) => {
-          const obligatoire = estFormaliteObligatoire(key, selectedActe);
-          return (
-            <label key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={item.actif}
-                  disabled={obligatoire}
-                  onChange={(e) => {
-                    if (!obligatoire) {
-                      setFormalites(prev => ({
-                        ...prev,
-                        [key]: { ...item, actif: e.target.checked }
-                      }));
-                    }
-                  }}
-                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded disabled:opacity-50"
-                />
-                <span className="text-sm font-medium text-gray-700">{label}</span>
-                {obligatoire && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
-                    Obligatoire
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-semibold text-gray-900">{item.montant.toFixed(2)} €</span>
-            </label>
-          );
-        })}
-        
-        <div className="mt-4">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Diagnostics</p>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(formalites.diagnostics).map(([key, diag]) => (
-              <label key={key} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={diag.actif}
-                    onChange={(e) => {
-                      setFormalites(prev => ({
-                        ...prev,
-                        diagnostics: {
-                          ...prev.diagnostics,
-                          [key]: { ...diag, actif: e.target.checked }
-                        }
-                      }));
-                    }}
-                    className="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded"
-                  />
-                  <span className="text-xs font-medium text-gray-700">{key.toUpperCase()}</span>
-                </div>
-                <span className="text-xs font-semibold text-gray-900">{diag.montant.toFixed(2)}€</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-      
-      <div className="border-t-2 border-gray-200 pt-4">
-        <div className="flex justify-between items-center">
-          <span className="font-bold text-xl">Total TTC (TVA {tauxTVA}%)</span>
-          <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {totalFormalitesTTC.toFixed(2)} €
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+'use client';
+import type { Dispatch, SetStateAction } from 'react';
+import type { Formalites } from './PretaxeTypes';
+import { FORMALITES_STANDARD, TARIFS_FORMALITES, type CleFormaliteStandard, type FormaliteAjoutee } from './pretaxeLines';
+import { quantite } from '@/lib/montants';
+interface Props { formalites: Formalites; setFormalites:Dispatch<SetStateAction<Formalites>>; ajoutees:FormaliteAjoutee[]; setAjoutees:Dispatch<SetStateAction<FormaliteAjoutee[]>>; totalFormalitesTTC:number; tauxTVA:number; selectedActe:string; majoration:number; }
+export default function FormalitesTab({formalites,setFormalites,ajoutees,setAjoutees,totalFormalitesTTC,tauxTVA,majoration}:Props){
+  return <div className="space-y-5">
+    <p className="rounded-lg bg-blue-50 p-4 text-sm">Sélectionnez les prestations réellement prévues et leurs quantités. Le forfait n°194 inclut des copies et demandes cadastrales : les postes hors forfait doivent correspondre à des prestations distinctes. Les prix unitaires ci-dessous sont HT avant majoration territoriale{majoration?` (+${majoration} %)`:''}.</p>
+    {(Object.keys(FORMALITES_STANDARD) as CleFormaliteStandard[]).map(key=>{const t=FORMALITES_STANDARD[key],item=formalites[key];return <div key={key} className="flex flex-wrap items-center gap-3 rounded-lg border p-3"><label className="flex min-w-52 flex-1 items-center gap-3 text-sm"><input type="checkbox" checked={item.actif} onChange={e=>setFormalites(p=>({...p,[key]:{...p[key],actif:e.target.checked}}))}/><span>{t.libelle}<small className="block text-gray-600">{t.article} n°{t.code} · {t.montant.toFixed(2)} € HT</small></span></label><label className="text-sm">Quantité<input aria-label={`Quantité ${t.libelle}`} className="ml-2 w-20 rounded border p-2" type="number" min="0" step="1" disabled={!item.actif} value={item.quantite??1} onChange={e=>setFormalites(p=>({...p,[key]:{...p[key],quantite:quantite(Number(e.target.value))}}))}/></label></div>})}
+    <fieldset className="rounded-lg border p-4"><legend className="px-2 font-semibold">Obtention des diagnostics</legend><p className="mb-3 text-sm text-gray-600">15,09 € HT par document obtenu. Ce poste n’est pas la facture du diagnostiqueur. Aucun diagnostic n’est présumé effectué.</p><div className="grid gap-3 sm:grid-cols-2">{(Object.keys(formalites.diagnostics) as (keyof Formalites['diagnostics'])[]).map(key=><div key={key} className="flex items-center gap-2"><label className="flex flex-1 items-center gap-2 text-sm"><input type="checkbox" checked={formalites.diagnostics[key].actif} onChange={e=>setFormalites(p=>({...p,diagnostics:{...p.diagnostics,[key]:{...p.diagnostics[key],actif:e.target.checked}}}))}/>{key.toUpperCase()}</label><input aria-label={`Quantité diagnostic ${key}`} className="w-20 rounded border p-2" type="number" min="0" step="1" disabled={!formalites.diagnostics[key].actif} value={formalites.diagnostics[key].quantite??1} onChange={e=>setFormalites(p=>({...p,diagnostics:{...p.diagnostics,[key]:{...p.diagnostics[key],quantite:quantite(Number(e.target.value))}}}))}/></div>)}</div></fieldset>
+    <h3 className="font-semibold">Pièces, consultations et formalités supplémentaires</h3>
+    {ajoutees.map(item=><div key={item.id} className="grid gap-2 rounded-lg border p-3 md:grid-cols-[1fr_1fr_80px_auto]"><select aria-label="Type de formalité supplémentaire" className="min-w-0 rounded border p-2 text-sm" value={item.code} onChange={e=>setAjoutees(p=>p.map(x=>x.id===item.id?{...x,code:e.target.value,libelle:TARIFS_FORMALITES[e.target.value].libelle}:x))}>{Object.entries(TARIFS_FORMALITES).map(([code,t])=><option key={code} value={code}>{code} · {t.libelle} · {t.montant.toFixed(2)} €</option>)}</select><input aria-label="Précision de la formalité" className="min-w-0 rounded border p-2 text-sm" value={item.libelle} onChange={e=>setAjoutees(p=>p.map(x=>x.id===item.id?{...x,libelle:e.target.value}:x))}/><input aria-label="Quantité de la formalité supplémentaire" type="number" min="0" step="1" className="rounded border p-2" value={item.quantite} onChange={e=>setAjoutees(p=>p.map(x=>x.id===item.id?{...x,quantite:quantite(Number(e.target.value))}:x))}/><button className="text-sm text-red-700" onClick={()=>setAjoutees(p=>p.filter(x=>x.id!==item.id))}>Retirer</button></div>)}
+    <button className="rounded-lg border border-indigo-300 px-4 py-2 text-sm text-indigo-800" onClick={()=>setAjoutees(p=>[...p,{id:crypto.randomUUID(),code:'204',libelle:TARIFS_FORMALITES['204'].libelle,quantite:1}])}>Ajouter une formalité</button>
+    <div className="border-t pt-4 text-right font-semibold">Total TTC (TVA {tauxTVA} %) : {totalFormalitesTTC.toFixed(2)} €</div>
+  </div>;
 }

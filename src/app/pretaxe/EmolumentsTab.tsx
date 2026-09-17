@@ -3,7 +3,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { EmolumentsDetail } from './PretaxeTypes';
-import { getTauxTVA, getMajorationDOMTOM } from './PretaxeCalculations';
+import { getMajorationDOMTOM } from './PretaxeCalculations';
 
 interface EmolumentsTabProps {
   emolumentsDetail: EmolumentsDetail;

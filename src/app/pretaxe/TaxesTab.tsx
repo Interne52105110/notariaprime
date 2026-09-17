@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Taxes, departements } from './PretaxeTypes';
+import { lireMontant } from '@/lib/montants';
 
 interface TaxesTabProps {
   taxes: Taxes;
@@ -10,6 +11,9 @@ interface TaxesTabProps {
   selectedDepartement: string;
   montantActe: string;
   regimeTaxe: string;
+  assiettesSurete: { tpf: number; csi: number };
+  csi: number;
+  taxesAjoutees: { id: string; libelle: string; montant: number }[];
 }
 
 export default function TaxesTab({
@@ -18,9 +22,12 @@ export default function TaxesTab({
   totalTaxes,
   selectedDepartement,
   montantActe,
-  regimeTaxe
+  regimeTaxe,
+  assiettesSurete,
+  csi,
+  taxesAjoutees
 }: TaxesTabProps) {
-  const prix = parseFloat((montantActe || '').replace(/\s/g, '')) || 0;
+  const prix = lireMontant(montantActe) ?? 0;
   const mobilier = Number(taxes.valeurMobilier) || 0;
   const assietteDMTO = Math.max(0, prix - mobilier);
   const ratioMobilier = prix > 0 ? (mobilier / prix) * 100 : 0;
@@ -61,14 +68,13 @@ export default function TaxesTab({
               />
             </div>
             <p className="text-xs text-amber-800 mt-2">
-              L&apos;assiette de la TPF et de la CSI est le <strong>capital garanti majoré des
-              accessoires</strong> (intérêts, frais, indemnités), usuellement <strong>+20 %</strong>
-              (ou +15 %). Ex. : un prêt de 70 000 € donne une assiette de 84 000 €.
+              À défaut d’assiettes distinctes renseignées, le calcul utilise le capital majoré des accessoires.
+              Les assiettes peuvent différer selon les sommes garanties et la sûreté : vérifiez les montants prévus au dossier.
             </p>
             {prix > 0 && (
-              <div className="flex justify-between text-sm font-semibold text-gray-900 mt-2">
-                <span>= Assiette TPF / CSI</span>
-                <span>{Math.round(prix * (1 + (taxes.accessoiresSurete ?? 20) / 100)).toLocaleString('fr-FR')} €</span>
+              <div className="text-sm font-semibold text-gray-900 mt-2 space-y-2">
+                <div className="flex justify-between"><span>Assiette TPF retenue</span><span>{assiettesSurete.tpf.toLocaleString('fr-FR')} €</span></div>
+                <div className="flex justify-between"><span>Assiette CSI retenue</span><span>{assiettesSurete.csi.toLocaleString('fr-FR')} €</span></div>
               </div>
             )}
           </div>
@@ -82,13 +88,11 @@ export default function TaxesTab({
               L&apos;inscription d&apos;une hypothèque conventionnelle est soumise à la taxe de
               publicité foncière de 0,715 % de l&apos;assiette (CGI art. 663 et 844), et
               non aux droits de mutation. La contribution de sécurité immobilière (0,05 %)
-              figure dans l&apos;onglet Débours. Les droits sont arrondis à l&apos;euro (CGI art. 1724).
+              figure ci-dessous au Trésor public. Les droits sont arrondis à l&apos;euro (CGI art. 1724).
             </p>
             <p className="text-xs text-gray-500 border-t border-gray-200 pt-2">
-              <strong>Double sûreté</strong> (privilège de prêteur de deniers + hypothèque
-              conventionnelle) : une seule TPF est due (le PPD en est exonéré), mais
-              <strong> deux CSI</strong> — une par inscription. Ajoutez la seconde CSI
-              manuellement le cas échéant.
+              <strong>Plusieurs sûretés</strong> : le nombre d’inscriptions, leurs assiettes et les exonérations
+              doivent être vérifiés. Une CSI supplémentaire peut être renseignée dans « Débours » avec sa justification.
             </p>
           </div>
         </div>
@@ -301,9 +305,13 @@ export default function TaxesTab({
         <input aria-label="Droits complémentaires" type="number" min="0" step="1" className="mt-2 block w-full rounded-lg border p-3" value={taxes.complement??0} onChange={e=>setTaxes(t=>({...t,complement:Math.max(0,Math.round(Number(e.target.value)))}))}/>
         <span className="mt-2 block text-xs text-gray-500">Ajouter uniquement les droits non inclus ci-dessus : donation, succession, apport ou cession de parts, par exemple. Éviter de compter deux fois une même taxe. Montant à justifier par la liquidation du dossier.</span>
       </label>
+      <div className="rounded-xl bg-gray-50 border p-4 space-y-2 text-sm">
+        <div className="flex justify-between gap-4"><span>Contribution de sécurité immobilière</span><span>{csi.toFixed(2)} €</span></div>
+        {taxesAjoutees.map(t=><div key={t.id} className="flex justify-between gap-4"><span>{t.libelle || 'Taxe à préciser'}</span><span>{t.montant.toFixed(2)} €</span></div>)}
+      </div>
       <div className="border-t-2 border-gray-200 pt-4">
         <div className="flex justify-between items-center">
-          <span className="font-bold text-xl">Total des taxes</span>
+          <span className="font-bold text-xl">Total au Trésor public</span>
           <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             {totalTaxes.toFixed(2)} €
           </span>

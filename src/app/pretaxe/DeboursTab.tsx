@@ -1,35 +1,12 @@
-// src\app\pretaxe\DeboursTab.tsx
-
-import React from 'react';
-import { Debours } from './PretaxeTypes';
-
-interface DeboursTabProps {
-  debours: Debours;
-  totalDebours: number;
-}
-
-export default function DeboursTab({
-  debours,
-  totalDebours
-}: DeboursTabProps) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-semibold text-gray-900 mb-4">Contribution de Sécurité Immobilière (CSI)</h3>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-sm text-gray-600">Montant calculé: <span className="font-semibold">{debours.csi.toFixed(2)} €</span></p>
-          <p className="text-xs text-gray-500 mt-1">0,1% du prix avec minimum 15€</p>
-        </div>
-      </div>
-      
-      <div className="border-t-2 border-gray-200 pt-4">
-        <div className="flex justify-between items-center">
-          <span className="font-bold text-xl">Total débours</span>
-          <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {totalDebours.toFixed(2)} €
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+'use client';
+import type { Dispatch,SetStateAction } from 'react';
+import type { Debours } from './PretaxeTypes';
+import type { DepenseAjoutee } from './pretaxeLines';
+interface Props {debours:Debours;setDebours:Dispatch<SetStateAction<Debours>>;totalDebours:number;ajoutees:DepenseAjoutee[];setAjoutees:Dispatch<SetStateAction<DepenseAjoutee[]>>;}
+export default function DeboursTab({debours,setDebours,totalDebours,ajoutees,setAjoutees}:Props){
+  return <div className="space-y-4"><h3 className="font-semibold">Débours justifiés et sommes complémentaires</h3><p className="rounded-lg bg-blue-50 p-3 text-sm">CSI principale calculée : {debours.csi.toFixed(2)} €, comprise dans les sommes au Trésor public. Pour une seconde publication ou inscription, ajoutez une ligne au Trésor en précisant son assiette et son calcul. Ne recopiez pas une somme déjà calculée.</p>
+    {([['etatsHypothecaires','États hypothécaires'],['cadastre','Frais cadastraux'],['urbanisme','Frais d’urbanisme']] as const).map(([key,label])=><label key={key} className="block text-sm">{label} : dépense justifiée (€)<input type="number" min="0" step="0.01" className="ml-3 w-36 rounded border p-2" value={debours[key]} onChange={e=>setDebours(p=>({...p,[key]:Math.max(0,Number(e.target.value)||0)}))}/></label>)}
+    {ajoutees.map(l=><div key={l.id} className="grid gap-2 rounded border p-3 md:grid-cols-[1fr_160px_130px_auto]"><input aria-label="Libellé de la dépense" className="min-w-0 rounded border p-2 text-sm" value={l.libelle} placeholder="Ex. CSI publication 2 : base…, taux…" onChange={e=>setAjoutees(p=>p.map(x=>x.id===l.id?{...x,libelle:e.target.value}:x))}/><select aria-label="Nature de la dépense" className="rounded border p-2 text-sm" value={l.nature} onChange={e=>setAjoutees(p=>p.map(x=>x.id===l.id?{...x,nature:e.target.value as DepenseAjoutee['nature']}:x))}><option value="debours">Débours justifié</option><option value="taxes">Trésor public / CSI</option></select><input aria-label="Montant de la dépense" type="number" min="0" step="0.01" className="min-w-0 rounded border p-2" value={l.montant} onChange={e=>setAjoutees(p=>p.map(x=>x.id===l.id?{...x,montant:Math.max(0,Number(e.target.value)||0)}:x))}/><button className="text-sm text-red-700" onClick={()=>setAjoutees(p=>p.filter(x=>x.id!==l.id))}>Retirer</button></div>)}
+    <button className="rounded border border-indigo-300 px-4 py-2 text-sm text-indigo-800" onClick={()=>setAjoutees(p=>[...p,{id:crypto.randomUUID(),libelle:'',nature:'debours',montant:0}])}>Ajouter une dépense ou une CSI</button>
+    <p className="text-sm text-gray-600">Ces lignes concernent des débours hors TVA ou des sommes au Trésor. Les prestations rémunérant le notaire appartiennent aux émoluments ou aux honoraires, pas aux débours.</p><p className="border-t pt-4 text-right font-semibold">Total débours : {totalDebours.toFixed(2)} €</p></div>;
 }

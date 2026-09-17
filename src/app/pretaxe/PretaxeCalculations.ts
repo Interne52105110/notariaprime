@@ -1,6 +1,6 @@
 // Path: C:\notariaprime\src\app\pretaxe\PretaxeCalculations.ts
 
-import jsPDF from 'jspdf';
+import { arrondirRatio, lireMontant } from '@/lib/montants';
 import { actesConfig, configParDefaut, type ConfigActe } from '@/config/actesConfig';
 import {
   TrancheTarif,
@@ -11,8 +11,7 @@ import {
   Debours,
   Formalites,
   Documents,
-  Taxes,
-  CategorieActes
+  Taxes
 } from './PretaxeTypes';
 
 // ============================================================================
@@ -45,55 +44,26 @@ export function calculerEmoluments(
   selectedDepartement: string,
   appliquerRemise: boolean
 ): EmolumentsDetail {
-  let emolumentsBruts = 0;
-
-  tranches.forEach(tranche => {
-    if (montant > tranche.min) {
-      const montantDansTranche = Math.min(montant - tranche.min, tranche.max - tranche.min);
-      emolumentsBruts += montantDansTranche * (tranche.taux / 100);
-    }
-  });
-
-  // A444-58 : minimum général 500 €. Les seuils spéciaux sont traités
-  // par leurs calculateurs dédiés (mariage, certificat, servitude).
-  if (montant > 0 && montant < 500 && tranches.length > 0) {
-    emolumentsBruts = 500 * (tranches[0].taux / 100);
-  }
-
-  const tauxMajoration = getMajorationDOMTOM(selectedDepartement);
-  const majoration = emolumentsBruts * (tauxMajoration / 100);
-  const emolumentsAvantRemise = emolumentsBruts + majoration;
-
-  let remise20 = 0;
-  let emolumentsNets = emolumentsAvantRemise;
-  
-  if (appliquerRemise && montant > 100000) {
-    let emolumentsAuDela100k = 0;
-    
-    tranches.forEach(tranche => {
-      if (100000 < tranche.max) {
-        const debut = Math.max(100000, tranche.min);
-        const fin = montant > tranche.max ? tranche.max : montant;
-        if (fin > debut) {
-          emolumentsAuDela100k += (fin - debut) * (tranche.taux / 100);
-        }
-      }
-    });
-    
-    const majorationAuDela100k = emolumentsAuDela100k * (tauxMajoration / 100);
-    remise20 = (emolumentsAuDela100k + majorationAuDela100k) * 0.20;
-    
-    emolumentsNets = emolumentsAvantRemise - remise20;
-  }
-  
-  const round2 = (n: number) => Math.round(n * 100) / 100;
+  if (!Number.isFinite(montant) || montant < 0 || montant > 1e12) throw new RangeError('Assiette invalide');
+  // A444-54 : assiette arrondie à l'euro. A444-58 : minimum 500 € si positive.
+  const base = montant > 0 ? Math.max(500, Math.round(montant)) : 0;
+  const numerateur = (debut: number) => tranches.reduce((sum, tranche) => {
+    const part = Math.max(0, Math.min(base, tranche.max) - Math.max(debut, tranche.min));
+    return sum + BigInt(Math.round(part)) * BigInt(Math.round(tranche.taux * 1000));
+  }, BigInt(0));
+  // Les taux sont en millièmes de pourcent : aucune multiplication monétaire binaire.
+  const brut = numerateur(0);
+  const majoration = BigInt(getMajorationDOMTOM(selectedDepartement));
+  const avant = brut * (BigInt(100) + majoration);
+  const auDela = appliquerRemise && base > 100000 ? numerateur(100000) * (BigInt(100) + majoration) : BigInt(0);
+  const euros = (n: bigint, d: bigint) => arrondirRatio(n * BigInt(100), d) / 100;
   return {
-    bruts: round2(emolumentsBruts),
-    majoration: round2(majoration),
-    avantRemise: round2(emolumentsAvantRemise),
+    bruts: euros(brut, BigInt(100000)),
+    majoration: euros(brut * majoration, BigInt(10000000)),
+    avantRemise: euros(avant, BigInt(10000000)),
     remise10: 0,
-    remise20: round2(remise20),
-    nets: round2(emolumentsNets)
+    remise20: euros(auDela, BigInt(50000000)),
+    nets: euros(avant * BigInt(5) - auDela, BigInt(50000000)),
   };
 }
 
@@ -137,8 +107,8 @@ export function calculerTaxes(
     return;
   }
 
-  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
-  if (isNaN(montant)) return;
+  const montant = lireMontant(montantActe);
+  if (montant === null) return;
 
   // CGI 735 : prix distinct et désignation/estimation des meubles dans l’acte.
   // Aucun forfait automatique de 5 % sans justification.
@@ -184,8 +154,8 @@ export function calculerCSI(
 ) {
   if (!montantActe) return;
 
-  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
-  if (isNaN(montant)) return;
+  const montant = lireMontant(montantActe);
+  if (montant === null) return;
 
   // Pour une sûreté, l'assiette est le capital majoré des accessoires (cf.
   // baseOverride). CSI arrondie à l'euro (CGI art. 1724), minimum 15 € (art. 881 M).
@@ -208,8 +178,8 @@ export function calculerTPF(
   baseOverride?: number
 ) {
   if (!montantActe) return;
-  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
-  if (isNaN(montant)) return;
+  const montant = lireMontant(montantActe);
+  if (montant === null) return;
 
   // Assiette = capital garanti majoré des accessoires (baseOverride). TPF
   // arrondie à l'euro le plus proche (CGI art. 1724).
@@ -237,8 +207,8 @@ export function calculerDroitPartage(
   setTaxes: React.Dispatch<React.SetStateAction<Taxes>>
 ) {
   if (!montantActe) return;
-  const montant = parseFloat(montantActe.replace(/\s/g, '').replace(',', '.'));
-  if (isNaN(montant)) return;
+  const montant = lireMontant(montantActe);
+  if (montant === null) return;
 
   const taux = regime === 'divorce' ? 1.10 : 2.50;
   // Droit de partage arrondi à l'euro le plus proche (CGI art. 1724).
@@ -289,10 +259,9 @@ export function appliquerConfigParDefaut(
   setDebours(prev => ({
     ...prev,
     csi: 0,
-    etatsHypothecaires: config.debours?.etatsHypothecaires?.defaut
-      ? (config.debours.etatsHypothecaires.montant ?? 50) : 0,
-    cadastre: config.debours?.cadastre?.defaut
-      ? (config.debours.cadastre.montant ?? 0) : 0,
+    urbanisme: 0,
+    etatsHypothecaires: 0,
+    cadastre: 0,
   }));
   
   // Appliquer les formalités
@@ -300,11 +269,11 @@ export function appliquerConfigParDefaut(
     setFormalites(prev => ({
       ...prev,
       publiciteFonciere: {
-        actif: config.formalites?.publiciteFonciere?.defaut || false,
+        actif: !['donation','donation_partage','donation_mobiliere'].includes(acteKey) && (config.formalites?.publiciteFonciere?.defaut || false),
         montant: config.formalites?.publiciteFonciere?.montant ?? 339.58
       },
       cadastre: {
-        actif: config.formalites?.cadastre?.defaut || false,
+        actif: false,
         montant: config.formalites?.cadastre?.montant ?? 11.32
       },
       casierJudiciaire: {
@@ -312,40 +281,40 @@ export function appliquerConfigParDefaut(
         montant: config.formalites?.casierJudiciaire?.montant ?? 37.73
       },
       notification: {
-        actif: config.formalites?.notification?.defaut || false,
+        actif: false,
         montant: config.formalites?.notification?.montant ?? 15.09
       },
       mesurage: {
-        actif: config.formalites?.mesurage?.defaut || false,
+        actif: false,
         montant: config.formalites?.mesurage?.montant ?? 15.09
       },
       diagnostics: {
         dpe: {
-          actif: config.formalites?.diagnostics?.dpe?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.dpe?.montant ?? 15.09
         },
         amiante: {
-          actif: config.formalites?.diagnostics?.amiante?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.amiante?.montant ?? 15.09
         },
         plomb: {
-          actif: config.formalites?.diagnostics?.plomb?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.plomb?.montant ?? 15.09
         },
         termites: {
-          actif: config.formalites?.diagnostics?.termites?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.termites?.montant ?? 15.09
         },
         gaz: {
-          actif: config.formalites?.diagnostics?.gaz?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.gaz?.montant ?? 15.09
         },
         electricite: {
-          actif: config.formalites?.diagnostics?.electricite?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.electricite?.montant ?? 15.09
         },
         erp: {
-          actif: config.formalites?.diagnostics?.erp?.defaut || false,
+          actif: false,
           montant: config.formalites?.diagnostics?.erp?.montant ?? 15.09
         }
       },
@@ -354,7 +323,7 @@ export function appliquerConfigParDefaut(
         montant: config.formalites?.transmissionCSN?.montant ?? 15.31
       },
       requisition: {
-        actif: config.formalites?.requisition?.defaut || false,
+        actif: false,
         montant: config.formalites?.requisition?.montant ?? 18.87
       },
       // Télé@ctes : uniquement pour les actes publiés au SPF (alignés sur la
@@ -373,11 +342,12 @@ export function appliquerConfigParDefaut(
   // Appliquer les documents
   if (config.documents) {
     setDocuments({
-      pagesActe: config.documents.pagesActe || 10,
-      copiesExecutoires: config.documents.copiesExecutoires || 0,
-      copiesAuthentiques: config.documents.copiesAuthentiques || 1,
-      copiesHypothecaires: config.documents.copiesHypothecaires || 0,
-      archivageNumerise: true
+      pagesActe: 0,
+      copiesExecutoires: 0,
+      copiesAuthentiques: 0,
+      copiesHypothecaires: 0,
+      copiesLibres: 0,
+      archivageNumerise: false
     });
   }
   
@@ -442,216 +412,4 @@ export function estFormaliteObligatoire(nomFormalite: string, selectedActe: stri
   
   const formalite = config.formalites[nomFormalite as keyof typeof config.formalites];
   return formalite != null && 'obligatoire' in formalite && formalite.obligatoire === true;
-}
-
-// ============================================================================
-// EXPORT PDF
-// ============================================================================
-
-export function exporterPDF(
-  selectedDepartement: string,
-  selectedCategory: string,
-  selectedActe: string,
-  montantActe: string,
-  emolumentsDetail: EmolumentsDetail,
-  totalEmolumentsTTC: number,
-  debours: Debours,
-  totalDebours: number,
-  totalFormalitesTTC: number,
-  totalDocumentsTTC: number,
-  taxes: Taxes,
-  totalTaxes: number,
-  totalGeneral: number,
-  appliquerRemise: boolean,
-  categoriesActes: Record<string, CategorieActes>
-) {
-  const deptInfo = departements[selectedDepartement];
-  const acteInfo = categoriesActes[selectedCategory]?.actes[selectedActe];
-  
-  const doc = new jsPDF();
-  
-  let y = 20;
-  const lineHeight = 7;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('NotariaPrime - Calcul Frais Notariés', pageWidth / 2, y, { align: 'center' });
-  y += 10;
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Conforme tarif réglementé 2026/2028 - Arrêté du 25 février 2026', pageWidth / 2, y, { align: 'center' });
-  y += 15;
-  
-  doc.setFontSize(11);
-  doc.text(`Date : ${new Date().toLocaleString('fr-FR')}`, 20, y);
-  y += lineHeight;
-  doc.text(`Département : ${deptInfo?.nom} (${selectedDepartement})`, 20, y);
-  y += lineHeight;
-  
-  if (deptInfo?.majoration > 0) {
-    doc.setTextColor(255, 100, 0);
-    doc.text(`⚠ Territoire DOM-TOM - Majoration +${deptInfo.majoration}%`, 20, y);
-    doc.setTextColor(0, 0, 0);
-    y += lineHeight;
-  }
-  
-  doc.text(`Type d'acte : ${acteInfo?.label || 'N/A'}`, 20, y);
-  y += lineHeight;
-  
-  if (acteInfo?.type === 'non_tarife') {
-    doc.setFont('helvetica', 'bold');
-    doc.text('⚖ ACTE NON TARIFÉ - HONORAIRES LIBRES', 20, y);
-    doc.setFont('helvetica', 'normal');
-    y += lineHeight;
-    doc.text(`Estimation : ${acteInfo.honorairesEstimes}`, 20, y);
-    y += lineHeight * 2;
-    doc.setFontSize(9);
-    doc.text('Ces honoraires sont libres et doivent être convenus avec votre notaire.', 20, y);
-    doc.text('Ils ne sont pas réglementés par le décret n°2020-179.', 20, y + 5);
-  } else {
-    doc.text(`Montant : ${montantActe} €`, 20, y);
-    y += lineHeight * 2;
-    
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, y, pageWidth - 20, y);
-    y += 10;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('ÉMOLUMENTS', 20, y);
-    y += lineHeight + 2;
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Émoluments bruts :`, 20, y);
-    doc.text(`${emolumentsDetail.bruts.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight;
-    
-    if (emolumentsDetail.majoration > 0) {
-      doc.setTextColor(255, 100, 0);
-      doc.text(`Majoration DOM-TOM (+${deptInfo?.majoration}%) :`, 20, y);
-      doc.text(`+${emolumentsDetail.majoration.toFixed(2)} €`, pageWidth - 60, y);
-      doc.setTextColor(0, 0, 0);
-      y += lineHeight;
-    }
-    
-    if (appliquerRemise && emolumentsDetail.remise20 > 0) {
-      doc.setTextColor(0, 150, 0);
-      doc.text(`Remise 20% (>100k€) :`, 20, y);
-      doc.text(`-${emolumentsDetail.remise20.toFixed(2)} €`, pageWidth - 60, y);
-      doc.setTextColor(0, 0, 0);
-      y += lineHeight;
-    }
-    
-    doc.text(`Total HT :`, 20, y);
-    doc.text(`${emolumentsDetail.nets.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight;
-    
-    const tauxTVAText = getTauxTVA(selectedDepartement) === 0 ? 
-      `TVA (0% - Exonéré) :` : 
-      `TVA (${getTauxTVA(selectedDepartement)}%) :`;
-    doc.text(tauxTVAText, 20, y);
-    doc.text(`${(emolumentsDetail.nets * getTauxTVA(selectedDepartement) / 100).toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total TTC :`, 20, y);
-    doc.text(`${totalEmolumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight * 2;
-    
-    doc.setFontSize(12);
-    doc.text('DÉBOURS', 20, y);
-    y += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`CSI :`, 20, y);
-    doc.text(`${debours.csi.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight;
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total débours :`, 20, y);
-    doc.text(`${totalDebours.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight * 2;
-    
-    doc.setFontSize(12);
-    doc.text('FORMALITÉS', 20, y);
-    y += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Total TTC :`, 20, y);
-    doc.text(`${totalFormalitesTTC.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight * 2;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('DOCUMENTS', 20, y);
-    y += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Total TTC :`, 20, y);
-    doc.text(`${totalDocumentsTTC.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight * 2;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('TAXES ET DROITS', 20, y);
-    y += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    if (taxes.typeBien === 'ancien' || taxes.typeBien === 'neuf') {
-      doc.text(`Taxe départementale :`, 20, y);
-      doc.text(`${taxes.departementale.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-      doc.text(`Taxe communale :`, 20, y);
-      doc.text(`${taxes.communale.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-      doc.text(`Frais d'assiette :`, 20, y);
-      doc.text(`${taxes.fraisAssiette.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-    }
-    if (taxes.tpf && taxes.tpf > 0) {
-      doc.text(`Taxe de publicité foncière (0,715%) :`, 20, y);
-      doc.text(`${taxes.tpf.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-    }
-    if (taxes.droitPartage && taxes.droitPartage > 0) {
-      doc.text(`Droit de partage (${taxes.regimePartage === 'divorce' ? '1,10' : '2,50'}%) :`, 20, y);
-      doc.text(`${taxes.droitPartage.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-    }
-    if (taxes.droitFixe && taxes.droitFixe > 0) {
-      doc.text(`Droit fixe d'enregistrement :`, 20, y);
-      doc.text(`${taxes.droitFixe.toFixed(2)} €`, pageWidth - 60, y);
-      y += lineHeight;
-    }
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total taxes :`, 20, y);
-    doc.text(`${totalTaxes.toFixed(2)} €`, pageWidth - 60, y);
-    y += lineHeight * 3;
-    
-    doc.setDrawColor(50, 50, 50);
-    doc.setLineWidth(0.5);
-    doc.line(20, y - 5, pageWidth - 20, y - 5);
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL GÉNÉRAL', 20, y);
-    doc.text(`${totalGeneral.toFixed(2)} €`, pageWidth - 60, y);
-    
-    doc.setLineWidth(0.5);
-    doc.line(20, y + 3, pageWidth - 20, y + 3);
-  }
-  
-  const footerY = doc.internal.pageSize.getHeight() - 20;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Décret n°2020-179 du 27 février 2020 • Arrêté du 25 février 2026 (en vigueur 01/03/2026 - 29/02/2028)', pageWidth / 2, footerY, { align: 'center' });
-  if (appliquerRemise) {
-    doc.text('Remise de 20% appliquée sur la tranche >100 000€', pageWidth / 2, footerY + 4, { align: 'center' });
-  }
-  doc.text(`Généré par NotariaPrime - ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, footerY + 8, { align: 'center' });
-  
-  doc.save(`notariaprime_${Date.now()}.pdf`);
 }
