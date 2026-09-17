@@ -3,7 +3,7 @@
 import Header from './Header';
 import Footer from './Footer';
 import FeedbackModal from './FeedbackModal';
-import ToolResources from './ToolResources';
+import ToolResources, { ToolHelpNav } from './ToolResources';
 import { useState } from 'react';
 
 interface MainLayoutProps {
@@ -20,7 +20,8 @@ export default function MainLayout({ children, showFeedback = true }: MainLayout
       
       {/* Main content avec padding-top pour compenser le header fixe */}
       <main className="pt-20">
-        {children}
+        <ToolHelpNav />
+        <div id="outil-calculateur" className="scroll-mt-28">{children}</div>
         <ToolResources />
       </main>
       

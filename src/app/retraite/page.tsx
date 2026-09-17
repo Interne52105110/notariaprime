@@ -26,7 +26,7 @@ export default function RetraitePage(){
   },[form,calculer]);
   const r=resultat.scenarios[0];
   const champ=(key:keyof Formulaire,label:string,aide?:string,max?:number)=><label className="block text-sm font-medium" key={key}>{label}<input className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3" type="number" min="0" max={max} step="any" value={form[key]} onChange={e=>update(key,e.target.value)}/>{aide&&<span className="mt-1 block text-xs font-normal text-slate-600">{aide}</span>}</label>;
-  return <MainLayout><main className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
+  return <MainLayout><div className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
     <h1 className="text-3xl font-bold">Simulateur retraite</h1>
     <p className="mt-3 max-w-4xl">Comparez des dates de départ à partir de vos droits connus. Règles des départs à compter du 1er septembre 2026, paramètres monétaires 2026 constants. Le salaire actuel ne permet pas de reconstituer vos droits passés : utilisez votre relevé Info Retraite.</p>
     <nav className="my-6 flex flex-wrap gap-2 print:hidden" aria-label="Sections retraite">{[['estimation','Estimation et comparaison'],['methode','Calculs et sources']].map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`rounded-lg px-4 py-3 ${tab===id?'bg-indigo-700 text-white':'bg-slate-100'}`}>{label}</button>)}</nav>
@@ -75,5 +75,5 @@ export default function RetraitePage(){
       <p>Les rachats ne sont pas tous équivalents : l’option taux seul ne crée pas de durée de proratisation. La retraite progressive est accessible dès 60 ans depuis septembre 2025 sous conditions, dont 150 trimestres. Ces opérations et le cumul emploi-retraite nécessitent une étude distincte. Aucun rachat ni produit d’épargne n’est recommandé automatiquement. <a className="underline" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F12842">Retraite progressive</a>.</p>
       <a className="inline-block rounded-lg bg-indigo-700 px-4 py-3 text-white" href="https://www.info-retraite.fr/">Consulter mon relevé et les estimations des caisses</a>
     </section>}
-  </main></MainLayout>;
+  </div></MainLayout>;
 }

@@ -194,7 +194,7 @@ function HomepageContent() {
   const allSolutions: SolutionWithCategory[] = [
 {title:"Droits de succession",description:"Calcul des droits par héritier après détermination des parts civiles",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/succession',category:'Patrimoine',isNew:true},
 {title:"Capacité d’emprunt",description:"Revenus, assurance, apport et budget total d’acquisition",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/capacite-emprunt',category:'Immobilier',isNew:true},
-{title:"Achat, location et revente",description:"Comparaison des flux en direct et en SCI IS jusqu’à la sortie",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/strategie-immobiliere',category:'Immobilier',isNew:true},
+{title:"Location en direct ou SCI IS",description:"Comparaison des flux en direct et en SCI IS jusqu’à la sortie",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/strategie-immobiliere',category:'Immobilier',isNew:true},
 {title:"Relance logement",description:"Amortissement Jeanbrun et effet sur les revenus fonciers",icon:Calculator,status:'Disponible',features:['Hypothèses explicites','Calcul détaillé','Guide et sources'],link:'/relance-logement',category:'Fiscalité',isNew:true},
 
     // Immobilier

@@ -8,13 +8,7 @@
 import { projectionHolding } from '@/lib/holding';
 import { BAREME_IR_2026 } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Building2, TrendingUp, Calculator, PieChart as PieChartIcon,
-  AlertCircle, Info, HelpCircle, ChevronDown, ChevronUp, BookOpen,
-  Landmark, Euro, Plus, Trash2, Shield, ArrowRight, ArrowDown,
-  Briefcase, Users, Gift, Scale, Banknote, BarChart3, Percent,
-  Home, FileText, Target, Lightbulb, RefreshCw, Save, FolderOpen, Download
-} from 'lucide-react';
+import { Building2, TrendingUp, Calculator, PieChart as PieChartIcon, AlertCircle, Info, Landmark, Euro, Plus, Trash2, Shield, ArrowRight, ArrowDown, Briefcase, Users, Gift, Scale, Banknote, BarChart3, Home, FileText, Target, Lightbulb, RefreshCw, Save, FolderOpen, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -212,8 +206,8 @@ function getValeurUsufruit(age: number): { usufruit: number; nuePropriete: numbe
 // ============================================
 
 export default function HoldingPatrimoniale() {
-  const [activeTab, setActiveTab] = useState<'comparaison' | 'flux' | 'transmission' | 'faq'>('comparaison');
-  const [faqOpenIndex, setFaqOpenIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'comparaison' | 'flux' | 'transmission'>('comparaison');
+
   const [isDesktop, setIsDesktop] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
@@ -626,7 +620,6 @@ export default function HoldingPatrimoniale() {
     { id: 'comparaison' as const, label: 'Comparaison', icon: Scale },
     { id: 'flux' as const, label: 'Flux Financiers', icon: ArrowRight },
     { id: 'transmission' as const, label: 'Transmission', icon: Gift },
-    { id: 'faq' as const, label: 'FAQ', icon: HelpCircle }
   ];
 
   // ============================================
@@ -664,7 +657,7 @@ export default function HoldingPatrimoniale() {
             </div>
             <p className="text-gray-500 text-sm max-w-3xl">
               Comparez la detention directe de biens immobiliers avec une structuration via holding patrimoniale (societe IS).
-              Simulez les economies fiscales, les flux financiers et les avantages en matiere de transmission.
+              Suivez les flux entre les sociétés et le revenu personnel, selon les hypothèses du scénario.
             </p>
             <div className="mt-4 flex gap-2">
               <button
@@ -1730,26 +1723,10 @@ export default function HoldingPatrimoniale() {
           )}
 
           {/* ============================================ */}
-          {/* TAB: FAQ */}
+
           {/* ============================================ */}
 
-          {activeTab === 'faq' && (
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6 lg:p-8">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4">
-                  <HelpCircle className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                  Questions Frequentes
-                </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Tout comprendre sur la structuration patrimoniale via holding
-                </p>
-              </div>
 
-              <FAQSection openIndex={faqOpenIndex} setOpenIndex={setFaqOpenIndex} />
-            </div>
-          )}
 
           {/* ============================================ */}
           {/* DISCLAIMER */}
@@ -1878,83 +1855,4 @@ export default function HoldingPatrimoniale() {
 }
 
 // ============================================
-// COMPOSANT FAQ
 // ============================================
-
-function FAQSection({ openIndex, setOpenIndex }: { openIndex: number | null; setOpenIndex: (i: number | null) => void }) {
-  const faqs = [
-    {
-      q: "Qu'est-ce qu'une holding patrimoniale ?",
-      r: "Une holding patrimoniale est une societe (generalement une SAS ou une SARL) soumise a l'impot sur les societes (IS) qui detient des participations dans une ou plusieurs societes civiles immobilieres (SCI). Son role est de centraliser la gestion et les flux financiers du patrimoine immobilier familial. La holding percoit les dividendes de ses filiales sous le regime fiscal favorable dit 'mere-fille' (quasi exoneration, seule une quote-part de 5% est imposee). Cette structuration permet d'optimiser la fiscalite des revenus locatifs, de faciliter le reinvestissement de la tresorerie et de preparer la transmission du patrimoine. (Articles 145 et 216 du Code General des Impots)"
-    },
-    {
-      q: "Quand creer une holding est-il interessant ?",
-      r: "La creation d'une holding patrimoniale devient interessante dans plusieurs situations : lorsque votre tranche marginale d'imposition (TMI) est elevee (30% et plus), car le taux IS (15% puis 25%) est inferieur au TMI + prelevements sociaux ; lorsque vous detenez plusieurs biens immobiliers et souhaitez rationaliser leur gestion ; lorsque votre objectif est la capitalisation a long terme plutot que la distribution de revenus ; et lorsque vous anticipez une transmission de patrimoine a vos enfants. Aucun seuil de patrimoine ne garantit son intérêt : comparez les frais, les besoins personnels, les remboursements et la fiscalité de sortie."
-    },
-    {
-      q: "Quel est le cout de creation et de gestion ?",
-      r: "La creation d'une holding coute entre 1 500 et 3 000 euros (frais juridiques, redaction des statuts, immatriculation). Ces montants sont des hypothèses budgétaires, pas un tarif réglementé. Les coûts réels de gestion comprennent : la comptabilite (1 500 a 3 000 euros par societe selon la complexite), l'expert-comptable pour les declarations fiscales, l'assemblee generale annuelle et le depot des comptes, la cotisation fonciere des entreprises (CFE), et eventuellement les honoraires d'un commissaire aux comptes si les seuils sont depasses. Au total, comptez entre 3 000 et 6 000 euros de frais annuels pour une holding avec une a deux filiales. Ces couts doivent etre compenses par les economies fiscales realisees."
-    },
-    {
-      q: "Comment fonctionne le regime mere-fille ?",
-      r: "Le regime mere-fille (Articles 145 et 216 du CGI) permet a la societe mere (la holding) de percevoir les dividendes de ses filiales en quasi exoneration d'impot. Les conditions sont : la holding doit detenir au moins 5% du capital de la filiale avec conservation pendant au moins 2 ans (le régime peut s’appliquer avant ce terme sous cette condition), et les deux societes doivent etre soumises a l'IS. Concretement, les dividendes remontes de la SCI vers la holding sont exoneres d'IS, sauf une quote-part de frais et charges de 5% qui est reintegree dans le resultat imposable. À taux normal, avant déduction des frais et reports déficitaires de la holding, 5% x 25% représente 1,25% des dividendes remontés, ce qui est tres avantageux par rapport a l'imposition directe."
-    },
-    {
-      q: "Holding et IFI : quel impact ?",
-      r: "La holding ne permet pas d'echapper a l'Impot sur la Fortune Immobiliere (IFI). L'article 965 du CGI prevoit la transparence fiscale pour l'IFI : les parts de societes detenant de l'immobilier sont incluses dans l'assiette de l'IFI a hauteur de la fraction de la valeur des parts representant des actifs immobiliers. La valorisation des parts et la prise en compte des dettes suivent les règles spécifiques de l’IFI, dont les exclusions et limitations de dettes. Aucune décote forfaitaire n’est garantie. La creation d'une holding ne doit donc pas etre motivee par l'IFI mais par l'optimisation de la fiscalite des revenus et de la transmission."
-    },
-    {
-      q: "Comment transmettre via une holding ?",
-      r: "La transmission via holding offre plusieurs avantages. Premièrement, une éventuelle décote de valeur doit être justifiée par les caractéristiques réelles des parts ; leur caractère non coté ne donne droit à aucun taux automatique. Deuxiemement, le demembrement des parts permet au donateur de conserver l'usufruit (et donc les revenus) tout en transmettant la nue-propriete aux enfants. La valeur de la nue-propriete depend de l'age du donateur selon le bareme de l'article 669 du CGI. Troisiemement, au deces du donateur, l'usufruit rejoint la nue-propriete sans droits supplementaires. Quatriemement, il est possible de fractionner la transmission dans le temps en utilisant les abattements renouvelables tous les 15 ans."
-    },
-    {
-      q: "Peut-on integrer un bien existant dans une holding ?",
-      r: "Oui, mais l'operation genere des couts fiscaux. L'apport d'un bien immobilier a une SCI puis la creation d'une holding au-dessus implique : des droits d’enregistrement variables selon le régime de l’apport, une éventuelle plus-value immobilière, des frais de notaire, et des frais de restructuration juridique. Les régimes de report professionnels, dont l’article 151 octies, ne s’appliquent pas automatiquement à l’apport d’un immeuble du patrimoine privé. Il est recommande de structurer la holding en amont de l'acquisition des biens pour eviter ces surcouts."
-    },
-    {
-      q: "Holding IS vs SCI IR : quelle difference ?",
-      r: "La SCI a l'IR est transparente fiscalement : les revenus fonciers sont imposes directement entre les mains des associes au bareme progressif + 17,2% de prelevements sociaux (les revenus fonciers ne sont pas impactes par la hausse LFSS 2026), mais l'amortissement du bien n'est pas deductible. La SCI a l'IS (ou le montage holding IS + SCI IS) permet de deduire l'amortissement du bien (reduction significative du resultat fiscal), de bénéficier, si ses conditions sont remplies, du taux IS réduit de 15% sur les premiers 42 500 euros, et de capitaliser la tresorerie dans la societe. En contrepartie, les plus-values sont calculees sur la valeur comptable nette (apres amortissement), ce qui les rend potentiellement plus elevees, et la distribution aux associes supporte la flat tax de 31,4% depuis 2026 (12,8% IR + 18,6% PS). Le choix depend de votre TMI, de votre objectif (distribution ou capitalisation) et de votre horizon temporel."
-    },
-    {
-      q: "Quels sont les risques d'une holding ?",
-      r: "Les principaux risques sont : le risque d'abus de droit si la holding n'a pas de substance economique reelle (l'administration fiscale peut requalifier le montage), les couts de structure qui grignottent la rentabilite sur des patrimoines trop petits, la complexite de gestion et de declaration, la double imposition a la sortie (IS + flat tax) qui peut effacer l'avantage fiscal en cas de distribution massive, la difficulte de revendre des parts de holding par rapport a un bien en direct, et l'evolution legislative qui peut modifier les regles fiscales applicables. Il est essentiel que la holding ait une raison economique valable au-dela de la seule optimisation fiscale."
-    },
-    {
-      q: "Comment optimiser la tresorerie d'une holding ?",
-      r: "Plusieurs strategies permettent d'optimiser la tresorerie accumulee dans la holding : le reinvestissement dans de nouveaux biens immobiliers via les filiales, grace a une capacite d'autofinancement superieure ; la mise en place d'une convention de tresorerie intragroupe pour rationaliser les flux entre la holding et ses filiales ; le placement de la tresorerie excedentaire sur des contrats de capitalisation (enveloppe fiscale avantageuse pour les personnes morales) ; le financement de travaux d'amelioration des biens existants pour augmenter les loyers ; et la constitution d'une reserve pour faire face aux imprevus (vacance locative, travaux urgents). Attention a ne pas laisser une tresorerie excessive dormante, car l'administration pourrait considerer que la holding n'a pas d'activite economique reelle."
-    }
-  ];
-
-  return (
-    <div className="space-y-3">
-      {faqs.map((faq, index) => {
-        const isOpen = openIndex === index;
-        return (
-          <div
-            key={index}
-            className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 transition-colors"
-          >
-            <button
-              onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-            >
-              <span className="font-semibold text-gray-900 pr-4">{faq.q}</span>
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              )}
-            </button>
-            {isOpen && (
-              <div className="px-5 py-4 bg-gray-50 border-t-2 border-gray-200">
-                <p className="text-gray-700 leading-relaxed text-sm">
-                  {faq.r}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}

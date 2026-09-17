@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --turbopack",
+    "build": "next build --turbopack && node scripts/check-calculator-content.cjs",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --require ./tests/register.cjs --test tests/fiscal.test.cjs tests/projets.test.cjs tests/pretaxe-audit.test.cjs"
+    "test": "node --require ./tests/register.cjs --test tests/fiscal.test.cjs tests/projets.test.cjs tests/pretaxe-audit.test.cjs tests/tool-help.test.cjs"
   },
   "dependencies": {
     "@radix-ui/react-navigation-menu": "^1.2.14",

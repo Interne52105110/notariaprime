@@ -4,12 +4,7 @@ import { plusDeCinqAns, anneesRevolues, abattementsPlusValue, surtaxePlusValue }
 import { basesPlusValue, abattementExceptionnelPV } from '@/lib/plusvalue';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/MainLayout';
-import { 
-  Calculator, TrendingUp, Euro, Calendar, FileText, Download, 
-  AlertCircle, Info, CheckCircle, Clock,
-  ArrowRight, Gift, Users, Lightbulb, BarChart3, Target,
-  PieChart, HelpCircle, ChevronDown, ChevronUp, BookOpen
-} from 'lucide-react';
+import { Calculator, TrendingUp, Euro, Calendar, FileText, Download, AlertCircle, Info, CheckCircle, Clock, ArrowRight, Gift, Users, Lightbulb, BarChart3, Target, PieChart, } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface FormData {
@@ -77,192 +72,7 @@ interface Scenario {
 }
 
 // Composant FAQ pour la page Plus-Value
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<string | null>(null);
 
-  const faqData = [
-    {
-      category: "Calcul et abattements",
-      questions: [
-        {
-          q: "Comment se calcule la plus-value immobilière ?",
-          r: "**La plus-value brute se calcule selon la formule :**\n\n**Plus-value = Prix de vente corrigé - Prix d'acquisition corrigé**\n\n**Prix de vente corrigé :**\n• Prix de vente - frais de vente (diagnostics, agence si à votre charge)\n\n**Prix d'acquisition corrigé :**\n• Prix d'achat initial\n• + Frais d'acquisition (notaire) : forfait 7,5% OU montant réel\n• + Travaux : forfait 15% (si détention > 5 ans) OU montant réel justifié\n\n**⚠️ Important :** Les travaux déduits en revenus fonciers ne peuvent pas être pris en compte une seconde fois.",
-          source: "Articles 150 V à 150 VH du CGI"
-        },
-        {
-          q: "Quels sont les abattements pour durée de détention en 2026 ?",
-          r: "**Les abattements sont DIFFÉRENTS pour l'IR et les PS :**\n\n**🔹 IMPÔT SUR LE REVENU (19%) :**\n• < 6 ans : 0%\n• 6-21 ans : 6% par an (96% après 21 ans)\n• 22 ans : 4% supplémentaires\n• ✅ **Exonération totale après 22 ans**\n\n**🔹 PRÉLÈVEMENTS SOCIAUX (17,2%) :**\n• < 6 ans : 0%\n• 6-21 ans : 1,65% par an (26,4% après 21 ans)\n• 22 ans : 1,60%\n• 23-29 ans : 9% par an\n• ✅ **Exonération totale après 30 ans**\n\n**💡 Astuce :** Le calcul se fait au jour près. Une différence de quelques jours peut changer de tranche d'abattement !",
-          source: "Article 150 VC du CGI"
-        },
-        {
-          q: "Quel est le taux d'imposition de la plus-value immobilière ?",
-          r: "IR : 19 %. Prélèvements sociaux ordinaires sur les plus-values immobilières : 17,2 % (CSG 9,2 %, CRDS 0,5 %, solidarité 7,5 %). Les affiliés éligibles à un régime étranger EEE/Suisse ou britannique peuvent relever de la seule solidarité de 7,5 %. La surtaxe des plus-values élevées débute au-delà de 50 000 € nets imposables à l’IR, avec taux de 2 à 6 % et mécanismes de lissage. Elle ne possède pas de plafond fixe de 10 600 €. Seuil par cédant physique, ou au niveau de la SCI cédante ; terrains à bâtir exclus.",
-          source: "Articles 150 U et 1609 nonies G du CGI"
-        }
-      ]
-    },
-    {
-      category: "Exonérations",
-      questions: [
-        {
-          q: "Dans quels cas puis-je être exonéré de plus-value ?",
-          r: "**🏠 EXONÉRATION TOTALE :**\n• **Résidence principale** (150 U II 1°) : exonération totale + dépendances (garage, cave dans 1 km)\n• **Détention > 30 ans** : exonération totale IR + PS (effet des abattements)\n• **Prix de vente ≤ 15 000 €** (150 U II 6°) : exonération totale (seuil par cédant, en pleine propriété)\n• **Personne en EHPAD/établissement médicalisé** (150 U II 1° ter) : ancienne RP, cession sous 2 ans, sous conditions de revenus\n\n**💼 EXONÉRATIONS SOUS CONDITIONS :**\n• **Première cession d'un logement** (150 U II 1° bis) : si non propriétaire de sa RP depuis 4 ans + remploi du prix dans une RP sous 24 mois (exonération proportionnelle à la part remployée)\n• **Expropriation** (150 U II 4°) : si réemploi dans 12 mois\n• **Non-résident UE/EEE** (150 U II 2°) : plafonnée à **150 000 € de plus-value nette imposable par cédant** ; domiciliation ≥ 2 ans en France ; délai de 10 ans après le départ ou libre disposition ; une seule résidence. Exclue si déjà bénéficié de l'exo RP non-résident (244 bis A)\n• **Retraités/invalides modestes** (150 U III) : sous condition de RFR\n• **Logements sociaux** (150 U II 7° et 8°) : dispositif temporaire\n\n**⚠️ Attention :** Pour la résidence principale, l'exonération s'applique jusqu'à la date de cession, même si vous avez déménagé (délai raisonnable de mise en vente).",
-          source: "Article 150 U du CGI (II 1° à 9°, II 1° bis, II 1° ter, III) et art. 244 bis A"
-        },
-        {
-          q: "Comment transformer ma résidence secondaire en résidence principale ?",
-          r: "La résidence principale doit correspondre à l’habitation habituelle et effective du cédant. Il n’existe pas de durée minimale générale d’un an garantissant l’exonération. L’appréciation dépend de la réalité de l’occupation et des circonstances de la vente ; un changement administratif ne suffit pas. Après libération du logement, les tolérances exigent notamment un délai normal de vente et le respect des conditions d’occupation. Les dépendances doivent être immédiates et nécessaires et leur cession respecter les conditions prévues.",
-          source: "Doctrine fiscale BOI-RFPI-PVI-10-40-10"
-        }
-      ]
-    },
-    {
-      category: "Cas particuliers",
-      questions: [
-        {
-          q: "Comment gérer les travaux dans le calcul de la plus-value ?",
-          r: "**Vous avez 3 OPTIONS :**\n\n**1️⃣ AUCUN TRAVAUX** :\n• Vous ne déduisez rien (mais conservez l'option forfait 15%)\n\n**2️⃣ FORFAIT 15%** (si détention > 5 ans) :\n• Forfait automatique = 15% du prix d'acquisition\n• **Aucun justificatif requis**\n• Applicable même sans travaux réalisés\n\n**3️⃣ MONTANT RÉEL** (avec justificatifs) :\n• Travaux d'**amélioration, agrandissement, construction**\n• Factures détaillées obligatoires (entreprise)\n• **⚠️ Exclus :** travaux d'entretien et de réparation\n• **⚠️ Exclus :** travaux déjà déduits des revenus fonciers\n\n**💡 Stratégie :** Comparez les deux options (forfait vs réel). Souvent, le forfait 15% est plus avantageux.",
-          source: "Article 150 VB du CGI"
-        },
-        {
-          q: "Que se passe-t-il en cas de donation ou succession ?",
-          r: "Pour une acquisition par donation, la date de détention repart normalement de la donation et la valeur d’acquisition est celle retenue pour les droits de mutation, et non le prix ancien payé par le donateur. Pour une succession, la date est normalement celle du décès et la valeur celle retenue dans la succession. Les frais et droits réellement supportés et admissibles peuvent majorer cette valeur ; aucun forfait de 7,5 % pour une acquisition gratuite. Les droits démembrés, réunions de propriété et acquisitions successives suivent des règles particulières. Le choix de transmettre suppose une étude civile et fiscale globale.",
-          source: "Articles 150 VB-II et 150 VB-III du CGI"
-        },
-        {
-          q: "Comment fonctionne la plus-value en démembrement de propriété ?",
-          r: "Chaque titulaire d’un droit démembré réalise sa propre plus-value. Le prix de vente doit être ventilé selon la valeur réelle des droits ; le barème 669 est admis comme règle pratique dans certains cas. Le prix d’acquisition d’un droit acquis isolément est normalement celui de l’acte, ou la valeur fiscale de la mutation gratuite : il n’est pas recalculé automatiquement à l’âge actuel. Les successions antérieures à 2004 et la réunion de propriété ont des règles spécifiques. Le seuil de cession de 15 000 € s’apprécie sur la pleine propriété reconstituée, puis sur la quote-part indivise.",
-          source: "Articles 669 et 1133 du CGI"
-        }
-      ]
-    },
-    {
-      category: "Stratégies d'optimisation",
-      questions: [
-        {
-          q: "Quelles sont les meilleures stratégies pour réduire la plus-value ?",
-          r: "**🎯 TOP 5 DES STRATÉGIES D'OPTIMISATION :**\n\n**1️⃣ ATTENDRE LES SEUILS D'ABATTEMENT**\n• 6 ans : premiers abattements\n• 22 ans : exonération IR totale\n• 30 ans : exonération totale\n\n**2️⃣ MAXIMISER LE PRIX D'ACQUISITION**\n• Frais notaire : préférer le forfait 7,5% si facture < 7,5%\n• Travaux : comparer forfait 15% vs réel\n• Conserver TOUTES les factures de travaux\n\n**3️⃣ VENDRE EN PLUSIEURS FOIS**\n• Si plusieurs biens : échelonner les ventes\n• Éviter la taxe additionnelle (seuil 50k€)\n\n**4️⃣ DÉMEMBREMENT**\n• Donation de la nue-propriété avant la vente\n• Réduction de la base imposable\n\n**5️⃣ SCI À L'IS**\n• Régime professionnel (non soumis à la PV des particuliers)\n• Amortissements possibles\n• ⚠️ Complexe : conseil professionnel indispensable",
-          source: "Stratégies fiscales courantes"
-        },
-        {
-          q: "Faut-il choisir le forfait ou les frais réels pour les travaux ?",
-          r: "**⚖️ COMPARAISON FORFAIT vs RÉEL :**\n\n**📋 FORFAIT 15% - Avantages :**\n• Aucun justificatif requis\n• Simple et rapide\n• Applicable même sans travaux réalisés\n• Souvent plus avantageux si peu de travaux\n\n**📋 FORFAIT 15% - Inconvénients :**\n• Plafonné à 15% du prix d'achat\n• Ne convient pas si gros travaux réalisés\n\n**📄 FRAIS RÉELS - Avantages :**\n• Montant déductible sans limite\n• Intéressant si travaux importants > 15%\n\n**📄 FRAIS RÉELS - Inconvénients :**\n• Factures détaillées obligatoires\n• Uniquement travaux d'amélioration/agrandissement\n• Exclusion des travaux déduits en foncier\n• Contrôle fiscal plus probable\n\n**💰 EXEMPLE CHIFFRÉ :**\nBien acheté 200 000€\n• Forfait = 30 000€ déductibles\n• Si travaux réels = 45 000€ → privilégier le réel\n• Si travaux réels = 20 000€ → privilégier le forfait",
-          source: "Article 150 VB du CGI"
-        }
-      ]
-    },
-    {
-      category: "Déclaration et paiement",
-      questions: [
-        {
-          q: "Comment déclarer et payer la plus-value immobilière ?",
-          r: "Lors d’une vente notariée imposable, le notaire établit la déclaration de plus-value et verse l’impôt sur le prix de cession. Le montant imposable est ensuite reporté dans la déclaration annuelle, sans paiement une seconde fois de cet impôt ; il peut toutefois intervenir dans le revenu fiscal de référence et les contributions sur les hauts revenus. Il existe des dispenses de déclaration 2048 selon la situation, notamment certaines exonérations ou l’absence de plus-value : le dépôt n’est pas systématique pour une plus-value nulle.",
-          source: "Articles 150 VG et 150 VH du CGI - Formulaire 2048-IMM"
-        },
-        {
-          q: "Que se passe-t-il en cas d'erreur de déclaration ?",
-          r: "Une erreur doit être signalée au notaire et au service fiscal compétent pour une déclaration rectificative ou une réclamation. Les délais de réclamation et de reprise, les intérêts et les pénalités dépendent de la nature de l’erreur, du dépôt de la déclaration et des circonstances de la régularisation. Une correction spontanée n’entraîne pas systématiquement une majoration de 10 %. Ne pas appliquer un délai unique à toutes les situations.",
-          source: "Article L80 C du LPF et doctrine fiscale"
-        }
-      ]
-    }
-  ];
-
-  return (
-    <div className="grid grid-cols-1 gap-4">
-      {faqData.map((category, catIndex) => (
-        <div key={catIndex} className="space-y-2">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-emerald-300 to-transparent"></div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full">
-              <BookOpen className="w-4 h-4 text-white" />
-              <h3 className="text-sm font-bold text-white">{category.category}</h3>
-              <span className="bg-white/30 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {category.questions.length}
-              </span>
-            </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-emerald-300 via-transparent to-transparent"></div>
-          </div>
-          
-          {category.questions.map((item, qIndex) => {
-            const key = `${catIndex}-${qIndex}`;
-            const isOpen = openIndex === key;
-            
-            return (
-              <div 
-                key={key}
-                className="bg-white rounded-xl border-2 border-gray-200 hover:border-emerald-300 transition-all overflow-hidden shadow-sm hover:shadow-md"
-              >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : key)}
-                  className="w-full px-6 py-4 flex items-start justify-between gap-4 text-left hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 transition-colors"
-                >
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center mt-0.5">
-                      <HelpCircle className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="font-semibold text-gray-900 leading-relaxed">
-                      {item.q}
-                    </span>
-                  </div>
-                  <div className="flex-shrink-0">
-                    {isOpen ? (
-                      <ChevronUp className="w-5 h-5 text-emerald-600" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
-                </button>
-                
-                {isOpen && (
-                  <div className="px-6 pb-6 pt-2">
-                    <div className="pl-9 space-y-4">
-                      <div 
-                        className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                        style={{ whiteSpace: 'pre-line' }}
-                      >
-                        {item.r.split('\n').map((line, i) => {
-                          if (line.startsWith('**') && line.endsWith('**')) {
-                            return (
-                              <p key={i} className="font-bold text-gray-900 mb-2">
-                                {line.replace(/\*\*/g, '')}
-                              </p>
-                            );
-                          }
-                          if (line.startsWith('•')) {
-                            return (
-                              <p key={i} className="ml-4 mb-1">
-                                <span className="text-emerald-500 mr-2">•</span>
-                                {line.substring(1).trim()}
-                              </p>
-                            );
-                          }
-                          if (line.trim() === '') {
-                            return <div key={i} className="h-2"></div>;
-                          }
-                          return <p key={i} className="mb-2">{line}</p>;
-                        })}
-                      </div>
-                      
-                      {item.source && (
-                        <div className="pt-3 border-t border-gray-200">
-                          <p className="text-xs text-gray-500 italic flex items-center gap-2">
-                            <Info className="w-3 h-3" />
-                            {item.source}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function PlusValueContent() {
   const [formData, setFormData] = useState<FormData>({
@@ -381,7 +191,7 @@ function PlusValueContent() {
 
   const calculerPlusValue = (dateVenteCustom?: string, travauxCustom?: number): Results | null => {
     const dateVenteUtilisee = dateVenteCustom || formData.dateVente;
-    
+
     if (!formData.dateAcquisition || !formData.prixVente) {
       return null;
     }
@@ -705,9 +515,9 @@ function PlusValueContent() {
     for (let annee = 0; annee <= 35; annee++) {
       const dateVente = new Date(dateAcq);
       dateVente.setFullYear(dateVente.getFullYear() + annee);
-      
+
       const res = calculerPlusValue(dateVente.toISOString().split('T')[0]);
-      
+
       if (res && !res.exoneration) {
         data.push({
           annee,
@@ -783,7 +593,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">1. Acquisition du bien</h2>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -1049,7 +859,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">2. Vente du bien</h2>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">Prix de vente *</label>
@@ -1102,7 +912,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">3. Travaux réalisés</h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Info importante pour bien locatif */}
                 {formData.typeBien === 'locatif' && (
@@ -1284,7 +1094,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   ⚠️ Ne passez pas à côté !
                 </span>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Première vente */}
                 <div className="border-2 border-gray-200 rounded-xl p-6 bg-white">
@@ -1670,7 +1480,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">5. Optimisation fiscale</h2>
                 </div>
-                
+
                 <div className="space-y-6">
                   {/* Suggestions */}
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
@@ -2022,22 +1832,8 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
           </div>
         )}
 
-        {/* Section FAQ */}
-        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 mb-8">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl mb-4">
-              <HelpCircle className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Questions Fréquentes
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Toutes les réponses à vos questions sur la plus-value immobilière
-            </p>
-          </div>
 
-          <FAQSection />
-        </div>
+
 
         {/* Disclaimer Légal */}
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-8 shadow-lg">
@@ -2055,7 +1851,7 @@ Fiscalité: ${results.totalFiscalite.toLocaleString('fr-FR')} €`}`;
                 <p className="leading-relaxed">
                   <strong>Cette simulation est fournie à titre informatif uniquement</strong> et ne constitue pas un conseil juridique, fiscal ou patrimonial personnalisé. Les informations et calculs présentés sont basés sur la législation en vigueur au 8 septembre 2026 et sont susceptibles d&apos;évoluer.
                 </p>
-                
+
                 <p className="leading-relaxed">
                   Les règles fiscales en matière de plus-values immobilières sont <strong>complexes et varient selon chaque situation personnelle</strong> (type de bien, durée de détention, travaux réalisés, situation familiale, etc.).
                 </p>

@@ -8,14 +8,7 @@
 import { calculStatut2026, social2026 } from '@/lib/statuts';
 import { BAREME_IR_2026 } from '@/lib/fiscal';
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Calculator, TrendingUp, FileText, Target,
-  Lightbulb, Scale, Percent, Shield, Info,
-  AlertCircle, HelpCircle, ChevronDown, ChevronUp,
-  Briefcase, Star, CheckCircle, XCircle, Award, Zap,
-  BarChart3, PieChart as PieChartIcon, Euro,
-  Save, FolderOpen, Trash2, Download
-} from 'lucide-react';
+import { Calculator, TrendingUp, FileText, Target, Lightbulb, Scale, Percent, Shield, Info, AlertCircle, Briefcase, Star, CheckCircle, XCircle, Award, Zap, BarChart3, PieChart as PieChartIcon, Euro, Save, FolderOpen, Trash2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -33,7 +26,7 @@ import MainLayout from '@/components/MainLayout';
 type TypeActivite = 'commerciale' | 'artisanale' | 'liberale' | 'immobiliere';
 type Objectif = 'remuneration' | 'charges' | 'flexibilite' | 'protection';
 type StatutKey = 'EI' | 'EURL_IR' | 'EURL_IS' | 'SARL' | 'SAS' | 'SASU' | 'SCI' | 'SA';
-type TabKey = 'comparaison' | 'detail' | 'optimisation' | 'faq';
+type TabKey = 'comparaison' | 'detail' | 'optimisation';
 
 interface FormData {
   typeActivite: TypeActivite;
@@ -481,7 +474,7 @@ const FICHES_STATUTS: FicheStatut[] = [
 
 export default function ComparateurStatutJuridique() {
   const [activeTab, setActiveTab] = useState<TabKey>('comparaison');
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
   const [selectedStatutDetail, setSelectedStatutDetail] = useState<StatutKey>('EI');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
@@ -604,7 +597,7 @@ export default function ComparateurStatutJuridique() {
     if (recommandation) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Recommandation : ${STATUT_LABELS[recommandation]}`, 20, y);
+      doc.text(`Meilleur revenu net simulé : ${STATUT_LABELS[recommandation]}`, 20, y);
       y += 10;
     }
 
@@ -760,55 +753,13 @@ export default function ComparateurStatutJuridique() {
     { key: 'comparaison', label: 'Comparaison', icon: <Scale className="w-4 h-4" /> },
     { key: 'detail', label: 'Detail par statut', icon: <FileText className="w-4 h-4" /> },
     { key: 'optimisation', label: 'Optimisation', icon: <Target className="w-4 h-4" /> },
-    { key: 'faq', label: 'FAQ', icon: <HelpCircle className="w-4 h-4" /> }
   ];
 
   // ============================================
   // FAQ DATA
   // ============================================
 
-  const faqData = [
-    {
-      q: "Comment choisir entre EI et societe ?",
-      r: "L'Entreprise Individuelle est ideale pour demarrer seul avec peu de formalites et de frais. Optez pour une societe (EURL, SASU) si vous souhaitez limiter votre responsabilite, optimiser votre fiscalite via l'IS, ou preparer l'entree d'associes. A partir de 40 000-50 000 EUR de benefice annuel, la societe a l'IS devient souvent plus avantageuse car le taux d'IS reduit (15%) est inferieur aux tranches hautes du bareme IR."
-    },
-    {
-      q: "SARL ou SAS : quelle difference ?",
-      r: "La principale difference reside dans le regime social du dirigeant et la flexibilite statutaire. En SARL, le gerant majoritaire releve du SSI (cotisations ~40-45% mais couverture sociale inferieure). En SAS, le president est assimile salarie (charges ~82% du net mais meilleure protection sociale, et surtout dividendes sans cotisations SSI). La SAS offre aussi une liberte totale dans la redaction des statuts, facilitant l'entree d'investisseurs."
-    },
-    {
-      q: "Qu'est-ce que le regime TNS vs assimile salarie ?",
-      r: "Le TNS (Travailleur Non Salarie) releve du regime SSI (ex-RSI) avec des cotisations d'environ 40-45% du benefice. L'assimile salarie releve du regime general de la Securite sociale avec des charges d'environ 82% du net (mais meilleure couverture retraite, chomage, maladie). Le TNS paie moins de cotisations mais recoit des prestations inferieures, notamment en matiere de retraite. Le choix depend de votre priorite : economie immediate (TNS) ou protection sociale (assimile salarie)."
-    },
-    {
-      q: "Quand la societe a l'IS est-elle plus interessante ?",
-      r: "Aucun seuil unique de bénéfice ne rend l’IS plus avantageux : le résultat dépend de la rémunération, des dividendes, du foyer fiscal et des frais. En effet, le taux d'IS reduit de 15% (jusqu'a 42 500 EUR) est bien inferieur aux tranches IR de 30% ou 41%. De plus, vous pouvez optimiser le mix remuneration/dividendes pour minimiser la charge globale. Cependant, il faut tenir compte de la double imposition (IS + flat tax sur les dividendes ou IR sur la remuneration)."
-    },
-    {
-      q: "Comment optimiser le mix remuneration/dividendes ?",
-      r: "L'optimisation consiste a trouver le bon equilibre entre remuneration (soumise a charges sociales mais deductible du resultat) et dividendes (soumis a la PFU de 31,4% en SAS ; en SARL majoritaire, IR de 12,8% et cotisations sur la part excédant le seuil social, sans cumul des prélèvements sociaux du capital sur cette part). En SAS/SASU, il est souvent optimal de se verser une remuneration moderee (pour valider les trimestres retraite) et de completer avec des dividendes non soumis aux cotisations SSI. En SARL, les dividendes > 10% du capital sont soumis aux cotisations SSI, reduisant l'interet de cette strategie."
-    },
-    {
-      q: "Qu'est-ce que l'ACRE ?",
-      r: "Depuis le 1er janvier 2026, l’ACRE est soumise à des conditions d’éligibilité et à une demande. L’exonération est partielle, concerne certaines cotisations et dépend du revenu. La simulation illustre une création au 1er janvier 2026 avec éligibilité acquise ; elle ne constitue pas une attribution de l’aide. Référence : urssaf.fr, ACRE nouvelles règles et démarches 2026."
-    },
-    {
-      q: "Peut-on changer de statut juridique ?",
-      r: "Oui, il est possible de changer de statut, mais les modalites varient. L'EI peut etre transformee en societe par un apport de fonds de commerce. L'EURL peut devenir SARL en accueillant des associes. La transformation d’une SARL en SAS requiert l’unanimité ; la transformation inverse suit ses propres conditions légales et statutaires. Chaque transformation implique des formalites juridiques et des consequences fiscales (droits d'enregistrement, imposition des plus-values latentes). Il est conseille de se faire accompagner par un professionnel."
-    },
-    {
-      q: "Quels sont les couts de creation d'une societe ?",
-      r: "Les couts varient selon le type de societe : EI/micro-entreprise : gratuit ou presque (uniquement frais d'immatriculation ~25 EUR). EURL/SARL/SAS/SASU : environ 500 a 2 000 EUR (annonce legale 150-250 EUR, greffe 37-70 EUR, honoraires expert-comptable ou avocat 500-1 500 EUR pour les statuts). SA : 2 000 a 5 000 EUR minimum + 37 000 EUR de capital. Il faut aussi prevoir les frais annuels : comptabilite (1 000-3 000 EUR/an), frais juridiques (AG, PV)."
-    },
-    {
-      q: "SCI a l'IR ou a l'IS ?",
-      r: "A l'IR, les revenus locatifs sont imposes au bareme progressif (plus prelevements sociaux 17,2% sur les revenus fonciers), mais les plus-values beneficient d'un abattement pour duree de detention (exoneration totale apres 30 ans). A l'IS, les loyers sont imposes a 15% puis 25%, avec possibilite d'amortir l'immeuble (avantage majeur), mais les plus-values sont calculees sur la valeur nette comptable (sans abattement). L'IR est preferable pour une detention longue avec revente prevue. L'IS est interessant pour maximiser les revenus locatifs a court/moyen terme."
-    },
-    {
-      q: "Quel statut pour un investissement immobilier ?",
-      r: "Pour de la location nue, la SCI a l'IR est le choix classique (transparence fiscale, transmission facilitee). Pour de la location meublee professionnelle, une SARL de famille peut, sous conditions, opter pour l’IR ; il n’existe pas de régime fiscal spécifique de SAS de famille. Pour un patrimoine important avec peu de besoin de revenus, la SCI a l'IS permet d'amortir les biens et de capitaliser. Pour un investissement unique, l'achat en nom propre (avec micro-foncier si revenus bruts fonciers ≤ 15 000 EUR/an et autres conditions remplies) reste la solution la plus simple. Le choix depend de vos objectifs : rendement, transmission, plus-value."
-    }
-  ];
+
 
   // ============================================
   // RENDER
@@ -816,17 +767,7 @@ export default function ComparateurStatutJuridique() {
 
   return (
     <MainLayout showFeedback={true}>
-      <div className="mx-auto mt-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
-        <p>Calcul social : modèles Urssaf / Mon-entreprise de juillet 2026, appliqués au 8 septembre 2026. Hypothèses : métropole, année complète, célibataire sans enfant ni autres revenus, sans exonération dans la comparaison principale. Activité libérale non réglementée ; les professions réglementées et leurs caisses particulières nécessitent un calcul adapté.</p>
-        <p className="mt-2">Gérant majoritaire pour SARL/EURL ; président assimilé salarié pour SAS/SASU/SA, sans chômage, mutuelle facultative ni avantages en nature, AT/MP à 1 %, effectif inférieur à 11, entreprise assujettie à TVA. Les coûts de structure, CFE, réserves légales et décalages de distribution ne sont pas chiffrés. Les cotisations minimales restent à vérifier en cas de résultat nul ou déficitaire. La comparaison SCI vise la location nue.</p>
-        <div className="my-4 grid gap-4 md:grid-cols-3">
-          <label>Primes d’émission détenues (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.primesEmission??'0'} onChange={e=>setFormData(f=>({...f,primesEmission:e.target.value}))}/></label>
-          <label>Compte courant moyen annuel détenu (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.compteCourantMoyen??'0'} onChange={e=>setFormData(f=>({...f,compteCourantMoyen:e.target.value}))}/></label>
-          <label><input type="checkbox" checked={formData.tauxReduitIS===true} onChange={e=>setFormData(f=>({...f,tauxReduitIS:e.target.checked}))}/> Conditions du taux réduit IS remplies : CA ≤ 10 M€, capital libéré et détenu à 75 % par personnes physiques ou société éligible.</label>
-        </div>
-        <p>Le seuil social des dividendes prend 10 % du capital, des primes et du compte courant détenus par le dirigeant et son groupe familial concerné. Au-delà, les cotisations remplacent les prélèvements sociaux du capital ; l’IR de 12,8 % reste dû. En SARL, renseignez les montants revenant au dirigeant simulé : le modèle suppose ici qu’il reçoit tout le bénéfice distribué.</p>
-        <p className="mt-2">Le montant disponible est plafonné au budget de l’entreprise. Les notes du radar sont des appréciations éditoriales, pas un classement officiel. <a className="underline" href="https://mon-entreprise.urssaf.fr/simulateurs/comparaison-régimes-sociaux">Comparer sur le simulateur Urssaf</a>.</p>
-      </div>
+
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
 
@@ -845,7 +786,7 @@ export default function ComparateurStatutJuridique() {
                     Comparateur de Statut Juridique
                   </h1>
                   <p className="text-gray-600 font-medium mt-1">
-                    EI, EURL, SARL, SAS, SASU, SCI, SA — Trouvez la structure ideale pour votre projet
+                    Comparez les revenus nets selon les formes et régimes proposés.
                   </p>
                 </div>
               </div>
@@ -891,6 +832,18 @@ export default function ComparateurStatutJuridique() {
               ))}
             </div>
           </div>
+<div className="mx-auto mt-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+        <p className="font-medium">Comparaison pour une activité libérale non réglementée et un foyer prédéfini. Les professions réglementées nécessitent une adaptation.</p><details className="my-3"><summary className="cursor-pointer py-2 font-semibold">Hypothèses sociales et foyer retenus</summary><p>Calcul social : modèles Urssaf / Mon-entreprise de juillet 2026, appliqués au 8 septembre 2026. Hypothèses : métropole, année complète, célibataire sans enfant ni autres revenus, sans exonération dans la comparaison principale. Activité libérale non réglementée ; les professions réglementées et leurs caisses particulières nécessitent un calcul adapté.</p></details>
+        <p className="mt-2">Gérant majoritaire pour SARL/EURL ; président assimilé salarié pour SAS/SASU/SA, sans chômage, mutuelle facultative ni avantages en nature, AT/MP à 1 %, effectif inférieur à 11, entreprise assujettie à TVA. Les coûts de structure, CFE, réserves légales et décalages de distribution ne sont pas chiffrés. Les cotisations minimales restent à vérifier en cas de résultat nul ou déficitaire. La comparaison SCI vise la location nue.</p>
+        <div className="my-4 grid gap-4 md:grid-cols-3">
+          <label>Primes d’émission détenues (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.primesEmission??'0'} onChange={e=>setFormData(f=>({...f,primesEmission:e.target.value}))}/></label>
+          <label>Compte courant moyen annuel détenu (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={formData.compteCourantMoyen??'0'} onChange={e=>setFormData(f=>({...f,compteCourantMoyen:e.target.value}))}/></label>
+          <label><input type="checkbox" checked={formData.tauxReduitIS===true} onChange={e=>setFormData(f=>({...f,tauxReduitIS:e.target.checked}))}/> Conditions du taux réduit IS remplies : CA ≤ 10 M€, capital libéré et détenu à 75 % par personnes physiques ou société éligible.</label>
+        </div>
+        <p>Le seuil social des dividendes prend 10 % du capital, des primes et du compte courant détenus par le dirigeant et son groupe familial concerné. Au-delà, les cotisations remplacent les prélèvements sociaux du capital ; l’IR de 12,8 % reste dû. En SARL, renseignez les montants revenant au dirigeant simulé : le modèle suppose ici qu’il reçoit tout le bénéfice distribué.</p>
+        <p className="mt-2">Le montant disponible est plafonné au budget de l’entreprise. Les notes du radar sont des appréciations éditoriales, pas un classement officiel. <a className="underline" href="https://mon-entreprise.urssaf.fr/simulateurs/comparaison-régimes-sociaux">Comparer sur le simulateur Urssaf</a>.</p>
+      </div>
+
 
           {/* ============================================ */}
           {/* TAB: COMPARAISON */}
@@ -1056,7 +1009,7 @@ export default function ComparateurStatutJuridique() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-green-900 mb-1">
-                        Recommandation : {STATUT_LABELS[recommandation]}
+                        Meilleur revenu net simulé : {STATUT_LABELS[recommandation]}
                       </h3>
                       <p className="text-green-800">
                         Sur la base de vos parametres, le statut <strong>{STATUT_LABELS[recommandation]}</strong> offre
@@ -1068,7 +1021,7 @@ export default function ComparateurStatutJuridique() {
                       </p>
                       <p className="text-sm text-green-700 mt-2 flex items-center gap-1">
                         <Info className="w-4 h-4" />
-                        Cette recommandation est basee uniquement sur le critere financier. D&apos;autres facteurs (protection sociale, flexibilite, transmission) sont a considerer.
+                        Ce résultat porte uniquement sur le critère financier simulé. D&apos;autres facteurs (protection sociale, flexibilite, transmission) sont a considerer.
                       </p>
                     </div>
                   </div>
@@ -1616,53 +1569,10 @@ export default function ComparateurStatutJuridique() {
           )}
 
           {/* ============================================ */}
-          {/* TAB: FAQ */}
+
           {/* ============================================ */}
 
-          {activeTab === 'faq' && (
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                  <HelpCircle className="w-8 h-8 text-indigo-600" />
-                  Questions frequentes
-                </h2>
-                <p className="text-gray-600 mt-2">
-                  Tout ce que vous devez savoir pour choisir le bon statut juridique
-                </p>
-              </div>
 
-              <div className="space-y-3">
-                {faqData.map((faq, index) => {
-                  const isOpen = openFAQ === index;
-                  return (
-                    <div
-                      key={index}
-                      className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 transition-colors"
-                    >
-                      <button
-                        onClick={() => setOpenFAQ(isOpen ? null : index)}
-                        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="font-semibold text-gray-900 pr-4">{faq.q}</span>
-                        {isOpen ? (
-                          <ChevronUp className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        )}
-                      </button>
-                      {isOpen && (
-                        <div className="px-5 py-4 bg-gray-50 border-t-2 border-gray-200">
-                          <p className="text-gray-700 leading-relaxed">
-                            {faq.r}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* ============================================ */}
           {/* DISCLAIMER */}
