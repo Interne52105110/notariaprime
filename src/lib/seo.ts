@@ -147,8 +147,8 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: "Contactez l'équipe NotariaPrime : support utilisateur, signalement d'erreur dans un calcul, demande de fonctionnalité, partenariat éditorial ou prestation sur-mesure.",
   },
   "/roadmap": {
-    title: "Roadmap NotariaPrime — prochaines fonctionnalités",
-    description: "Roadmap publique de NotariaPrime : nouveaux simulateurs en cours de développement, mises à jour réglementaires PLF 2026, intégrations Genapi, suivi des releases.",
+    title: "Évolutions et historique des améliorations — NotariaPrime",
+    description: "Les améliorations livrées sur NotariaPrime : prétaxe, analyse de documents, simulateurs et guides. Historique daté, périmètre des changements et pistes pour la suite.",
   },
 
   // ---------- Pages légales ----------

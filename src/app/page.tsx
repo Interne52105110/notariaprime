@@ -4,12 +4,13 @@ import React, { useState, memo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import MainLayout from '@/components/MainLayout';
+import { releases } from '@/data/releases';
 import {
   Calculator, TrendingUp, ArrowRight, Sparkles, Shield, Zap,
-  CheckCircle, Users, Award, Globe,
-  FileCheck, Clock, Star, Building2,
-  Rocket, Brain, Gift, HeartHandshake, Briefcase,
-  PiggyBank, Home, Building, Scale, Receipt,
+  CheckCircle, Users, Award,
+  Clock, Star,
+  Brain, Gift, HeartHandshake, Briefcase,
+  PiggyBank, Home, Building, Scale,
   Hotel, BarChart3, Landmark
 } from 'lucide-react';
 
@@ -36,12 +37,6 @@ interface Solution {
   features: string[];
   link: string;
   isNew?: boolean;
-}
-
-interface NewFeature {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  status: string;
 }
 
 // Composants mémorisés
@@ -355,15 +350,10 @@ function HomepageContent() {
     ? allSolutions
     : allSolutions.filter(s => s.category === activeCategory);
 
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [, setHoveredCard] = useState<number | null>(null);
   const handleCardHover = useCallback((index: number | null) => {
     setHoveredCard(index);
   }, []);
-
-  const upcomingFeatures: NewFeature[] = [
-    { icon: Zap, label: 'API Publique REST', status: 'T4 2026' },
-    { icon: Users, label: 'Espace Pro (multi-utilisateurs)', status: 'T1 2027' }
-  ];
 
   return (
     <MainLayout>
@@ -545,7 +535,7 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Section Success Story */}
+        {/* Illustration des usages professionnels */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid items-center gap-12 grid-cols-1 lg:grid-cols-2">
@@ -553,12 +543,12 @@ function HomepageContent() {
                 <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-50">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
-                      src="/images/maison-bois-pixabay.jpg"
-                      alt="Petite maison en bois posée sur l’herbe"
+                      src="/images/utilisatrice-bureau-pixabay.jpg"
+                      alt="Une femme examine des documents à son bureau, un stylo à la main"
                       fill
                       sizes="(min-width: 1280px) 592px, (min-width: 1024px) calc(50vw - 48px), calc(100vw - 48px)"
                       quality={75}
-                      className="object-cover object-right"
+                      className="object-cover object-left"
                     />
                     <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
                   </div>
@@ -567,7 +557,8 @@ function HomepageContent() {
                   <div className="absolute bottom-6 right-6 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl" />
                 </div>
 
-                <div className="absolute -bottom-4 -left-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
+                <p className="mt-3 text-right text-xs text-gray-500">Photo d’illustration · <a href="https://pixabay.com/photos/woman-women-office-work-business-2773007/" className="underline hover:text-gray-700">ernestoeslava / Pixabay</a></p>
+                <div className="absolute bottom-6 -left-4 bg-gradient-to-br from-green-400 to-emerald-500 text-white rounded-2xl shadow-xl p-6 transform rotate-2 hover:rotate-0 transition-transform">
                   <div className="text-xs font-semibold uppercase tracking-wide mb-1">Outils disponibles</div>
                   <div className="text-4xl font-black">19</div>
                   <div className="text-xs mt-1 opacity-90">calculateurs pro</div>
@@ -660,45 +651,29 @@ function HomepageContent() {
           </div>
         </section>
 
-        {/* Prochainement - 3 features restantes */}
-        <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        {/* Historique partagé avec la roadmap */}
+        <section aria-labelledby="dernieres-ameliorations" className="py-16 bg-gradient-to-b from-gray-50 to-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-200 rounded-full mb-4">
-                <Rocket className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">Prochainement</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full mb-4">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-semibold text-emerald-700">Déjà en ligne</span>
               </div>
-              <h2 className="font-bold mb-4 text-gray-900 text-2xl md:text-3xl">
-                Encore plus de fonctionnalités en préparation
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Mode hors-ligne (PWA) et OCR sont disponibles. L&apos;API publique REST et l&apos;espace professionnel arrivent bientôt.
-              </p>
+              <h2 id="dernieres-ameliorations" className="scroll-mt-28 font-bold mb-4 text-gray-900 text-2xl md:text-3xl">Dernières améliorations</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">Découvrez les changements apportés aux outils, avec leur date de publication et leur périmètre.</p>
             </div>
-
-            <div className="grid gap-4 max-w-2xl mx-auto grid-cols-1 md:grid-cols-3">
-              {upcomingFeatures.map((item, i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-5 text-center hover:border-indigo-300 transition-all"
-                >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <item.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900 mb-2">{item.label}</div>
-                  <div className="text-xs text-gray-500">{item.status}</div>
-                </div>
+            <div className="grid gap-6 max-w-4xl mx-auto grid-cols-1 md:grid-cols-2">
+              {releases.slice(0, 2).map(release=>(
+                <article key={release.id} className="flex flex-col bg-white rounded-2xl border border-gray-200 p-6">
+                  <time dateTime={release.date} className="text-sm font-medium text-indigo-600">{release.dateLabel}</time>
+                  <h3 className="mt-3 text-lg font-bold text-gray-900">{release.title}</h3>
+                  <p className="mt-3 mb-5 text-sm leading-relaxed text-gray-600">{release.summary}</p>
+                  <Link href={`/roadmap#${release.id}`} className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:underline">Lire les améliorations <ArrowRight className="w-4 h-4" /></Link>
+                </article>
               ))}
             </div>
-
             <div className="text-center mt-8">
-              <a
-                href="/roadmap"
-                className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700"
-              >
-                Voir la roadmap complète
-                <ArrowRight className="w-4 h-4" />
-              </a>
+              <Link href="/roadmap" className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700">Voir l’historique et les pistes d’évolution <ArrowRight className="w-4 h-4" /></Link>
             </div>
           </div>
         </section>
