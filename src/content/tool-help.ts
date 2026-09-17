@@ -49,7 +49,7 @@ export const toolHelp: Record<string, ToolHelp> = {
     faq: [
       ['Dois-je saisir le patrimoine total ?', 'Saisissez la part nette revenant à la personne calculée. Le patrimoine total doit d’abord être ventilé selon la propriété, les dettes et les droits civils.'],
       ['Une donation antérieure est-elle taxée une deuxième fois ?', 'Le rappel peut modifier l’abattement disponible et les tranches applicables à la nouvelle transmission. Renseigner l’historique sert à calculer les droits supplémentaires, pas à payer à nouveau les mêmes droits.'],
-      ['Conjoint et partenaire de PACS sont-ils traités comme des enfants ?', 'Non. Le conjoint survivant et le partenaire de PACS sont exonérés de droits de succession. Le partenaire doit toutefois avoir des droits civils à recevoir, notamment par testament : l’exonération ne le rend pas héritier.'],
+      ['Le conjoint survivant et le partenaire de PACS paient-ils des droits de succession ?', 'Non. Le conjoint survivant et le partenaire de PACS sont exonérés de droits de succession. Le partenaire doit toutefois avoir des droits civils à recevoir, notamment par testament : l’exonération ne le rend pas héritier.'],
       ['Où saisir une assurance-vie ?', 'Utilisez le module assurance-vie avec le certificat fiscal de l’assureur. Certains montants nécessitent ensuite une articulation avec les abattements et bases successorales déjà utilisés.'],
     ],
     sources: [[impots + 'questions/comment-dois-je-calculer-les-droits-de-succession', 'DGFiP — calcul des droits de succession']],
