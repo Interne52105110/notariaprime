@@ -4,7 +4,7 @@ import { ACTES_PRECIS } from './pretaxeAuditRules';
 import { FileEdit, Home, Users, FileSignature, Landmark, Briefcase, File } from 'lucide-react';
 
 export const categoriesActes: Record<string, CategorieActes> = {
-  
+
   'actes_non_tarifies': {
     label: '⚖️ Actes non tarifés (honoraires libres)',
     icon: FileEdit,
@@ -94,7 +94,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
     label: 'Actes relatifs aux biens immobiliers',
     icon: Home,
     actes: {
-      'vente_immeuble': { 
+      'vente_immeuble': {
         label: 'Vente d\'immeuble',
         type: 'proportionnel',
         tranches: [
@@ -104,7 +104,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.799 }
         ]
       },
-      'vente_terrain': { 
+      'vente_terrain': {
         label: 'Vente de terrain à bâtir',
         type: 'proportionnel',
         tranches: [
@@ -114,7 +114,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.799 }
         ]
       },
-      'vefa': { 
+      'vefa': {
         label: 'Vente en état futur d\'achèvement (VEFA)',
         type: 'proportionnel',
         tranches: [
@@ -124,7 +124,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.799 }
         ]
       },
-      'echange': { 
+      'echange': {
         label: 'Échange d\'immeubles',
         type: 'proportionnel',
         tranches: [
@@ -148,7 +148,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
         ]
       },
       'partage_indivis': ACTES_PRECIS.partage_indivis,
-      'partage': { 
+      'partage': {
         label: 'Partage',
         type: 'proportionnel',
         tranches: [
@@ -169,12 +169,12 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 30000, max: Infinity, taux: 0.905 }
         ]
       },
-      'servitude_fixe': { 
+      'servitude_fixe': {
         label: 'Constitution servitude ≤ 4 875€',
         type: 'fixe',
         montant: 188.66
       },
-      'servitude_proportionnel': { 
+      'servitude_proportionnel': {
         label: 'Constitution servitude > 4 875€',
         type: 'proportionnel',
         tranches: [
@@ -213,18 +213,18 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.266 }
         ]
       },
-      'pacs': { 
+      'pacs': {
         label: 'PACS',
         type: 'fixe',
         montant: 84.51,
         droitFixeEnreg: 125 // CGI 680
       },
-      'divorce_consentement': { 
+      'divorce_consentement': {
         label: 'Dépôt convention divorce par consentement mutuel',
         type: 'fixe',
         montant: 41.20
       },
-      'liquidation_regime': { 
+      'liquidation_regime': {
         label: 'Projet de liquidation du régime matrimonial (A444-83)',
         type: 'proportionnel',
         tranches: [
@@ -243,7 +243,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
     actes: {
       ...ACTES_SUCCESSORAUX,
       'donation_mobiliere': ACTES_PRECIS.donation_mobiliere,
-      'donation': { 
+      'donation': {
         label: 'Donation',
         type: 'proportionnel',
         tranches: [
@@ -253,7 +253,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 60000, max: Infinity, taux: 0.998 }
         ]
       },
-      'donation_partage': { 
+      'donation_partage': {
         label: 'Donation-partage',
         type: 'proportionnel',
         tranches: [
@@ -481,7 +481,7 @@ export const categoriesActes: Record<string, CategorieActes> = {
           { min: 30000, max: Infinity, taux: 0.532 }
         ]
       },
-      'consentement_adoption': { 
+      'consentement_adoption': {
         label: 'Consentement à adoption',
         type: 'fixe',
         montant: 77.11
@@ -489,4 +489,3 @@ export const categoriesActes: Record<string, CategorieActes> = {
     }
   }
 };
-
