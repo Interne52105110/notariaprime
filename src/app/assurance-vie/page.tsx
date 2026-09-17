@@ -8,12 +8,7 @@
 import { impotRachatHuitAns, abattement757B as partageAbattement757B, soldeSocialRachat, projectionAssuranceVie } from '@/lib/assurance-vie';
 import { droitsSuccession } from '@/lib/succession';
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Shield, TrendingUp, Calculator, PieChart as PieChartIcon,
-  AlertCircle, Info, HelpCircle, ChevronDown, ChevronUp, BookOpen,
-  Percent, Euro, Users, Calendar, Heart, BarChart3, Target,
-  Plus, Trash2, ArrowRight, CheckCircle, Clock, Landmark, Download
-} from 'lucide-react';
+import { Shield, TrendingUp, Calculator, PieChart as PieChartIcon, AlertCircle, Info, Percent, Euro, Users, Calendar, Heart, BarChart3, Target, Plus, Trash2, CheckCircle, Landmark, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
@@ -27,7 +22,7 @@ import MainLayout from '@/components/MainLayout';
 // TYPES
 // ============================================
 
-type OngletActif = 'rachat' | 'succession' | 'projection' | 'faq';
+type OngletActif = 'rachat' | 'succession' | 'projection';
 type AncienneteContrat = 'moins4' | 'entre4et8' | 'plus8';
 type SituationFamiliale = 'celibataire' | 'couple';
 type LienBeneficiaire = 'conjoint' | 'enfant' | 'frere-soeur' | 'neveu-niece' | 'autre';
@@ -386,169 +381,9 @@ function calculerSuccession(
 const genererProjection = projectionAssuranceVie;
 
 // ============================================
-// COMPOSANT FAQ
 // ============================================
 
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<string | null>(null);
 
-  const faqData = [
-    {
-      category: "Fiscalite generale",
-      questions: [
-        {
-          q: "Comment fonctionne la fiscalite de l'assurance-vie ?",
-          r: "L'assurance-vie beneficie d'un regime fiscal avantageux a double titre :\n\n**En cas de rachat (retrait) :** seuls les produits (gains) sont imposes, pas le capital verse. Le taux d'imposition depend de l'anciennete du contrat et de la date de versement des primes. Apres 8 ans, un abattement annuel de 4 600 EUR (celibataire) ou 9 200 EUR (couple) s'applique sur les gains.\n\n**En cas de deces :** les capitaux transmis beneficient d'abattements specifiques (152 500 EUR par beneficiaire pour les primes versees avant 70 ans), hors du cadre de la succession civile classique.",
-          source: "Articles 125-0 A, 990 I et 757 B du CGI"
-        },
-        {
-          q: "Quel est l'interet fiscal apres 8 ans ?",
-          r: "Apres 8 ans de detention, l'assurance-vie offre ses meilleurs avantages :\n\n**Abattement annuel sur les gains :**\n- 4 600 EUR pour une personne seule\n- 9 200 EUR pour un couple\n\n**Taux d'imposition reduit :**\n- 7,5 % sur les produits (primes versees avant le 27/09/2017)\n- 7,5 % sur la fraction de produits afferente aux primes versees nettes <= 150 000 EUR (primes apres 27/09/2017)\n- 12,8 % sur la fraction afferente aux primes au-dela de 150 000 EUR\n\nLe seuil de 150 000 EUR s'apprecie sur le cumul des primes versees nettes de rachats (tous contrats), et non sur l'encours. Les prélèvements sociaux dépendent des produits déjà prélevés, des exonérations et de la résidence fiscale.\n\nCes taux sont nettement inferieurs au bareme progressif de l'IR pour les TMI elevees.",
-          source: "Article 125-0 A du CGI"
-        },
-        {
-          q: "Comment est calculee la part imposable d'un rachat ?",
-          r: "Lors d'un rachat partiel, seule la part de gains incluse dans le retrait est imposee :\n\n**Formule :** Produits imposables = Montant rachete x (Total des gains / Valeur du contrat)\n\n**Exemple :** Pour un contrat valant 200 000 EUR (120 000 EUR de primes, 80 000 EUR de gains), un rachat de 50 000 EUR contient :\n50 000 x (80 000 / 200 000) = 20 000 EUR de produits imposables\nEt 30 000 EUR de capital restitue (non impose).",
-          source: "Article 125-0 A, I du CGI - BOFiP BOI-RPPM-RCM-10-10-80"
-        }
-      ]
-    },
-    {
-      category: "Transmission et succession",
-      questions: [
-        {
-          q: "L'assurance-vie est-elle hors succession ?",
-          r: "**Oui, pour les primes versees avant 70 ans (art. 990 I CGI) :**\n- Les capitaux deces sont transmis hors succession civile\n- Chaque beneficiaire beneficie d'un abattement de 152 500 EUR\n- Au-dela : 20 % jusqu'a 700 000 EUR, puis 31,25 %\n- Le conjoint/partenaire PACS est toujours exonere (loi TEPA 2007)\n\n**Partiellement pour les primes versees apres 70 ans (art. 757 B) :**\n- Abattement global de 30 500 EUR (partage entre beneficiaires)\n- Au-dela : droits de succession selon le bareme classique\n- Avantage : les gains/interets ne sont PAS taxes",
-          source: "Articles 990 I et 757 B du CGI, Loi TEPA 2007"
-        },
-        {
-          q: "Que se passe-t-il pour les versements apres 70 ans ?",
-          r: "Pour les contrats relevant de l’article 757 B, l’assiette des primes après 70 ans est déterminée avant un abattement global de 30 500 €, partagé entre contrats et bénéficiaires non exonérés. Les gains sont exonérés de droits de mutation, mais pas nécessairement de prélèvements sociaux. Après rachats ou pertes, le certificat fiscal de l’assureur est nécessaire. L’abattement personnel successoral et les tranches peuvent déjà être consommés par les autres biens ou donations rappelables.",
-          source: "Article 757 B du CGI"
-        },
-        {
-          q: "Comment optimiser la clause beneficiaire ?",
-          r: "Une clause bénéficiaire doit identifier les bénéficiaires et prévoir les substitutions souhaitées. Une clause démembrée peut créer un usufruit ou un quasi-usufruit sur le capital, avec des droits et obligations différents : elle ne se résume pas au versement des intérêts. La répartition fiscale des abattements, la créance de restitution et sa déductibilité au second décès dépendent du montage et des textes applicables. Ces cas ne sont pas calculés dans ce module ; faire rédiger et vérifier la clause.",
-          source: "Article L132-8 du Code des assurances"
-        }
-      ]
-    },
-    {
-      category: "Strategie et optimisation",
-      questions: [
-        {
-          q: "Faut-il un ou plusieurs contrats d'assurance-vie ?",
-          r: "**Plusieurs contrats presentent des avantages :**\n\n- **Diversification des assureurs** : protection en cas de defaillance (garantie FGAP : 70 000 EUR par assureur)\n- **Gestion differenciee** : un contrat securitaire (fonds euros), un contrat dynamique (UC)\n- **Optimisation des rachats** : racheter sur le contrat le plus ancien (meilleure fiscalite)\n- **Beneficiaires differents** : adapter la clause par contrat\n\nLe nombre de contrats dépend des objectifs et des frais ; il ne multiplie pas les plafonds fiscaux globaux.",
-          source: "Article L423-1 du Code des assurances (FGAP)"
-        },
-        {
-          q: "Assurance-vie et IFI : quel impact ?",
-          r: "L'assurance-vie est en principe **hors du champ de l'IFI**, sauf dans un cas :\n\n**Contrats rachetables investis en immobilier :**\n- Les unites de compte adossees a de l'immobilier (SCPI, OPCI, SCI) sont soumises a l'IFI\n- La fraction representative de biens immobiliers doit etre declaree\n- Les fonds euros et UC en actions/obligations ne sont PAS concernes\n\n**Astuce :** privilegier les fonds euros et UC en valeurs mobilieres pour echapper a l'IFI tout en conservant une exposition immobiliere via d'autres vehicules.",
-          source: "Article 972 du CGI"
-        },
-        {
-          q: "Peut-on transferer un contrat sans fiscalite ?",
-          r: "Une transformation admissible de votre contrat chez le même assureur peut conserver son antériorité fiscale. Un rachat suivi d’un versement sur un PER est une autre opération : il n’emporte pas conservation de l’antériorité de l’assurance-vie dans le PER. L’avantage temporaire de doublement de l’abattement pour certains rachats reversés au PER a pris fin le 31 décembre 2022. Comparez frais, garanties, supports, fiscalité du rachat et disponibilité de l’épargne avant de décider. L’ancienneté du contrat est un critère, pas une raison suffisante pour conserver un contrat coûteux.",
-          source: "CGI 125-0 A ; Service Public, PER : fin de l’avantage temporaire au 31 décembre 2022"
-        },
-        {
-          q: "Quelle strategie de rachat pour minimiser l'impot ?",
-          r: "**Optimisation des rachats :**\n\n1. **Attendre les 8 ans** : pour beneficier de l'abattement et du taux reduit\n2. **Etaler les rachats** : utiliser l'abattement annuel de 4 600/9 200 EUR chaque annee\n3. **Racheter en fin d'annee** : si besoin de liquidites, racheter en decembre et janvier pour doubler l'abattement\n4. **Comparer PFU et bareme** : tenir compte du taux forfaitaire réellement applicable (7,5 ou 12,8 %), des autres revenus mobiliers et de la CSG déductible\n5. **Vérifier les primes nettes tous contrats au 31 décembre précédent** : pour beneficier du taux de 7,5 % meme apres 2017\n6. **Privilegier les rachats sur les contrats les plus anciens** : meilleure fiscalite"
-        }
-      ]
-    }
-  ];
-
-  const toggleQuestion = (categoryIndex: number, questionIndex: number) => {
-    const key = `${categoryIndex}-${questionIndex}`;
-    setOpenIndex(openIndex === key ? null : key);
-  };
-
-  return (
-    <div className="space-y-6">
-      {faqData.map((category, categoryIndex) => (
-        <div key={categoryIndex} className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b-2 border-indigo-100 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-xl font-bold text-gray-900">{category.category}</h3>
-              <span className="ml-auto bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold">
-                {category.questions.length} questions
-              </span>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-100">
-            {category.questions.map((item, questionIndex) => {
-              const isOpen = openIndex === `${categoryIndex}-${questionIndex}`;
-              return (
-                <div key={questionIndex} className="transition-all">
-                  <button
-                    onClick={() => toggleQuestion(categoryIndex, questionIndex)}
-                    className="w-full px-6 py-5 flex items-start gap-4 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <div className="flex-shrink-0 mt-1">
-                      {isOpen ? (
-                        <ChevronUp className="w-5 h-5 text-indigo-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                        {item.q}
-                      </h4>
-                      {!isOpen && (
-                        <p className="text-sm text-gray-500">
-                          Cliquez pour voir la reponse detaillee
-                        </p>
-                      )}
-                    </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="px-6 pb-6 pl-16">
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-100">
-                        <div className="prose prose-sm max-w-none">
-                          {item.r.split('\n').map((line, i) => {
-                            if (line.trim() === '') return <br key={i} />;
-                            const parts = line.split(/(\*\*.*?\*\*)/g);
-                            return (
-                              <p key={i} className="mb-2 text-gray-800 leading-relaxed">
-                                {parts.map((part, j) => {
-                                  if (part.startsWith('**') && part.endsWith('**')) {
-                                    return <strong key={j} className="text-gray-900">{part.slice(2, -2)}</strong>;
-                                  }
-                                  return <span key={j}>{part}</span>;
-                                })}
-                              </p>
-                            );
-                          })}
-                        </div>
-
-                        {'source' in item && item.source && (
-                          <div className="mt-4 pt-4 border-t-2 border-blue-200">
-                            <div className="flex items-start gap-2">
-                              <BookOpen className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                              <div>
-                                <p className="text-xs font-semibold text-blue-900 mb-1">Reference legale :</p>
-                                <p className="text-xs text-blue-800 font-medium">{item.source}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // ============================================
 // COMPOSANT PRINCIPAL
@@ -827,7 +662,6 @@ function AssuranceVieContent() {
     { id: 'rachat', label: 'Rachat', icon: Euro },
     { id: 'succession', label: 'Succession', icon: Heart },
     { id: 'projection', label: 'Projection', icon: TrendingUp },
-    { id: 'faq', label: 'FAQ', icon: HelpCircle }
   ];
 
   return (
@@ -842,14 +676,15 @@ function AssuranceVieContent() {
           </div>
           <h1 className={`font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-4 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
             Simulateur Assurance-Vie
-          </h1><div className="mt-4 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><p>Contrats courants souscrits depuis le 20 novembre 1991 ; capitaux relevant de l’article 990 I issus des versements depuis le 13 octobre 1998. Les anciens contrats et primes bénéficiant d’une exonération historique sont hors périmètre. Les parts avant/après 2017 doivent correspondre aux produits du rachat, selon son décompte. Rachat réservé au résident fiscal français : solde social de l’assureur à renseigner pour éviter de taxer à nouveau des produits déjà prélevés, notamment sur fonds euros. Hors contrats rente-survie, épargne handicap et exonérations particulières. L’IR au barème est approché par la TMI : l’option globale sur les revenus mobiliers et la CSG déductible ne sont pas liquidées ici.</p><label className="block">Primes nettes avant le 27/09/2017, tous contrats au 31/12 précédent (€), zéro accepté<input type="number" min="0" value={primesAvantTousContrats} onChange={e=>setPrimesAvantTousContrats(e.target.value)} className="block border rounded p-2"/></label><label className="block">Abattement annuel de rachat déjà utilisé (€)<input type="number" min="0" value={abattementRachatConsomme} onChange={e=>setAbattementRachatConsomme(e.target.value)} className="block border rounded p-2"/></label><label className="block">Produits du rachat indiqués par l’assureur (€), facultatif<input type="number" min="0" value={produitsAssureur} onChange={e=>setProduitsAssureur(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Solde des prélèvements sociaux du rachat (€), facultatif<input type="number" value={soldePSAssureur} onChange={e=>setSoldePSAssureur(e.target.value)} className="block w-full border rounded p-2"/><span>Solde restant après PS déjà payés ; zéro accepté, négatif en cas de restitution confirmée. À défaut, estimation de 17,2 % sur tous les produits du rachat.</span></label><p>Pour un rachat de huit ans ou plus avec produits après 2017, renseigner les primes nettes avant ET après 2017 tous contrats, même nulles. Aucun prorata des primes n’est déduit du prorata des produits. <a className="underline" href="https://www.impots.gouv.fr/particulier/questions/jai-effectue-des-retraits-sur-mon-contrat-dassurance-vie-quelles-sont-les">DGFiP : imposition des rachats</a> ; <a className="underline" href="https://www.impots.gouv.fr/particulier/lassurance-vie-et-le-pea-0">Prélèvements sociaux</a>.</p></div>
+          </h1>
           <p className={`text-gray-600 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-lg'}`}>
-            Fiscalite des rachats, transmission successorale, projection de capitalisation.
-            Comparez les strategies pour optimiser votre contrat d&apos;assurance-vie.
+            Choisissez un rachat, une transmission ou une projection de capital.
+            Préparez le décompte de votre assureur pour renseigner les données fiscales.
           </p>
         </div>
 
-        {/* ===== NAVIGATION ONGLETS ===== */}
+        <details className="mb-4 text-left"><summary className="cursor-pointer py-2 font-semibold">Contrats et fiscalité couverts</summary><p>Contrats courants souscrits depuis le 20 novembre 1991 ; capitaux relevant de l’article 990 I issus des versements depuis le 13 octobre 1998. Les anciens contrats et primes bénéficiant d’une exonération historique sont hors périmètre. Les parts avant/après 2017 doivent correspondre aux produits du rachat, selon son décompte. Rachat réservé au résident fiscal français : solde social de l’assureur à renseigner pour éviter de taxer à nouveau des produits déjà prélevés, notamment sur fonds euros. Hors contrats rente-survie, épargne handicap et exonérations particulières. L’IR au barème est approché par la TMI : l’option globale sur les revenus mobiliers et la CSG déductible ne sont pas liquidées ici.</p></details>
+{/* ===== NAVIGATION ONGLETS ===== */}
         <div className={`flex gap-2 mb-8 ${isMobile ? 'flex-wrap justify-center' : 'justify-center'}`}>
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -873,6 +708,8 @@ function AssuranceVieContent() {
         {/* ===== ONGLET RACHAT ===== */}
         {activeTab === 'rachat' && (
           <div className={`grid gap-8 ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'}`}>
+
+
             {/* Formulaire */}
             <div className="space-y-6">
               <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
@@ -1072,7 +909,8 @@ function AssuranceVieContent() {
                   </div>
                 </div>
               </div>
-            </div>
+            <div className="mt-4 p-4 bg-blue-50 rounded-xl text-sm space-y-3"><h2 className="text-lg font-semibold">Données fiscales du rachat</h2><p>Complétez ces informations à partir du décompte de votre assureur.</p><label className="block">Primes nettes avant le 27/09/2017, tous contrats au 31/12 précédent (€), zéro accepté<input type="number" min="0" value={primesAvantTousContrats} onChange={e=>setPrimesAvantTousContrats(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Abattement annuel de rachat déjà utilisé (€)<input type="number" min="0" value={abattementRachatConsomme} onChange={e=>setAbattementRachatConsomme(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Produits du rachat indiqués par l’assureur (€), facultatif<input type="number" min="0" value={produitsAssureur} onChange={e=>setProduitsAssureur(e.target.value)} className="block w-full border rounded p-2"/></label><label className="block">Solde des prélèvements sociaux du rachat (€), facultatif<input type="number" value={soldePSAssureur} onChange={e=>setSoldePSAssureur(e.target.value)} className="block w-full border rounded p-2"/><span>Solde restant après PS déjà payés ; zéro accepté, négatif en cas de restitution confirmée. À défaut, estimation de 17,2 % sur tous les produits du rachat.</span></label><p>Pour un rachat de huit ans ou plus avec produits après 2017, renseigner les primes nettes avant ET après 2017 tous contrats, même nulles. Aucun prorata des primes n’est déduit du prorata des produits. <a className="underline" href="https://www.impots.gouv.fr/particulier/questions/jai-effectue-des-retraits-sur-mon-contrat-dassurance-vie-quelles-sont-les">DGFiP : imposition des rachats</a> ; <a className="underline" href="https://www.impots.gouv.fr/particulier/lassurance-vie-et-le-pea-0">Prélèvements sociaux</a>.</p></div>
+</div>
 
             {/* Resultats */}
             <div className="space-y-6">
@@ -1814,16 +1652,8 @@ function AssuranceVieContent() {
           </div>
         )}
 
-        {/* ===== ONGLET FAQ ===== */}
-        {activeTab === 'faq' && (
-          <div>
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Questions frequentes</h2>
-              <p className="text-gray-600">Tout savoir sur la fiscalite de l&apos;assurance-vie</p>
-            </div>
-            <FAQSection />
-          </div>
-        )}
+
+
 
         {/* ===== AVERTISSEMENT JURIDIQUE ===== */}
         <div className="mt-12 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 p-6">

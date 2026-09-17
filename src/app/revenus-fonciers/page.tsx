@@ -6,34 +6,10 @@
 "use client";
 
 import FoyerFields, { foyerInitial, lireFoyer } from '@/components/FoyerFields';
-import { BAREME_IR_2026, repartirDeficitFoncier } from '@/lib/fiscal';
+import { BAREME_IR_2026 } from '@/lib/fiscal';
 import { liquidationFoncier, projectionFoncier, type ParametresFoncier } from '@/lib/foncier';
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Home,
-  Building2,
-  TrendingUp,
-  Calculator,
-  PieChart as PieChartIcon,
-  AlertCircle,
-  Info,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Landmark,
-  Percent,
-  Euro,
-  Plus,
-  Trash2,
-  Shield,
-  CheckCircle,
-  XCircle,
-  Scale,
-  BarChart3,
-  ArrowRight,
-  Download
-} from 'lucide-react';
+import { Home, Building2, TrendingUp, Calculator, PieChart as PieChartIcon, AlertCircle, Info, Landmark, Percent, Euro, Plus, Trash2, Shield, CheckCircle, XCircle, Scale, BarChart3, ArrowRight, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import {
   PieChart,
@@ -175,130 +151,9 @@ function calculerImpotTMI(revenuImposable: number, tmi: number): number {
 }
 
 // ============================================
-// COMPOSANT FAQ
 // ============================================
 
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const faqs = [
-    {
-      category: "Principes fondamentaux",
-      questions: [
-        {
-          q: "Qu'est-ce que le micro-foncier ?",
-          r: "Le micro-foncier applique un abattement de 30 % aux recettes foncières brutes du foyer n’excédant pas 15 000 €, sous réserve des exclusions de l’article 32 et d’une option réelle en cours. Pinel et Denormandie ne l’excluent pas à eux seuls. Des parts de SCI/SCPI peuvent être compatibles si le foyer loue aussi directement un immeuble nu et respecte les autres conditions ; une détention exclusive de parts relève en principe d’un autre traitement. Le plafond inclut toutes les recettes du foyer, pas seulement un bien.",
-        },
-        {
-          q: "Quand choisir le regime reel ?",
-          r: "Le regime reel est avantageux lorsque vos charges reelles deductibles depassent 30% de vos revenus bruts, c'est-a-dire lorsque l'abattement forfaitaire du micro-foncier ne couvre pas l'integralite de vos frais. C'est typiquement le cas lorsque vous avez un emprunt immobilier avec des interets significatifs, des travaux importants d'entretien, de reparation ou d'amelioration, ou des charges de copropriete elevees. Le regime reel est obligatoire si vos revenus fonciers depassent 15 000 euros par an. L'option pour le reel est irrevocable pendant 3 ans minimum. (Article 31 du CGI)"
-        },
-        {
-          q: "Qu'est-ce que le deficit foncier ?",
-          r: "Le deficit foncier survient lorsque vos charges deductibles en regime reel sont superieures a vos revenus fonciers. Ce deficit est imputable sur votre revenu global dans la limite de 10 700 euros par an (hors interets d'emprunt). Les interets d'emprunt ne sont deductibles que des revenus fonciers. L'excedent de deficit non impute est reportable pendant 10 ans sur les revenus fonciers futurs. Le deficit foncier constitue un puissant levier d'optimisation fiscale, notamment pour les contribuables dans les tranches marginales elevees. Attention : la creation d'un deficit foncier impose le maintien en location pendant au moins 3 ans apres l'imputation. (Article 156 I 3 du CGI)"
-        }
-      ]
-    },
-    {
-      category: "Declaration et gestion",
-      questions: [
-        {
-          q: "Comment declarer ses revenus fonciers ?",
-          r: "En micro-foncier, la declaration est simplifiee : reportez le montant brut de vos loyers en case 4BE du formulaire 2042. L'abattement de 30% est applique automatiquement. En regime reel, vous devez remplir le formulaire 2044 (ou 2044-SPE pour les regimes speciaux) en detaillant l'ensemble de vos revenus et charges pour chaque bien. Le resultat est ensuite reporte sur le formulaire 2042. Conservez tous les justificatifs pendant au minimum 3 ans (factures de travaux, quittances de loyer, tableaux d'amortissement, etc.) en cas de controle fiscal. (Articles 28 a 33 quinquies du CGI)"
-        },
-        {
-          q: "Peut-on revenir au micro-foncier apres le regime reel ?",
-          r: "L'option pour le regime reel est irrevocable pendant une periode de 3 ans. A l'issue de cette periode de 3 ans, vous pouvez revenir au micro-foncier si vos revenus bruts ne depassent pas 15 000 euros et si vous remplissez les conditions d'eligibilite. Le retour au micro-foncier se fait simplement en declarant vos revenus en case 4BE du formulaire 2042, sans formuler de demande prealable. Attention : si vous avez impute un deficit foncier sur votre revenu global, vous devez maintenir la location pendant 3 ans, meme si vous changez de regime fiscal. (Article 32-2 du CGI)"
-        }
-      ]
-    },
-    {
-      category: "Charges et deductions",
-      questions: [
-        {
-          q: "Quels travaux sont deductibles en regime reel ?",
-          r: "En regime reel, sont deductibles les travaux d'entretien et de reparation (maintien du bien en bon etat sans en modifier la structure : peinture, remplacement chaudiere, reparation toiture, etc.), les travaux d'amelioration pour les logements d'habitation (installation chauffage central, double vitrage, isolation, cuisine equipee, etc.). En revanche, les travaux de construction, reconstruction et agrandissement ne sont jamais deductibles des revenus fonciers. Les travaux doivent etre justifies par des factures d'entreprises. Les travaux realises par le proprietaire lui-meme (materiaux uniquement) sont deductibles sous conditions. (Article 31-I-1-a et b du CGI)"
-        },
-        {
-          q: "Comment optimiser sa fiscalite fonciere ?",
-          r: "Comparer le coût réel des travaux et du financement, la fiscalité immédiate et l’utilisation future des déficits. Une charge déductible demeure une dépense : aucun prêt in fine n’est recommandé au seul motif qu’il génère plus d’intérêts. Les reports fonciers doivent être suivis par année, et l’option réelle engage normalement pour trois ans. L’imputation globale impose en principe de maintenir la location jusqu’au 31 décembre de la troisième année suivant celle de l’imputation, sauf exceptions prévues.",
-        }
-      ]
-    },
-    {
-      category: "Cas particuliers",
-      questions: [
-        {
-          q: "Quelle est la difference entre revenus fonciers et BIC ?",
-          r: "La location nue relève des revenus fonciers, tandis que la location meublée relève en principe des BIC. Les seuils, abattements et obligations du micro-BIC dépendent notamment du type de location meublée et du millésime. Au réel, les amortissements obéissent à leurs limites et peuvent avoir un effet à la revente. Utiliser le simulateur LMNP/LMP pour ce régime ; il n’est pas interchangeable avec le micro-foncier.",
-        },
-        {
-          q: "Comment gerer plusieurs biens locatifs ?",
-          r: "Lorsque vous possedez plusieurs biens locatifs en location nue, le regime fiscal (micro-foncier ou reel) s'applique globalement a l'ensemble de vos biens : vous ne pouvez pas choisir le micro pour un bien et le reel pour un autre. Le plafond de 15 000 euros du micro-foncier s'apprecie sur la totalite de vos revenus fonciers bruts cumules. En regime reel, les charges de chaque bien sont detaillees sur le formulaire 2044, mais le resultat foncier est global. Un deficit genere par un bien peut se compenser avec les revenus positifs d'un autre bien. Les frais forfaitaires de 20 euros par local s'appliquent pour chacun de vos biens. (BOI-RFPI-BASE-10)"
-        },
-        {
-          q: "Quelles assurances sont deductibles ?",
-          r: "En regime reel, les primes d'assurance suivantes sont integralement deductibles des revenus fonciers : l'assurance proprietaire non occupant (PNO) qui est obligatoire en copropriete et fortement recommandee pour tout bailleur, la garantie loyers impayes (GLI) qui couvre le risque de non-paiement par le locataire, l'assurance emprunteur si elle est liee a un pret immobilier contracte pour l'acquisition ou les travaux du bien loue. L'assurance habitation du locataire n'est evidemment pas deductible par le proprietaire. Les primes doivent correspondre a la periode de location effective. (Article 31-I-1-a du CGI)"
-        }
-      ]
-    }
-  ];
-
-  return (
-    <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <HelpCircle className="w-8 h-8 text-indigo-600" />
-          Questions frequentes - Revenus fonciers
-        </h2>
-        <p className="text-gray-600 mt-2">
-          Tout ce que vous devez savoir sur la fiscalite des revenus locatifs
-        </p>
-      </div>
-
-      {faqs.map((category, categoryIndex) => (
-        <div key={categoryIndex} className="mb-8 last:mb-0">
-          <h3 className="text-xl font-bold text-indigo-900 mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            {category.category}
-          </h3>
-          <div className="space-y-3">
-            {category.questions.map((faq, questionIndex) => {
-              const globalIndex = categoryIndex * 100 + questionIndex;
-              const isOpen = openIndex === globalIndex;
-
-              return (
-                <div
-                  key={questionIndex}
-                  className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 transition-colors"
-                >
-                  <button
-                    onClick={() => setOpenIndex(isOpen ? null : globalIndex)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="font-semibold text-gray-900 pr-4">{faq.q}</span>
-                    {isOpen ? (
-                      <ChevronUp className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 py-4 bg-gray-50 border-t-2 border-gray-200">
-                      <p className="text-gray-700 leading-relaxed">
-                        {faq.r}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // ============================================
 // COMPOSANT PRINCIPAL
@@ -1350,12 +1205,10 @@ export default function RevenusFonciersPage() {
           )}
 
           {/* ============================================ */}
-          {/* FAQ */}
+
           {/* ============================================ */}
 
-          <div className="mt-12">
-            <FAQSection />
-          </div>
+
 
           {/* ============================================ */}
           {/* DISCLAIMER */}

@@ -39,7 +39,7 @@ export default function ViagerCalculator() {
   };
   const input = 'mt-1 w-full rounded-lg border border-slate-300 p-3 text-slate-900';
   const champ = (label: string, v: string, setter: (s: string) => void, suffix = '', min = '0') => <label className="block text-sm font-medium">{label}{suffix && ` (${suffix})`}<input className={input} type="number" min={min} step="any" value={v} onChange={e => setter(e.target.value)} required /></label>;
-  return <MainLayout><main className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
+  return <MainLayout><div className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
     <h1 className="text-3xl font-bold text-blue-950">Simulateur de viager</h1>
     <p className="mt-3 text-lg">Comparez un bouquet et une rente, la valeur d’occupation et la fiscalité des versements.</p>
     <div className="my-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
@@ -95,5 +95,5 @@ export default function ViagerCalculator() {
       <p>Le viager est un contrat aléatoire. L’article 1975 du Code civil vise le décès dans les vingt jours dû à une maladie dont la personne était atteinte lors du contrat ; tout décès dans ce délai n’annule pas automatiquement la vente.</p>
       <p><a className="text-blue-700 underline" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2762" target="_blank" rel="noreferrer">Service Public — vente en viager</a> · <a className="text-blue-700 underline" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F3173" target="_blank" rel="noreferrer">Service Public — imposition des rentes</a> · <a className="text-blue-700 underline" href="/plusvalue">Calcul de plus-value immobilière</a></p>
     </section>
-  </main></MainLayout>;
+  </div></MainLayout>;
 }

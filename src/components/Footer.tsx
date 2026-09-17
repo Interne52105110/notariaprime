@@ -60,7 +60,7 @@ export default function Footer() {
               <li><a href="/features" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Fonctionnalités</a></li>
               <li><Link href="/guides" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Guides pratiques</Link></li>
               <li><a href="/capacite-emprunt" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Budget immobilier</a></li>
-              <li><a href="/strategie-immobiliere" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Achat, location et revente</a></li>
+              <li><a href="/strategie-immobiliere" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Location en direct ou SCI IS</a></li>
               <li><a href="/relance-logement" className="inline-flex min-h-11 items-center hover:text-gray-900 transition">Relance logement</a></li>
               <li><a href="/documentation" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Documentation</a></li>
               <li><a href="/cours-comptable-taxateur" className="inline-flex min-h-6 items-center hover:text-gray-900 transition">Cours comptable-taxateur</a></li>

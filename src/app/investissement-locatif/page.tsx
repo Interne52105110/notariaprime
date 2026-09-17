@@ -9,36 +9,7 @@
 import { plafondLoyer2026, reductionsLocatives, triAnnuel, revenuFoncierAnnuel } from '@/lib/investissement';
 import { echeanceAnnuelle } from '@/lib/holding';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import {
-  Home,
-  TrendingUp,
-  Calculator,
-  PieChart as PieChartIcon,
-  AlertCircle,
-  Info,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Landmark,
-  Percent,
-  Euro,
-  Shield,
-  CheckCircle2,
-  Building,
-  Target,
-  BarChart3,
-  FileText,
-  MapPin,
-  Layers,
-  Wallet,
-  Scale,
-  TrendingDown,
-  Save,
-  FolderOpen,
-  Trash2,
-  Download,
-} from 'lucide-react';
+import { Home, TrendingUp, Calculator, PieChart as PieChartIcon, AlertCircle, Info, ChevronDown, ChevronUp, Landmark, Percent, Euro, Shield, CheckCircle2, Building, Target, BarChart3, FileText, MapPin, Layers, Wallet, Scale, TrendingDown, Save, FolderOpen, Trash2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import {
   PieChart,
@@ -71,7 +42,7 @@ type Dispositif = 'aucun' | 'pinel' | 'denormandie' | 'loc_avantages' | 'deficit
 type DureePinel = 6 | 9 | 12;
 type NiveauLocAvantages = 'loc1' | 'loc2' | 'loc3';
 type SecteurMalraux = 'zppaup' | 'sauvegarde';
-type ActiveTab = 'simulation' | 'dispositifs' | 'projection' | 'faq';
+type ActiveTab = 'simulation' | 'dispositifs' | 'projection';
 
 interface FormData {
   prixAcquisition: string;
@@ -745,27 +716,7 @@ export default function SimulateurInvestissementLocatif() {
 
   return (
     <MainLayout>
-      <section className="mx-auto my-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
-        <h2 className="mb-3 text-lg font-semibold">Hypothèses fiscales et calendrier</h2>
-        <p>Projection à partir de 2026 en location nue au réel. Les intérêts et l’assurance du prêt sont déduits de l’assiette foncière ; le capital remboursé est une sortie de trésorerie. Les travaux sont financés dès le départ et ne sont pas ajoutés une deuxième fois à l’apport. Les frais d’acquisition automatiques sont une provision : renseignez votre devis de <a href="/pretaxe" className="underline">prétaxe</a>. Pour la location meublée, utilisez le <a href="/lmnp" className="underline">simulateur LMNP</a>.</p>
-        <div className="my-4 grid gap-4 md:grid-cols-3">
-          <label>Année d’acquisition<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2027" value={dispConfig.anneeAcquisition??'2026'} onChange={e=>setDispConfig(c=>({...c,anneeAcquisition:e.target.value}))}/></label>
-          <label>Première année de réduction d’impôt<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2026" value={dispConfig.premiereAnneeReduction??'2026'} onChange={e=>setDispConfig(c=>({...c,premiereAnneeReduction:e.target.value}))}/></label>
-          <label>Surface des annexes admissibles (m²)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.surfaceAnnexes??'0'} onChange={e=>setDispConfig(c=>({...c,surfaceAnnexes:e.target.value}))}/></label>
-          <label>IR annuel disponible avant cette réduction (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.irDisponible??'10000'} onChange={e=>setDispConfig(c=>({...c,irDisponible:e.target.value}))}/></label>
-          <label>Plafond annuel de niches encore disponible (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" max="10000" value={dispConfig.nichesDisponibles??'10000'} onChange={e=>setDispConfig(c=>({...c,nichesDisponibles:e.target.value}))}/></label>
-          <label>Engagement initial Pinel / Denormandie<select className="mt-1 w-full rounded border p-2" value={dispConfig.initialPinel??9} onChange={e=>setDispConfig(c=>({...c,initialPinel:Number(e.target.value) as 6|9}))}><option value={6}>6 ans</option><option value={9}>9 ans</option></select></label>
-        </div>
-        <p>Le loyer plafond 2026 utilise la surface utile (habitable + moitié des annexes admissibles, limitée à 8 m²) et le coefficient 0,7 + 19/S, arrondi à deux décimales et plafonné à 1,2. Les plafonds préfectoraux peuvent être inférieurs. L’IR disponible doit inclure l’impôt sur les loyers et rester disponible après les autres réductions ; il est supposé constant. Malraux est hors plafonnement global, avec report de la réduction non utilisée sur trois années.</p>
-        <div className="mt-4 space-y-3">
-          <label className="block"><input type="checkbox" checked={dispConfig.conditionsConfirmees===true} onChange={e=>setDispConfig(c=>({...c,conditionsConfirmees:e.target.checked}))}/> Conditions du dispositif sélectionné vérifiées : logement et commune éligibles, nature/délai des travaux, locataire et ressources, loyer local, engagement de location et formalités. Loc’Avantages : convention Anah valide ; Malraux : restauration complète et autorisations adaptées au secteur.</label>
-          <label className="block"><input type="checkbox" checked={dispConfig.pinelPlus===true} onChange={e=>setDispConfig(c=>({...c,pinelPlus:e.target.checked}))}/> Pinel 2023/2024 : maintien des taux pleins confirmé (Pinel+ ou quartier prioritaire éligible).</label>
-          <label className="block"><input type="checkbox" checked={dispConfig.deficitEnergetique===true} onChange={e=>setDispConfig(c=>({...c,deficitEnergetique:e.target.checked}))}/> Déficit foncier : tous les travaux déductibles saisis sont éligibles à la majoration énergétique (devis, dates de paiement et passage E/F/G vers A/B/C/D avant fin 2027 vérifiés).</label>
-        </div>
-        <p className="mt-3">Les budgets Malraux sont supposés payés en 2026. Le déficit foncier suppose des travaux déductibles payés en 2026, un revenu global suffisant et le maintien de la location ; le report foncier est suivi dix ans. Les travaux ouvrant droit à Pinel, Denormandie ou Malraux ne sont pas aussi déduits des revenus fonciers.</p>
-        <p className="mt-3">Le rendement net-net est calculé après intérêts, assurance et impôts, avant remboursement du capital ; le cash-flow inclut ce remboursement. Le TRI inclut l’IR et les PS locatifs, mais reste avant frais et fiscalité de cession. Il n’est pas annoncé quand les flux ne permettent pas un TRI unique selon le critère de signes retenu. La valeur future part du prix d’acquisition : les travaux sont une dépense et ne sont pas présumés augmenter la valeur euro pour euro. Les valorisations et loyers futurs sont des hypothèses ; les charges augmentent de 2 % par an.</p>
-        <a className="mt-3 inline-block underline" href="https://bofip.impots.gouv.fr/bofip/10130-PGP.html/identifiant=BOI-BAREME-000017-20260310">BOFiP — plafonds locatifs 2026</a>
-      </section>
+
 
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 px-4">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -808,6 +759,28 @@ export default function SimulateurInvestissementLocatif() {
               </button>
             </div>
           </div>
+<section className="mx-auto my-6 max-w-7xl rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+        <h2 className="mb-3 text-lg font-semibold">Hypothèses fiscales et calendrier</h2>
+        <details className="mb-4"><summary className="cursor-pointer py-2 font-semibold">Lire les hypothèses d’exploitation</summary><p>Projection à partir de 2026 en location nue au réel. Les intérêts et l’assurance du prêt sont déduits de l’assiette foncière ; le capital remboursé est une sortie de trésorerie. Les travaux sont financés dès le départ et ne sont pas ajoutés une deuxième fois à l’apport. Les frais d’acquisition automatiques sont une provision : renseignez votre devis de <a href="/pretaxe" className="underline">prétaxe</a>. Pour la location meublée, utilisez le <a href="/lmnp" className="underline">simulateur LMNP</a>.</p></details>
+        <div className="my-4 grid gap-4 md:grid-cols-3">
+          <label>Année d’acquisition<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2027" value={dispConfig.anneeAcquisition??'2026'} onChange={e=>setDispConfig(c=>({...c,anneeAcquisition:e.target.value}))}/></label>
+          <label>Première année de réduction d’impôt<input className="mt-1 w-full rounded border p-2" type="number" min="2015" max="2026" value={dispConfig.premiereAnneeReduction??'2026'} onChange={e=>setDispConfig(c=>({...c,premiereAnneeReduction:e.target.value}))}/></label>
+          <label>Surface des annexes admissibles (m²)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.surfaceAnnexes??'0'} onChange={e=>setDispConfig(c=>({...c,surfaceAnnexes:e.target.value}))}/></label>
+          <label>IR annuel disponible avant cette réduction (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" value={dispConfig.irDisponible??'10000'} onChange={e=>setDispConfig(c=>({...c,irDisponible:e.target.value}))}/></label>
+          <label>Plafond annuel de niches encore disponible (€)<input className="mt-1 w-full rounded border p-2" type="number" min="0" max="10000" value={dispConfig.nichesDisponibles??'10000'} onChange={e=>setDispConfig(c=>({...c,nichesDisponibles:e.target.value}))}/></label>
+          <label>Engagement initial Pinel / Denormandie<select className="mt-1 w-full rounded border p-2" value={dispConfig.initialPinel??9} onChange={e=>setDispConfig(c=>({...c,initialPinel:Number(e.target.value) as 6|9}))}><option value={6}>6 ans</option><option value={9}>9 ans</option></select></label>
+        </div>
+        <details className="my-4"><summary className="cursor-pointer py-2 font-semibold">Comprendre les plafonds et la surface utile</summary><p>Le loyer plafond 2026 utilise la surface utile (habitable + moitié des annexes admissibles, limitée à 8 m²) et le coefficient 0,7 + 19/S, arrondi à deux décimales et plafonné à 1,2. Les plafonds préfectoraux peuvent être inférieurs. L’IR disponible doit inclure l’impôt sur les loyers et rester disponible après les autres réductions ; il est supposé constant. Malraux est hors plafonnement global, avec report de la réduction non utilisée sur trois années.</p></details>
+        <div className="mt-4 space-y-3">
+          <label className="block"><input type="checkbox" checked={dispConfig.conditionsConfirmees===true} onChange={e=>setDispConfig(c=>({...c,conditionsConfirmees:e.target.checked}))}/> Conditions du dispositif sélectionné vérifiées : logement et commune éligibles, nature/délai des travaux, locataire et ressources, loyer local, engagement de location et formalités. Loc’Avantages : convention Anah valide ; Malraux : restauration complète et autorisations adaptées au secteur.</label>
+          <label className="block"><input type="checkbox" checked={dispConfig.pinelPlus===true} onChange={e=>setDispConfig(c=>({...c,pinelPlus:e.target.checked}))}/> Pinel 2023/2024 : maintien des taux pleins confirmé (Pinel+ ou quartier prioritaire éligible).</label>
+          <label className="block"><input type="checkbox" checked={dispConfig.deficitEnergetique===true} onChange={e=>setDispConfig(c=>({...c,deficitEnergetique:e.target.checked}))}/> Déficit foncier : tous les travaux déductibles saisis sont éligibles à la majoration énergétique (devis, dates de paiement et passage E/F/G vers A/B/C/D avant fin 2027 vérifiés).</label>
+        </div>
+        <p className="mt-3">Les budgets Malraux sont supposés payés en 2026. Le déficit foncier suppose des travaux déductibles payés en 2026, un revenu global suffisant et le maintien de la location ; le report foncier est suivi dix ans. Les travaux ouvrant droit à Pinel, Denormandie ou Malraux ne sont pas aussi déduits des revenus fonciers.</p>
+        <details className="my-4"><summary className="cursor-pointer py-2 font-semibold">Lire le rendement, le cash-flow et le TRI</summary><p>Le rendement net-net est calculé après intérêts, assurance et impôts, avant remboursement du capital ; le cash-flow inclut ce remboursement. Le TRI inclut l’IR et les PS locatifs, mais reste avant frais et fiscalité de cession. Il n’est pas annoncé quand les flux ne permettent pas un TRI unique selon le critère de signes retenu. La valeur future part du prix d’acquisition : les travaux sont une dépense et ne sont pas présumés augmenter la valeur euro pour euro. Les valorisations et loyers futurs sont des hypothèses ; les charges augmentent de 2 % par an.</p></details>
+        <a className="mt-3 inline-block underline" href="https://bofip.impots.gouv.fr/bofip/10130-PGP.html/identifiant=BOI-BAREME-000017-20260310">BOFiP — plafonds locatifs 2026</a>
+      </section>
+
 
           {/* ============================================ */}
           {/* TABS */}
@@ -818,7 +791,6 @@ export default function SimulateurInvestissementLocatif() {
                 { id: 'simulation' as ActiveTab, label: 'Simulation', icon: Calculator },
                 { id: 'dispositifs' as ActiveTab, label: 'Dispositifs fiscaux', icon: Shield },
                 { id: 'projection' as ActiveTab, label: 'Projection', icon: TrendingUp },
-                { id: 'faq' as ActiveTab, label: 'FAQ', icon: HelpCircle }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2077,13 +2049,9 @@ export default function SimulateurInvestissementLocatif() {
             )}
 
             {/* ============================================ */}
-            {/* TAB: FAQ */}
+
             {/* ============================================ */}
-            {activeTab === 'faq' && (
-              <div className="p-6">
-                <FAQSection />
-              </div>
-            )}
+
           </div>
 
           {/* ============================================ */}
@@ -2200,122 +2168,4 @@ export default function SimulateurInvestissementLocatif() {
 }
 
 // ============================================
-// COMPOSANT FAQ
 // ============================================
-
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const faqs = [
-    {
-      category: "Rentabilite et rendement",
-      questions: [
-        {
-          q: "Comment calculer la rentabilite d'un investissement locatif ?",
-          r: "La rentabilite d'un investissement locatif se mesure a plusieurs niveaux. Le rendement brut est le plus simple : (loyer annuel / prix d'acquisition) x 100. Il donne une premiere indication mais ne reflete pas la realite economique. Le rendement net integre les charges (copropriete, gestion, taxe fonciere, assurance PNO, vacance locative) et les frais de notaire. Le rendement net-net, le plus precis, deduit egalement la fiscalite (impot sur les revenus fonciers + prelevements sociaux de 17,2%). En France, un rendement brut de 5-7% est considere comme correct, un rendement net de 3-5% comme satisfaisant."
-        },
-        {
-          q: "Quelle difference entre rendement brut, net et net-net ?",
-          r: "Le rendement brut = (loyer annuel / (prix achat + travaux)) x 100. C'est un indicateur rapide de comparaison entre biens, mais il ne tient compte d'aucune charge. Le rendement net = ((loyer - charges annuelles) / (prix + frais notaire + travaux)) x 100. Il integre les charges de copropriete, la taxe fonciere, l'assurance, les frais de gestion et la vacance locative. Le rendement net-net de ce scénario déduit aussi les intérêts et l’assurance du prêt puis l’impôt sur les revenus fonciers, et ajoute les réductions retenues. Le cash-flow déduit en plus le capital remboursé. Il reste un indicateur sous hypothèses, avant fiscalité et frais de cession. Exemple : un bien a 200 000€ loue 800€/mois = 4,8% brut, ~3,5% net, ~2,3% net-net pour une TMI a 30%."
-        },
-        {
-          q: "Comment estimer le cash flow d'un investissement locatif ?",
-          r: "Le cash flow mensuel est la difference entre vos recettes et toutes vos depenses : Cash flow = Loyer effectif - Mensualite emprunt (capital + interets + assurance) - Charges de copropriete - Taxe fonciere/12 - Frais de gestion - Impots sur revenus fonciers/12 + Avantage fiscal/12. Un cash flow positif (autofinancement) signifie que le bien se rembourse tout seul. Un cash flow negatif implique un effort d'epargne mensuel. Pour maximiser le cash flow : augmentez l'apport (reduit la mensualite), negociez le prix d'achat, optimisez la fiscalite (LMNP, deficit foncier), et ciblez des zones a fort rendement locatif."
-        }
-      ]
-    },
-    {
-      category: "Dispositifs fiscaux",
-      questions: [
-        {
-          q: "Le dispositif Pinel est-il encore valable en 2025 ?",
-          r: "Le dispositif Pinel a officiellement pris fin le 31 decembre 2024. Les investisseurs ayant acquis un bien avant cette date continuent de beneficier de la reduction d'impot pendant toute la duree de leur engagement (6, 9 ou 12 ans). Les taux reduits de 2024 etaient : 9% sur 6 ans, 12% sur 9 ans, et 14% sur 12 ans, pour un plafond de 300 000€ d'investissement et 5 500€/m². Les zones eligibles etaient A bis, A et B1. Les dispositifs adoptés depuis, dont l’amortissement du bailleur privé prévu par la loi de finances 2026, suivent des conditions différentes : le simulateur Relance logement du menu les traite séparément. Les alternatives actuelles sont le Denormandie (ancien avec travaux), Loc'Avantages, le deficit foncier ou le statut LMNP."
-        },
-        {
-          q: "Qu'est-ce que le dispositif Denormandie ?",
-          r: "Le Denormandie est un dispositif fiscal pour l'investissement dans l'ancien avec travaux, proroge jusqu'au 31 decembre 2027. Il offre une réduction d’impôt de 12%, 18% ou 21% pour six, neuf ou douze ans mais s'applique aux logements anciens necessitant des travaux representant au moins 25% du cout total de l'operation. Les travaux eligibles sont : amelioration, renovation energetique, transformation en logement, modernisation. Les zones concernees sont les communes labellisees 'Coeur de ville' et celles ayant signe une convention ORT (Operation de Revitalisation de Territoire), soit plus de 300 villes moyennes."
-        },
-        {
-          q: "Comment fonctionne le deficit foncier ?",
-          r: "Le deficit foncier permet de deduire les charges et travaux de vos revenus fonciers, et d'imputer l'excedent sur votre revenu global. Les depenses deductibles sont : travaux d'entretien, de reparation et d'amelioration (pas de construction/agrandissement), interets d'emprunt (uniquement des revenus fonciers), charges de copropriete, assurances, frais de gestion. Le plafond d'imputation sur le revenu global est de 10 700€/an (21 400€ pour les travaux de renovation energetique sous conditions jusqu’au 31/12/2027). Le deficit non impute se reporte sur les revenus fonciers des 10 annees suivantes. Condition : conserver le bien en location pendant 3 ans apres l'imputation."
-        }
-      ]
-    },
-    {
-      category: "Financement et strategie",
-      questions: [
-        {
-          q: "Quel apport pour un investissement locatif ?",
-          r: "Pour un investissement locatif, les banques demandent generalement un apport de 10 a 20% du prix total (bien + frais de notaire + travaux). L'apport sert principalement a couvrir les frais de notaire (7,5% dans l'ancien, 2,5% dans le neuf) et les frais annexes. Certaines banques acceptent un financement a 110% (sans apport) pour les excellents profils : revenus eleves, CDI stable, patrimoine existant, faible endettement. L'apport influence directement votre cash flow : plus il est eleve, plus la mensualite est faible, plus le cash flow est positif. Strategie : un apport de 20-30% est souvent optimal pour concilier effet de levier du credit et cash flow positif."
-        },
-        {
-          q: "Quelle zone choisir pour investir ?",
-          r: "Le choix de la zone depend de votre strategie. Zone A bis / A (Paris, Lyon, Marseille) : prix eleves, rendement brut faible (3-4%) mais forte valorisation patrimoniale et faible vacance locative. Zone B1 (grandes villes > 250 000 hab.) : bon compromis rendement/securite (4-6% brut). Zone B2/C (villes moyennes, rural) : rendements bruts eleves (6-10%) mais risque de vacance locative plus fort, moins de valorisation. Criteres cles : tension locative (demande > offre), bassin d'emploi dynamique, transports, universites, evolution demographique. Les villes comme Rennes, Nantes, Montpellier, Toulouse offrent actuellement un bon equilibre rendement/securite."
-        },
-        {
-          q: "Faut-il investir dans le neuf ou l'ancien ?",
-          r: "Neuf : frais de notaire reduits (~2,5%), garanties de construction selon leur champ, sans garantie d’absence de travaux pendant dix ans, normes energetiques actuelles (RE 2020), eligible a certains dispositifs (Pinel historique). Inconvenients : prix au m² plus eleve (20-30% de plus), rendement brut plus faible. Ancien : prix d'achat inferieur, meilleurs rendements locatifs, emplacement souvent plus central, possibilite de creer de la valeur avec des travaux. Inconvenients : frais de notaire plus eleves (~7,5%), travaux potentiels, performance energetique parfois faible. Ancien avec travaux : le meilleur des deux mondes avec les dispositifs Denormandie ou deficit foncier, mais necessite plus de gestion de projet. Pour un premier investissement, l'ancien bien situe est souvent le choix le plus pertinent."
-        },
-        {
-          q: "Comment optimiser la fiscalite de son investissement locatif ?",
-          r: "Plusieurs leviers s'offrent a vous selon votre situation. 1) LMNP (location meublee) : en regime reel, l'amortissement du bien et du mobilier permet souvent de neutraliser l'imposition pendant 10-15 ans. 2) Deficit foncier : en location nue avec travaux importants, deductibles des revenus fonciers et du revenu global (10 700€/an). 3) SCI a l'IS : pour les investisseurs a forte TMI, l'imposition a l'IS (15% jusqu'a 42 500€) + amortissement peut etre avantageux. 4) Regime micro-foncier : si vos revenus fonciers < 15 000€/an, abattement forfaitaire de 30%. 5) Loc'Avantages : reduction d'impot en echange de loyers moderes. Le choix depend de votre TMI, de votre patrimoine existant, et de votre strategie a long terme. Un conseiller en gestion de patrimoine peut vous aider a optimiser."
-        }
-      ]
-    }
-  ];
-
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <HelpCircle className="w-8 h-8 text-indigo-600" />
-          Questions frequentes sur l&apos;investissement locatif
-        </h2>
-        <p className="text-gray-600 mt-2">
-          Tout ce que vous devez savoir pour reussir votre investissement immobilier
-        </p>
-      </div>
-
-      {faqs.map((category, categoryIndex) => (
-        <div key={categoryIndex} className="mb-8 last:mb-0">
-          <h3 className="text-xl font-bold text-indigo-900 mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            {category.category}
-          </h3>
-          <div className="space-y-3">
-            {category.questions.map((faq, questionIndex) => {
-              const globalIndex = categoryIndex * 100 + questionIndex;
-              const isOpen = openIndex === globalIndex;
-
-              return (
-                <div
-                  key={questionIndex}
-                  className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 transition-colors"
-                >
-                  <button
-                    onClick={() => setOpenIndex(isOpen ? null : globalIndex)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="font-semibold text-gray-900 pr-4">{faq.q}</span>
-                    {isOpen ? (
-                      <ChevronUp className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 py-4 bg-gray-50 border-t-2 border-gray-200">
-                      <p className="text-gray-700 leading-relaxed">
-                        {faq.r}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}

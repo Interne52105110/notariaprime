@@ -17,7 +17,7 @@ const toolCategories = [
       { name: 'Simulateur Viager', href: '/viager', icon: HeartHandshake, color: 'text-orange-600' },
       { name: 'Investissement Locatif', href: '/investissement-locatif', icon: BarChart3, color: 'text-cyan-600' },
       { name: 'Capacité d’emprunt', href: '/capacite-emprunt', icon: Landmark, color: 'text-indigo-600' },
-      { name: 'Achat, location et revente', href: '/strategie-immobiliere', icon: Building, color: 'text-purple-600' },
+      { name: 'Location en direct ou SCI IS', href: '/strategie-immobiliere', icon: Building, color: 'text-purple-600' },
       { name: 'Relance logement', href: '/relance-logement', icon: Home, color: 'text-teal-600' },
       { name: 'Guides pratiques', href: '/guides', icon: Calculator, color: 'text-indigo-600' },
       { name: 'Prêt Immobilier', href: '/pret', icon: Landmark, color: 'text-indigo-600' },

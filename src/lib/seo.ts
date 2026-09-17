@@ -19,7 +19,7 @@ interface PageMeta {
 export const PAGE_META: Record<string, PageMeta> = {
   "/guides": {"title": "Guides immobiliers et patrimoniaux — NotariaPrime", "description": "Préparez achat, donation, succession et investissement : guides chiffrés, pièces à réunir, sources officielles et liens vers les calculateurs."},
   "/capacite-emprunt": {"title": "Capacité d’emprunt et budget immobilier — NotariaPrime", "description": "Estimez votre mensualité disponible, votre capacité de crédit et votre budget d’achat avec apport, assurance et frais. Hypothèses à adapter à la banque."},
-  "/strategie-immobiliere": {"title": "Investissement immobilier : achat, location et revente", "description": "Comparez une location nue en direct et une SCI à l’IS sur toute la durée : emprunt, trésorerie annuelle, impôt à la vente et distribution du produit."},
+  "/strategie-immobiliere": {"title": "Location nue en direct ou SCI à l’IS : comparaison", "description": "Comparez une location nue en direct et une SCI à l’IS sur toute la durée : emprunt, trésorerie annuelle, impôt à la vente et distribution du produit."},
   "/relance-logement": {"title": "Relance logement 2026 : simulateur d’amortissement", "description": "Estimez la déduction Jeanbrun dans le neuf ou l’ancien réhabilité : base, taux, plafond du foyer, prorata et effet fiscal indicatif sous conditions."},
   // ---------- Calculateurs ----------
   "/assurance-vie": {

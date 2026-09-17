@@ -39,7 +39,7 @@ export default function LMNPPage(){
   const cotisant=form.socialForce||(n('recettes')>23000&&(form.type!=='classique'||n('recettes')>n('autresRevenus')));
   const sauvegarder=()=>{try{localStorage.setItem(stockage,JSON.stringify(form));setMessage('Simulation enregistrée sur cet appareil. Le mode foyer doit être renseigné à nouveau après chargement.');}catch{setMessage('Le navigateur ne permet pas cet enregistrement.');}};
   const charger=()=>{try{const raw=localStorage.getItem(stockage);if(!raw){setMessage('Aucune simulation enregistrée dans cette version. Les anciens calculs ne sont pas réutilisés automatiquement.');return;}const data=JSON.parse(raw);const valid=Object.keys(initial).every(k=>typeof data[k]===typeof initial[k as keyof Formulaire]);if(!valid)throw Error();setForm(data);setFoyer(foyerInitial);setCalculer(false);setMessage('Simulation chargée ; relancez le calcul.');}catch{setMessage('La sauvegarde est illisible.');}};
-  return <MainLayout><main className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
+  return <MainLayout><div className="mx-auto max-w-6xl px-4 py-10 text-slate-800">
     <h1 className="text-3xl font-bold">Location meublée : LMNP et LMP</h1>
     <p className="mt-3">Comparez le micro-BIC et le réel sur les recettes de 2026, puis estimez une revente sous le régime des particuliers. Les exemples préremplis sont à remplacer par les données de votre activité.</p>
     <nav aria-label="Sections location meublée" className="my-6 flex flex-wrap gap-2 print:hidden">{[['annuel','Fiscalité annuelle'],['amortissement','Amortissement'],['vente','Revente LMNP'],['methode','Règles et sources']].map(([id,label])=><button key={id} onClick={()=>{setTab(id);setCalculer(false);}} className={`rounded-lg px-4 py-3 ${tab===id?'bg-indigo-700 text-white':'bg-slate-100'}`}>{label}</button>)}</nav>
@@ -94,5 +94,5 @@ export default function LMNPPage(){
         <li><a className="text-indigo-700 underline" href="https://www.impots.gouv.fr/particulier/questions/je-vends-mon-bien-immobilier-vais-je-payer-de-la-plus-value-immobiliere">DGFiP : plus-values et résidences exclues de la réintégration</a></li>
       </ul>
     </section>}
-  </main></MainLayout>;
+  </div></MainLayout>;
 }
