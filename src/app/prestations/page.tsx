@@ -73,11 +73,10 @@ export default function PrestationsPage() {
       badge: 'Évaluation & Expertise',
       title: 'Expertise Immobilière',
       subtitle: 'Expert judiciaire Cour d\'Appel Rennes',
-      description: 'Expert en évaluation immobilière avec 16 ans d\'expérience et plus de 1 500 expertises réalisées. Certifications TEGOVA reconnues.',
+      description: 'Expert en évaluation immobilière avec 16 ans d\'expérience et plus de 1 500 expertises réalisées.',
       experience: '16 ans | +1 500 expertises',
       highlights: [
         'Expert judiciaire près la Cour d\'Appel de Rennes',
-        'Certifications TEGOVA (REV, Hyporev, MRICS)',
         'Évaluation garanties bancaires',
         'Rapports conformes normes EVS 2025 et CRR',
         'Délai standard 10 jours (express 5 jours)',
@@ -148,7 +147,7 @@ export default function PrestationsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-600">Certifications reconnues</span>
+                  <span className="text-gray-600">Expertise immobilière</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -310,9 +309,9 @@ export default function PrestationsPage() {
                 {
                   icon: Award,
                   title: 'Expertise reconnue',
-                  description: 'Certifications officielles et reconnaissance judiciaire',
-                  metric: 'TEGOVA',
-                  metricLabel: 'Certifié'
+                  description: 'Évaluation immobilière et missions judiciaires',
+                  metric: '1 500+',
+                  metricLabel: 'Expertises réalisées'
                 },
                 {
                   icon: Clock,
