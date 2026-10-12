@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CheckCircle2, Shield, TrendingUp, Award, BarChart3, ExternalLink, Linkedin } from 'lucide-react';
+import { Building2, CheckCircle2, Shield, TrendingUp, BarChart3, ExternalLink, Linkedin } from 'lucide-react';
 
 export default function ExpertiseImmobiliere() {
   return (
@@ -10,7 +10,7 @@ export default function ExpertiseImmobiliere() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full mb-6">
             <Building2 className="w-4 h-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-900">Certifié TEGOVA REV+TRV</span>
+            <span className="text-sm font-medium text-emerald-900">Évaluation immobilière</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Expertise immobilière & Due Diligence
@@ -79,7 +79,7 @@ export default function ExpertiseImmobiliere() {
             </div>
           </div>
 
-          {/* Certifications */}
+          {/* Modalités d'intervention */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-12">
             <h3 className="text-2xl font-semibold text-gray-900 mb-6">Modalités d&apos;intervention</h3>
             <div className="grid md:grid-cols-2 gap-6">
@@ -117,13 +117,8 @@ export default function ExpertiseImmobiliere() {
             </div>
           </div>
 
-          {/* Certifications */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-6 text-center">
-              <Award className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">TEGOVA REV+TRV</h3>
-              <p className="text-sm text-gray-600">Certifications européennes reconnues</p>
-            </div>
+          {/* Expérience professionnelle */}
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 text-center">
               <Shield className="w-12 h-12 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Expert judiciaire</h3>
